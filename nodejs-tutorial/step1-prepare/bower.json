@@ -1,0 +1,21 @@
+{
+  "name": "hello",
+  "authors": [
+    "Ning <ning.chen@logicmonitor.com>"
+  ],
+  "description": "test application",
+  "main": "app.js",
+  "keywords": [
+    "hello",
+    "world"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
