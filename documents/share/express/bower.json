@@ -1,0 +1,23 @@
+{
+  "name": "server",
+  "homepage": "https://github.com/jessexi/deploy-platform",
+  "authors": [
+    "jesse <jesse.xi@logicmonitor.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "ejs": "^1.0.0",
+    "angular": "^1.5.5",
+    "jquery": "^2.2.4"
+  }
+}

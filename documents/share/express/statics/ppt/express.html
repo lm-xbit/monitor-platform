@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Share Express Framework | Created by JesseXi</title>
+
+
+    <meta name="description" content="express is a framework for node js" />
+    <meta name="author" content="Bartek Szopka" />
+
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+
+
+    <link href="/statics/impress/css/impress.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="/bootstrap/dist/css/bootstrap.css">
+    <script type="text/javascript" src="/angular/angular.js"></script>
+    <script type="text/javascript" src="/statics/scripts/jesse1.js"></script>
+
+    <link rel="icon" href="/statics/img/bitbug_favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/statics/img/bitbug_favicon.ico" type="image/x-icon" />
+
+</head>
+
+<body class="impress-not-supported">
+
+
+<div class="fallback-message">
+    <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+    <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
+</div>
+
+<div id="impress" data-perspective="1500" ng-app="ppt" ng-controller="pptControl">
+
+    <div id="bored" class="step" data-x="-900" data-y="-1500" data-rotate="-45" data-rotate-x="-90", data-rotate-y="0">
+        <h1><b>Express Framework</b> common usage share</h1>
+        <span class="footnote">     <sup>*</sup> jesse.xi</span>
+    </div>
+
+    <div class="step" data-x="0" data-y="-1500" data-rotate="0" data-rotate-x="-45", data-rotate-y="10">
+        <q class="try"><b>Express</b></q>
+        <p>Express is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications.</p>
+        <div class="codeDescription">Using express:
+          <pre>
+            //install
+            npm install express --save
+            //express project file auto generate
+            npm install express-generator -g
+            express "your project name"
+            //import in your node project
+            var express = require('express');
+            //new instance
+            var app = express();
+          </pre>
+        </div>
+    </div>
+
+    <div class="step" data-x="900" data-y="-1500" data-rotate="45" data-rotate-x="0", data-rotate-y="10">
+      <p><b>Serving static files</b></p>
+      <div class="codeDescription"> use the following code to serve '/bower_components' and 'statics' folder
+
+          <pre>app.use(express.static('bower_components'));</pre>
+          <pre>app.use('/statics', express.static(path.join(__dirname, './statics')));</pre>
+      </div>
+        <div class="codeDescription">Then you can access any foler under /bower_components like this:
+          <a href="/angular/angular.js">http://127.0.0.1:3000/angular/angular.js</a>
+        </div>
+        <div class="codeDescription">Access static folder using map name(see my slides):
+          <a href="/statics/ppt/express.html#/step-3">http://127.0.0.1:3000/statics/ppt/express.html#/step-3</a>
+        </div>
+
+    </div>
+
+
+    <div class="step" data-x="-900" data-y="0"  data-rotate="90" data-rotate-x="45", data-rotate-y="10">
+      <p><b>Routing</b></p>
+        <div class="codeDescription"> Routes an HTTP request, where METHOD is the HTTP method of the request, such as GET, PUT, POST, and so on, in lowercase. Thus, the actual methods are app.get(), app.post(), app.put(), and so on.
+          <pre>
+          app.METHOD(path, callback [, callback ...])
+
+          // respond with "hello world" when a <a href="/getHello">GET</a> request is made to the homepage
+          app.get('/getHello', sendHello);
+          // respond with "hello world" when a <button class="btn btn-info" ng-click="sendPost('/postHello')">POST</button> request is made to the homepage
+          app.post('/postHello', postHello);
+
+          function sendHello(req, res) {
+            res.render('index',{user: "xbit",title:"homepage", method: req.method, path: req.path});
+          };
+
+          function postHello(req, res) {
+            res.json({"Method": req.method,
+                    "Path": req.path});
+          }
+          </pre>
+        </div>
+    </div>
+
+
+    <div class="step" data-x="0" data-y="0"  data-rotate="135" data-rotate-x="60", data-rotate-y="10">
+      <p><b>Routing</b></p>
+        <div class="codeDescription"> Pay attachion, app.use(callback()) will match all URLs. each app.get('..') will routes according code order.
+          <pre>
+            app.route('/routeTest')
+            .all(function(req, res, next) {
+                //All request under '/routeTest' will call this first. because it write before get/post.
+                console.log("roteTest all");
+                next();
+            })
+            .get(sendHello)  //match get method under <a href="/routeTest">/routeTest</a>
+            .post(postHello); //match post method under <button class="btn btn-info" ng-click="sendPost('/routeTest')">/routeTest</button>
+          </pre>
+        </div>
+    </div>
+
+    <div class="step" data-x="900" data-y="0"  data-rotate="180" data-rotate-x="98", data-rotate-y="10">
+      <p><b>Routing</b></p>
+        <div class="codeDescription"> Error handler <a href="/routeTest404"> Example</a>
+          <pre>
+            //if url can not been found , new 404 error.
+            app.use(function(req, res, next) {
+              var err = new Error('Not Found');
+              err.status = 404;
+              next(err);
+            });
+
+            //handler err , and send back.
+            app.use(function(err, req, res, next) {
+              res.status(err.status || 500);
+              res.render('error', {
+                message: err.message,
+                code: err.status
+              });
+            });
+          </pre>
+        </div>
+    </div>
+
+    <div class="step" data-x="-900" data-y="1500"  data-rotate="45" data-rotate-x="38", data-rotate-y="10">
+      <p><b>Routing</b></p>
+      <div class="codeDescription"> Param :app.param([name], callback)
+        <pre>
+          app.param(['id', 'page'], function (req, res, next, value) {
+          console.log('CALLED ONLY ONCE with', value);
+          next();
+        })
+
+          app.get('/user/:id/:page', function (req, res, next) {
+            console.log('although this matches');
+            next();
+          });
+
+          app.get('/user/:id/:page', function (req, res) {
+            console.log('and this matches too');
+            res.end();
+          });
+        </pre>
+        On GET /user/42/3, the following is printed:
+        <pre>
+          CALLED ONLY ONCE with 42
+          CALLED ONLY ONCE with 3
+          although this matches
+          and this matches too
+        </pre>
+      </div>
+    </div>
+
+    <div class="step" data-x="0" data-y="1500"  data-rotate="45" data-rotate-x="38", data-rotate-y="10">
+        <p><b>Restful API support</b></p>
+        <div class="codeDescription"> List
+          <pre>
+            var products = [{
+              name: 'apple juice',
+              description: 'good',
+              price: 12.12
+            }, {
+              name: 'banana juice',
+              description: 'just so sos',
+              price: 4.50
+            }];
+
+            //get resource lists;
+            app.get('/products', function(req, res) {
+              res.json(products);
+            });
+          </pre>
+        </div>
+    </div>
+
+    <div class="step" data-x="900" data-y="1500"  data-rotate="45" data-rotate-x="38", data-rotate-y="10">
+        <p><b>Restful API support</b></p>
+        <div class="codeDescription"> Get 1 /post
+          <pre>
+            //get resource by id;
+            app.get('/products/:id', function(req, res) {
+              res.json(products[req.params.id]);
+            });
+
+            var jsonParser = bodyParser.json()
+            //post data;
+            app.post('/products', jsonParser, function(req, res) {
+              res.setHeader('Content-Type', 'text/plain')
+              var newProduct = {
+                name: req.body.name,
+                description: req.body.description,
+                price: req.body.price
+              };
+          </pre>
+        </div>
+    </div>
+</div>
+
+<div class="hint">
+    <p>Use a spacebar or arrow keys to navigate</p>
+</div>
+<script>
+if ("ontouchstart" in document.documentElement) {
+    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+}
+</script>
+
+<script src="/statics/impress/impress.js"></script>
+<script>impress().init();</script>
+
+</body>
+</html>
