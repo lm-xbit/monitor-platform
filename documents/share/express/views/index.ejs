@@ -1,0 +1,26 @@
+<html>
+    <head>
+        <title><%= title %></title>
+        <link rel="stylesheet" type="text/css" href="/bootstrap/dist/css/bootstrap.css">
+    </head>
+    <body>
+      <table class="table table-bordered" >
+        <caption>welcome <%= user%></caption>
+        <thead>
+          <tr>
+            <th>param</th>
+            <th>value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Method</td>
+            <td> <%= method%> </td>
+          </tr>
+          <tr>
+            <td>Path</td>
+            <td> <%= path%> </td>
+          </tr>
+      </table>
+    </body>
+</html>
