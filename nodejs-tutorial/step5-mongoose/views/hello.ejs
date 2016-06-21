@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <title>Hello, World</title>
+    <!--
+    <script src="/bower_components/jquery/dist/jquery.js"></script>    
+    -->
+    <link rel="stylesheet" type="text/css" href="/bower_components/bootstrap/dist/css/bootstrap.css">
+    <script type="text/javascript" src="/bower_components/angular/angular.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+  </head>
+  <body ng-app="HelloApp" role="document">
+    <div class="container" role="main" ng-controller="MainController">
+      <div class="jumbotron">
+        <say-hello author="'<%= author%>'" message="'<%= message%>'"></say-hello>
+      </div>
+
+      <div class="jumbotron">
+        <form name="LeaveForm" role="form" novalidate>
+          <fieldset>
+            <div class="form-group">
+              <label for="author">Author</label>
+              <input class="form-control" placeholder="Email address" name="author" id="author" ng-model="hot.author">
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <input class="form-control" placeholder="Message context" name="message" id="message" ng-model="hot.message">
+            </div>
+          </fieldset>
+          <div>
+            <button type="button" ng-disabled="editing" class="btn btn-success" data-ng-click="create(hot)">Create</button>
+            <button type="button" ng-disabled="!editing" class="btn btn-success" data-ng-click="update(hot)">Update</button>
+            <button type="button" ng-disabled="!editing" class="btn btn-success" data-ng-click="remove(hot)">Delete</button>
+          </div>
+        </form>
+        <style>
+          .selected{
+          background-color:green !important;
+          color:white;
+          font-weight:bold;
+          }
+        </style>
+        
+        <table class="table table-hover table-striped" data-toggle="table" data-height="299" data-click-to-select="true">
+          <thead>
+            <tr>
+              <th>Author</th>
+              <th>Message</th>
+              <th>Creation Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable-row" ng-repeat="msg in messages" ng-click="select(msg)" ng-class="{selected: msg === hot}">
+              <td>{{msg.author}}</td>
+              <td>{{msg.message}}</td>
+              <td>{{msg.created}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

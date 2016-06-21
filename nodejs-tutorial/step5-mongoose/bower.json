@@ -1,0 +1,26 @@
+{
+  "name": "hello",
+  "authors": [
+    "Ning <ning.chen@logicmonitor.com>"
+  ],
+  "description": "test application",
+  "main": "app.js",
+  "keywords": [
+    "hello",
+    "world"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.4",
+    "angular": "^1.5.5",
+    "bootstrap": "^3.3.6"
+  }
+}
