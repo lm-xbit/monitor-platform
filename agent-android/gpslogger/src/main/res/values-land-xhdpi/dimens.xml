@@ -1,0 +1,15 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+        <!-- Per the design guidelines, navigation drawers should be between 240dp and 320dp:
+         https://developer.android.com/design/patterns/navigation-drawer.html -->
+
+    <dimen name="view_text_width">200dp</dimen>
+
+
+
+    <dimen name="bigview_textsize">100sp</dimen>
+
+</resources>

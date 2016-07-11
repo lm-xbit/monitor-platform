@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:key="autoemail_preferences">
+
+    <com.mendhak.gpslogger.ui.components.CustomSwitchPreference
+        android:key="autoemail_enabled"
+                        android:title="@string/autosend_enabled"/>
+
+    <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="autoemail_target"
+                        android:title="@string/autoemail_target" android:summary="@string/autoemail_sendto_csv"
+                        android:dialogTitle="@string/autoemail_target" android:hint="@string/autoemail_sendto_csv"/>
+
+    <PreferenceCategory android:title="@string/autoemail_smtp_category">
+        <com.afollestad.materialdialogs.prefs.MaterialListPreference android:key="autoemail_preset"
+                        android:title="@string/autoemail_choosepreset"
+                        android:summary="@string/autoemail_choosepreset_summary"
+                        android:entries="@array/autoemail_presets" android:defaultValue="0"
+                        android:entryValues="@array/autoemail_presetvalues"/>
+
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="smtp_username" android:title="@string/autoemail_username"
+                            android:summary="@string/autoemail_username_summary"
+                            android:dialogTitle="@string/autoemail_username"/>
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="smtp_from" android:title="@string/autoemail_from"
+                            android:summary="@string/autoemail_from_summary"
+                            android:dialogTitle="@string/autoemail_from" android:defaultValue=""/>
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="smtp_password" android:title="@string/autoemail_password"
+                            android:summary="@string/autoemail_password_summary"
+                            android:dialogTitle="@string/autoemail_password"
+                            android:password="true"
+                />
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="smtp_server" android:title="@string/autoemail_server"
+                            android:summary="@string/autoemail_server_summary"
+                            android:dialogTitle="@string/autoemail_server"/>
+        <com.afollestad.materialdialogs.prefs.MaterialEditTextPreference android:key="smtp_port" android:title="@string/autoemail_port"
+                            android:defaultValue="25"
+                            android:summary="@string/autoemail_port_summary"
+                            android:dialogTitle="@string/autoemail_port"/>
+        <com.mendhak.gpslogger.ui.components.CustomSwitchPreference
+            android:key="smtp_ssl" android:title="@string/autoemail_ssl"
+                            android:summary="@string/autoemail_ssl_summary"/>
+        <Preference android:title="@string/autoemail_smtp_testemail"
+                    android:summary="@string/autoemail_test" android:key="smtp_testemail"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
