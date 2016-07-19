@@ -8,6 +8,10 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+var mongoose = require('mongoose');
+var passport = require('passport');
+var BasicStrategy = require('passport-http').BasicStrategy;
+
 var app = express();
 
 // view engine setup
@@ -24,11 +28,27 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views/'));
+
+app.use(require('express-session') ( {
+  secret : 'xbit',
+  resave : false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', routes);
 app.use('/users', users);
 
+// passport config
+var Account = require("./models/account");
+passport.use(new BasicStrategy(Account.authenticate()));
+passport.serializeUser(Account.serializeUser());
+passport.deserializeUser(Account.deserializeUser());
 
+mongoose.connect("mongodb://localhost/xbit_user");
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

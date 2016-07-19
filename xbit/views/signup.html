@@ -81,7 +81,7 @@
 							<button type="button" class="btn btn-success btn-lg btn-block login-button">Register</button>
 						</div>
 						<div class="login-register">
-				            <a href="views/login.html">Login</a>
+                            <a href="/login">Login</a>
 				         </div>
 					</form>
 				</div>
@@ -92,12 +92,12 @@
   <script>
       $(document).ready(function () {
           $('.login-button').on('click', function () {
-              var userName = $('#name').val().trim();
+              var userName = $('#username').val().trim();
               var password = $('#password').val().trim();
               var confirm =$('#confirm').val().trim();
               if(userName && password && confirm) {
                if (password ===confirm) {
-                 signup(userName，password);
+                 signup(userName, password);
                }
                else{
                  alertError('Password does not align.');
@@ -109,9 +109,6 @@
               }
           });
       });
-
-
-
 
       function signup (username, password) {
           $.ajax({
