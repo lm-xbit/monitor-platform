@@ -1,0 +1,29 @@
+:global {
+  table {
+    border-bottom: solid 2px #ccc;
+    width: 100%;
+    th, td {
+      border-right: 1px dashed #c3c2c2;
+      line-height: 38px;
+      padding-left: 10px;
+      padding-right: 5px;
+      text-align: left;
+    }
+
+    th {
+      border-bottom: 1px solid #ccc;
+      color: #333;
+      white-space: nowrap;
+      padding: 4px 5px 4px 10px;
+      text-align: left;
+    }
+  }
+
+  th:last-child, td:last-child {
+    border-right: none;
+  }
+
+  tbody tr:nth-of-type(odd) {
+    background: #e1e1e1;
+  }
+}

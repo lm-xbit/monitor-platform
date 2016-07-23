@@ -1,0 +1,49 @@
+@import "./table.scss";
+
+body {
+  min-width: 1200px;
+}
+
+body * {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Open Sans', sans-serif;
+}
+
+:global {
+  .clearfix {
+    overflow: auto;
+    zoom: 1;
+  }
+  a {
+    &.active:before {
+      visibility: visible;
+      -webkit-transform: scaleX(1);
+      transform: scaleX(1);
+    }
+    &:before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #000;
+      visibility: hidden;
+      -webkit-transform: scaleX(0);
+      transform: scaleX(0);
+      -webkit-transition: all 0.3s ease-in-out 0s;
+      transition: all 0.3s ease-in-out 0s;
+    }
+  }
+  .errorTip {
+    font-style: italic;
+    color: #e02027;
+    font-size: 12px;
+  }
+
+  form label {
+    display: block;
+    margin: .25em 0;
+  }
+}

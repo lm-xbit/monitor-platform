@@ -1,0 +1,45 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: grey;
+  opacity: 0.8;
+}
+
+.content {
+  background: white;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  max-width: 1000px;
+  max-height: 90%;
+  padding: 10px 35px 10px;
+  box-shadow: 2px 2px 5px #666;
+  border: 0;
+  overflow: auto;
+}
+
+.closeBtn {
+  cursor: pointer;
+  color: grey;
+  font-size: 31px;
+  display: inline-block;
+  line-height: 0;
+  position: absolute;
+  top: 18px;
+  right: 10px;
+}
+
+.closeBtn:before {
+  content: "×";
+}
+
+.userContent {
+  margin: 10px 0 0 0;
+}

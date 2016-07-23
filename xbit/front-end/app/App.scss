@@ -1,0 +1,32 @@
+.header {
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+  position: fixed;
+  min-width: 1200px;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: #f5f5f5;
+  z-index: 999;
+}
+
+.headerItem {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 30px;
+  font-size: 16px;
+}
+
+.contentView {
+  padding: 20px;
+  margin-top: 73px;
+}
+
+.logout {
+  position: absolute;
+  top: 25px;
+  right: 60px;
+  a {
+    color: #777;
+  }
+}
