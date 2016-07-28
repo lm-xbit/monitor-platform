@@ -2,10 +2,10 @@
 <html lang="en">
     <head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" type="text/css" href="stylesheets/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="assets/styles/bootstrap.css">
 
 		<!-- Website CSS style -->
-		<link rel="stylesheet" type="text/css" href="stylesheets/main.css">
+		<link rel="stylesheet" type="text/css" href="assets/styles/main.css">
 
 		<!-- Website Font style -->
 	    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
@@ -117,13 +117,7 @@
               contentType: 'application/json',
               data: JSON.stringify({username: username, password: password}),
               success: function(res){
-                  if(res.status === 1200) {
-                      window.localStorage.setItem('username', res.data.username);
-                      window.localStorage.setItem('securityToken', res.data.securityToken);
-                      redirectQueryUrl();
-                  } else {
-                      alertError(res);
-                  }
+                  redirectQueryUrl();
               },
               error: function(err){
                   alertError(err);
@@ -142,7 +136,7 @@
       }
 
       function redirectQueryUrl () {
-          window.location.href = getQueryVariable('url') || 'index.html';
+          window.location.href = getQueryVariable('url') || '/login';
       }
 
       function getQueryVariable(variable) {
