@@ -1,0 +1,54 @@
+# git ls-files --others --exclude-from=.git/info/exclude
+# Lines that start with '#' are comments.
+# For a project mostly in C, the following would be a good set of
+# exclude patterns (uncomment them if you want to use them):
+# *.[oa]
+# *~
+*.ipr
+*.iml
+*.iws
+*.tar
+*.tag
+*.war
+*.gz
+*.o
+build.properties
+*.class
+*.orig
+.DS_Store
+._*
+*/build/*
+*/node_modules/*
+*/bower_components/*
+build/*
+*/.gradle/*
+version.info
+.idea/*
+.gradle/*
+*/*_temp/*
+.sass-cache/
+.idea/
+.project
+uiv3-dist/
+resources_temp
+jasperreports_temp
+*/build
+*/*/build
+*/*/node_modules
+*/*/bower_components
+*/.gradle
+node_modules
+*.jasper
+gradle.properties
+
+# for sbproxy
+*.obj
+*.sdf
+*.opensdf
+*.suo
+*.user
+sbproxy/vsprojects/Debug/
+sbproxy/vsprojects/Release/
+sbproxy/vsprojects/x64/
+sbproxy/vsprojects/.gradle/
+sbproxy/lib/
