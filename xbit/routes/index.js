@@ -1,7 +1,4 @@
 var express = require('express');
-var passport = require('passport');
-var Account = require('../models/account');
-
 var router = express.Router();
 
 /* GET home page. */
@@ -32,22 +29,9 @@ router.post('/rest/settings/register', function (req, res) {
   })
 });
 
-router.post("/rest/settings/login", passport.authenticate('basic'), function (req, res) {
-  res.send("Success to login");
-});
+//////
+router.use("/api", require("./api"));
 
-router.get("/rest/settings/users", passport.authenticate('basic'), function (req, res) {
-
-
-    Account.find({}, function (err, doc) {
-      if (err) {
-        return res.send("Fail to list all users");
-      }
-      res.json(doc);
-    });
-
-  //res.send("Success to get users");
-});
-
+router.use("/rest", require("./rest"));
 
 module.exports = router;

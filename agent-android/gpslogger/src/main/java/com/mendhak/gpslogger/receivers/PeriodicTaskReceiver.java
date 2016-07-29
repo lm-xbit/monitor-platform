@@ -27,6 +27,9 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,7 +38,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class PeriodicTaskReceiver extends BroadcastReceiver {
-    private static final String INTENT_ACTION_COLLECT = "collect_gps_location_samples";
+    private static final String INTENT_ACTION_REPORT = "REPORT_gps_location_samples";
     private static final Logger LOG = Logs.of(PeriodicTaskReceiver.class);
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -45,16 +48,14 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
      * We can gather sample at 5 seconds minimum, we try to cache at most 1 minutes data (so it is 12 slots)
      * We report either the cache is full or we have reached the report interval
      */
+    private final static int _SAMPLING_INTERVAL = 5 * 1000;
+    private final static int _REPORTING_INTERVAL = 60 * 1000;
     private final static int _SLOT_NUM = 12;
     private final List<Sample> _samples = new ArrayList<Sample>(_SLOT_NUM);
-    long _lastReportEpcoh = 0;
 
     private boolean _ssl = false;
     private String _endpoint;
-    private String _type;
-    private Integer _user;
-    private Integer _app;
-    private String _key;
+    private String _appKey;
     private int _reportInterval;
 
     @Override
@@ -66,11 +67,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             else if (intent.getAction().equals("android.intent.action.BATTERY_OKAY")) {
                 // TODO ...
             }
-            else if (intent.getAction().equals(INTENT_ACTION_COLLECT)) {
-                Context appContext = context.getApplicationContext();
-                Intent startServiceIntent = new Intent(appContext, GpsLoggingService.class);
-                startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
-                appContext.startService(startServiceIntent);
+            else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
+                LOG.info("Try reporting samples back to server ...");
+                _tryReportData();
             }
         }
     }
@@ -79,7 +78,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         Sample sample = _gatherSample(System.currentTimeMillis());
         _samples.add(sample);
 
-        _tryReportData();
+        if(_samples.size() >= (_SLOT_NUM * 2)) {
+            LOG.warn("Too many samples have been gathered. Force reporting back to server ...");
+            _tryReportData();
+        }
     }
 
     public void initialize() {
@@ -91,10 +93,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         this._ssl = preferenceHelper.getMobileTrackingUseSSL();
         this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
 
-        this._type = "mobile-tracking";
-    	this._user = 2;  // user ning
-    	this._app = 2;   // app for ning's android
-        this._key = "android"; // key for ning's android app
+        this._appKey = "mobile-tracking"; // TODO: generate per application KEY for user
 
         LOG.info("Initializing periodic task for reporting GPS data with end point - " + this._endpoint);
     }
@@ -104,22 +103,35 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
      *
      * @param context
      */
-    public void startPeriodicTaskHeartBeat(Context context) {
+    public void startPeriodicTaskHeartBeat(final Context context) {
         Intent alarmIntent = new Intent(context, PeriodicTaskReceiver.class);
         boolean isAlarmUp = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_NO_CREATE) != null;
 
-        if (!isAlarmUp) {
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            alarmIntent.setAction(INTENT_ACTION_COLLECT);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
-            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 15 * 100, pendingIntent);
-
-            // reset ..
-            _samples.clear();
-            _lastReportEpcoh = 0;
-
-            LOG.info("GPS logging is started. Start reporting task ...");
+        if (isAlarmUp) {
+            return;
         }
+
+        LOG.info("Try starting sampling timer and reporter alarm ...");
+
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmIntent.setAction(INTENT_ACTION_REPORT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL, _REPORTING_INTERVAL, pendingIntent);
+
+        // reset ..
+        _samples.clear();
+
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate
+                (new Runnable() {
+                    public void run() {
+                        LOG.info("Try collecting a GPS sample");
+                        Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
+                        startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
+                        context.startService(startServiceIntent);
+                    }
+                }, 5, 5, TimeUnit.SECONDS);
     }
 
     /**
@@ -134,7 +146,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent alarmIntent = new Intent(context, PeriodicTaskReceiver.class);
-        alarmIntent.setAction(INTENT_ACTION_COLLECT);
+        alarmIntent.setAction(INTENT_ACTION_REPORT);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
         alarmManager.cancel(pendingIntent);
     }
@@ -175,10 +187,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     	String path;
 
         if(_ssl) {
-            path = String.format("https://%s/api/data", _endpoint);
+            path = String.format("https://%s/rest/data/%s", _endpoint, _appKey);
         }
         else {
-            path = String.format("http://%s/api/data", _endpoint);
+            path = String.format("http://%s/rest/data/%s", _endpoint, _appKey);
         }
 
         // LOG.info("Try reporting with path - " + path);
@@ -211,10 +223,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
      * init submitting data by creating the JSON object to be reported
      *
      * {
-     *    type: <app type, ES index, lowercase string>
-     *    user: <uid, long>
-     *    app: <appid, long>
-     *    key: <appKey, string>
+     *    status: 200,
+     *    message: "OK",
      *    data: [{
      *        timestamp: xxxx,
      *        metrics: [{
@@ -240,10 +250,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         JSONObject submitData = new JSONObject();
         JSONArray samples = new JSONArray();
         try {
-            submitData.put("type", _type);
-            submitData.put("user", _user);
-            submitData.put("app", _app);
-            submitData.put("key", _key);
+            submitData.put("status", 200);
+            submitData.put("message", "OK");
             submitData.put("data", samples);
 
             for(Sample sample : _samples) {
@@ -323,30 +331,27 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         */
     }
 
+    /**
+     * Either the slot is full or the report interval have reached
+     */
     private void _tryReportData() {
-        long now = System.currentTimeMillis();
-        if((_samples.size() >= _SLOT_NUM) || (now - _lastReportEpcoh) > _reportInterval) {
-            try {
-                if (_samples.size() == 0) {
-                    LOG.info("No data to report. Skip this reporting cycle");
-                }
-                else {
-                    JSONObject data = _composePayload();
-
-                    new ReportDataTask().execute(data);
-
-                    LOG.info("GPS sample reported. Count - " + _samples.size());
-                }
-
+        try {
+            if (_samples.size() == 0) {
+                LOG.info("No data to report. Skip this reporting cycle");
             }
-            catch(Exception e) {
-                LOG.error("Cannot report data - " + e.getMessage(), e);
-            }
-            finally {
+            else {
+                JSONObject data = _composePayload();
+
+                new ReportDataTask().execute(data);
+
+                LOG.info("GPS sample reported. Count - " + _samples.size());
+
                 // clean this
                 _samples.clear();
-                _lastReportEpcoh = now;
             }
+        }
+        catch(Exception e) {
+            LOG.error("Cannot report data - " + e.getMessage(), e);
         }
     }
 
