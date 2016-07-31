@@ -3,6 +3,7 @@ var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
 var logger = bunyan.createLogger({name: "data"});
+var ESClient = require("lib/esclient");
 
 // fix me: debugging mode
 logger.level("debug");
@@ -27,6 +28,24 @@ https://hostname/rest/data/<key>
    ]
 }
 */
+
+/**
+ * Try save metrics reported at given timestamp to ES
+ *
+ * @return a promise representing the indexing operation
+ */
+var indexData = function(timestamp, metrics) {
+    var doc = {
+    };
+
+    // TODO compose the doc according to the ES mapping
+
+    return ESClient.index({
+        index: "index name ...",
+        type: "doc type ...",
+        body: doc
+    });
+}
 
 router.post("/:key", function(req, res, next) {
     var deviceKey = req.params.key;
