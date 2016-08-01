@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 export function handleError (err) {
   if (err.toString() === 'TypeError: Failed to fetch') {
-    store.dispatch(catchError(new Error('Can\'t communication with GCC server')));
+    store.dispatch(catchError(new Error('Can\'t communication with server')));
   }
 
   if (err.errorType === 'ServerError') {

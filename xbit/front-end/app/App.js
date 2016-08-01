@@ -10,7 +10,7 @@ const App = (props) => {
     <div>
       <div className={style.header}>
         <div className={style.headerItem}>
-          <img src={require('resources/assets/images/lm-logo.png')} alt="" height="36px"/>
+          <img src={require('resources/assets/images/logo.png')} alt="" height="36px"/>
         </div>
         <div className={style.headerItem}>
           <div>
