@@ -17,14 +17,14 @@ https://hostname/rest/data/<key>
    "message": "OK",
    "data":
    [
-       {
-           "timestamp": xxxx,
-           "metrics": [{
-                "name": "metric1", "value": 123
-            }, ...,  {
-                "name": "metricN", "value": 789
-            }]
-       }
+        {
+            "timestamp": 1470154737000,
+            "location": {
+                "lat": 1,
+                "lon": 1,
+                "speed": 1
+            }
+        }
    ]
 }
 */
@@ -34,15 +34,18 @@ https://hostname/rest/data/<key>
  *
  * @return a promise representing the indexing operation
  */
-var indexData = function(timestamp, metrics) {
+var indexData = function(timestamp, key, metric) {
     var doc = {
+        key: key,
+        '@timestamp': metric.timestamp,
+        'location': metric.location
     };
 
     // TODO compose the doc according to the ES mapping
 
     return ESClient.index({
-        index: "index name ...",
-        type: "doc type ...",
+        index: "xbit",
+        type: "geoData",
         body: doc
     });
 }
