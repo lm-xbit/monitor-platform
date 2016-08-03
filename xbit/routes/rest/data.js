@@ -1,4 +1,3 @@
-var Q = require("q");
 var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
@@ -54,14 +53,112 @@ var indexData = function(timestamp, key, metrics) {
         type: "geoData",
         body: doc
     });
-}
+};
+
+router.get("/:key", function (req, res) {
+    var deviceKey = req.params.key;
+    logger.debug("Get the data of device %s", deviceKey);
+    // TODO Device Verification
+    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
+        return res.json({
+            status: 403,
+            message: "Unknown device"
+        });
+    }
+
+    ESClient.search({
+        index:'xbit',
+        type:'geoData',
+        q: "key:" + deviceKey
+    }, function (error, response) {
+        if (error) {
+            logger.error("Fail to get the result - " + error);
+            return res.json(
+                {
+                    status: 502,
+                    message: "Internal error"
+                }
+            )
+        }
+        else {
+            logger.debug("Get the response - " + JSON.stringify(response));
+            /**
+             * {
+    "took": 4,
+    "timed_out": false,
+    "_shards": {
+      "total": 5,
+      "successful": 5,
+      "failed": 0
+    },
+    "hits": {
+      "total": 2,
+      "max_score": 1,
+      "hits": [
+        {
+          "_index": "xbit",
+          "_type": "geoData",
+          "_id": "1",
+          "_score": 1,
+          "_source": {
+            "key": "testKey",
+            "@timestamp": 1470154737000,
+            "location": {
+              "lat": 1,
+              "lon": 1,
+              "speed": 1
+            }
+          }
+        },
+        {
+          "_index": "xbit",
+          "_type": "geoData",
+          "_id": "AVZME0JoMHm2K7X8EcY2",
+          "_score": 0.30685282,
+          "_source": {
+            "key": "testKey",
+            "@timestamp": 1470154737000,
+            "location": {
+              "lat": 1,
+              "lon": 1,
+              "speed": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+             */
+            var result = [];
+            if (response.hits.total > 0) {
+                var array = response.hits.hits;
+                for (var i = 0; i < array.length; i++) {
+                    var doc = {
+                        id: array[i]._id,
+                        timestamp: array[i]._source['@timestamp'],
+                        location: array[i]._source['location']
+                    };
+                    result.push(doc);
+                }
+            }
+            return res.json(
+                {
+                    status: 200,
+                    message: "OK",
+                    data: result
+                }
+            );
+        }
+    });
+
+});
 
 router.post("/:key", function(req, res, next) {
     var deviceKey = req.params.key;
     logger.debug("Handling data reporting from device %s", deviceKey);
 
     // TODO Device Verification
-    if(deviceKey !== "test") {
+    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
         return res.json({
             status: 403,
             message: "Unknown device"
@@ -91,10 +188,8 @@ router.post("/:key", function(req, res, next) {
 
     logger.debug("Receive data with %d samples", data.length);
 
-    var dataJson = JSON.parse(data);
-
-    for (var i = 0; i < dataJson.length; i++) {
-        indexData(dataJson[i].timestamp, deviceKey, dataJson[i].metrics);
+    for (var i = 0; i < data.length; i++) {
+        indexData(data[i].timestamp, deviceKey, data[i].metrics);
     }
 
     return res.json(
