@@ -17,29 +17,35 @@ https://hostname/rest/data/<key>
    "message": "OK",
    "data":
    [
-        {
-            "timestamp": 1470154737000,
-            "location": {
-                "lat": 1,
-                "lon": 1,
-                "speed": 1
-            }
-        }
+       {
+           "timestamp": xxxx,
+           "metrics": [{
+                "name": "metric1", "value": 123
+            }, ...,  {
+                "name": "metricN", "value": 789
+            }]
+       }
    ]
 }
-*/
+*;
 
 /**
  * Try save metrics reported at given timestamp to ES
  *
  * @return a promise representing the indexing operation
  */
-var indexData = function(timestamp, key, metric) {
+var indexData = function(timestamp, key, metrics) {
+    var location = {};
+    for (var i = 0; i < metrics.length; i++) {
+        location[metrics[i].name] = metrics[i].value;
+    }
     var doc = {
         key: key,
-        '@timestamp': metric.timestamp,
-        'location': metric.location
+        '@timestamp': timestamp,
+        'location': location
     };
+
+
 
     // TODO compose the doc according to the ES mapping
 
@@ -84,6 +90,20 @@ router.post("/:key", function(req, res, next) {
     }
 
     logger.debug("Receive data with %d samples", data.length);
+
+    var dataJson = JSON.parse(data);
+
+    for (var i = 0; i < dataJson.length; i++) {
+        indexData(dataJson[i].timestamp, deviceKey, dataJson[i].metrics);
+    }
+
+    return res.json(
+        {
+            status: 200,
+            message: 'OK'
+        }
+    );
+    /*
     
     var promises = [];
     data.forEach(function(sample) {
@@ -108,6 +128,7 @@ router.post("/:key", function(req, res, next) {
             message: err.message || "Server failure"
         });
     });
+    */
 });
 
 module.exports = router;
