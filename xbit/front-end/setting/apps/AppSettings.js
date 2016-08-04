@@ -18,12 +18,12 @@ export class AppSettings extends React.Component {
         <div className="table-responsive">
           <table className="table table-striped">
             <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Key</th>
-              <th>&nbsp;</th>
-            </tr>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Key</th>
+                <th>&nbsp;</th>
+              </tr>
             </thead>
             <tbody>
             {this.props.apps.map(app =>
