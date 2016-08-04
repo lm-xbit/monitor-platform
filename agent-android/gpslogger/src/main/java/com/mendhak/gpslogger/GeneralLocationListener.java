@@ -51,6 +51,8 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
         try {
             if (loc != null) {
+                LOG.debug(String.format("Listener %s detected location change - %s", listenerName, loc));
+
                 Bundle b = new Bundle();
                 b.putString("HDOP", this.latestHdop);
                 b.putString("PDOP", this.latestPdop);

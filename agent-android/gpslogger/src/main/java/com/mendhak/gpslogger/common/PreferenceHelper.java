@@ -335,7 +335,7 @@ public class PreferenceHelper {
      */
     @ProfilePreference(name= PreferenceNames.MINIMUM_INTERVAL)
     public int getMinimumLoggingInterval() {
-        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "60"), 60);
+        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "5"), 5);
     }
 
     /**
