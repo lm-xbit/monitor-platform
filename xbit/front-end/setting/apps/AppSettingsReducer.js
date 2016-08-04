@@ -20,12 +20,7 @@ const app = (state, action) => {
   }
 };
 
-const apps = (state = [{
-  id: 'id1',
-  name: 'test',
-  type: 'Mobile Tracking',
-  key: '1234567'
-}], action) => {
+const apps = (state = [], action) => {
   switch (action.type) {
     case 'ADD':
       return [

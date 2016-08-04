@@ -187,20 +187,16 @@ export class BasicSettings extends React.Component {
 };
 
 BasicSettings.propTypes = {
+  /*
   data: PropTypes.shape({
     username: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired
   }),
+  */
   actions: PropTypes.shape({
     updateUsername: PropTypes.func.isRequired,
   })
-};
-
-const mapStateToProps = (state) => {
-  return {
-    data: state.settings.data
-  };
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -211,6 +207,5 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(
-  mapStateToProps,
   mapDispatchToProps
 )(BasicSettings);

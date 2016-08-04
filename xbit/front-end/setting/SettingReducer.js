@@ -5,3 +5,4 @@ import apps from './apps/AppSettingsReducer';
 export default combineReducers({
   data, apps
 });
+

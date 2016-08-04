@@ -47,23 +47,19 @@ export class AppSettings extends React.Component {
 };
 
 AppSettings.propTypes = {
+  /*
   apps: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired
   }).isRequired).isRequired,
+  */
   actions: React.PropTypes.shape({
     addApp: PropTypes.func.isRequired,
     updateApp: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired
   })
-};
-
-const mapStateToProps = (state) => {
-  return {
-    apps: state.settings.apps
-  };
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -74,6 +70,5 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(
-  mapStateToProps,
   mapDispatchToProps
 )(AppSettings);

@@ -13,6 +13,6 @@ export const countryGot = (resp) => {
   return {
     type: 'SET_COUNTRY_CODE',
     countryCode: (resp && resp.country) ? resp.country : 'cn'
-  }
+  };
 };
 

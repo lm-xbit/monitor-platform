@@ -1,8 +1,4 @@
-const data = (state = {
-  username: 'foo',
-  email: 'bar@somewhere.com',
-  password: 'testpassword'
-}, action) => {
+const data = (state = {}, action) => {
   switch (action.type) {
     case 'UPDATE_USERNAME':
       return Object.assign({}, state, {
