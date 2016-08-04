@@ -4,10 +4,10 @@ import React, {PropTypes} from 'react';
 import {toggleTodo, addTodo} from './TodoActions';
 
 export class TodoList extends React.Component {
-  componentWillMount() {
+  componentWillMount () {
     console.log(this.props);
     this.props.todos.push({
-      text: "foo",
+      text: 'foo',
       completed: false,
       id: 2
     });
