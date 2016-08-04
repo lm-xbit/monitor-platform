@@ -3,9 +3,12 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.render('signup', {
-    title: 'Signup'
-  });
+  if (!req.user) {
+    res.render('login');
+  } else {
+    res.render('index');
+  }
+
 });
 
 router.get('/signup', function(req, res) {
@@ -14,8 +17,22 @@ router.get('/signup', function(req, res) {
   });
 });
 
+router.get('/index', function(req, res) {
+  res.render('index');
+});
+
 router.get('/login', function (req, res) {
   res.render('login');
+});
+
+router.get('/logout', function(req, res, next) {
+  req.logout();
+  req.session.save(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
 });
 
 router.post('/rest/settings/register', function (req, res) {
