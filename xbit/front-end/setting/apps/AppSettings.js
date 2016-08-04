@@ -1,9 +1,9 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {toggleTodo, addTodo} from './TodoActions';
+import {toggleTodo, addTodo} from './AppSettingsActions';
 
-export class TodoList extends React.Component {
+export class AppSettings extends React.Component {
   render () {
     let input;
     return (
@@ -17,7 +17,7 @@ export class TodoList extends React.Component {
           input.value = '';
         }}>
           <div className="form-group">
-            <input className="form-control" placeholder="Add a new todo" defaultValue={"test"} ref={node => {
+            <input className="form-control" placeholder="Add a new todo" ref={node => {
               input = node;
             }}/>
           </div>
@@ -40,7 +40,7 @@ export class TodoList extends React.Component {
   }
 };
 
-TodoList.propTypes = {
+AppSettings.propTypes = {
   todos: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.number.isRequired,
     completed: PropTypes.bool.isRequired,
@@ -68,4 +68,4 @@ const mapDispatchToProps = (dispatch) => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(TodoList);
+)(AppSettings);
