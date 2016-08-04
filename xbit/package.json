@@ -85,5 +85,9 @@
     "redux-thunk": "^2.1.0",
     "serve-favicon": "~2.3.0",
     "should": "~2.1.0"
-  }
+  },
+  "main": "app.js",
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
