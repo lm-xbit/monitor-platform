@@ -1,19 +1,27 @@
 import React from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+
 import BasicSettings from './basic/BasicSettings';
 // import AppSettings from './apps/AppSettings';
 
 export default function SettingPage (props) {
   return (
     <div style={{padding: '20px'}}>
-      <h4>
-        Basic Settings
-      </h4>
       <div style={{width: '400px'}}>
-        <BasicSettings/>
+        <Tabs>
+          <TabList>
+            <Tab>Basic Settings</Tab>
+            <Tab>Application Settings</Tab>
+          </TabList>
+          <TabPanel>
+            <BasicSettings/>
+          </TabPanel>
+
+          <TabPanel>
+            <h4>Hello, world</h4>
+          </TabPanel>
+        </Tabs>
       </div>
-      <h4>
-        Manage Applications
-      </h4>
     </div>
   );
 };
