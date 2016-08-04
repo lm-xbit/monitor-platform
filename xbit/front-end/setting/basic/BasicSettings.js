@@ -33,17 +33,19 @@ export class BasicSettings extends React.Component {
                     editingUsername: true
                   });
                 }} style={{
-                  display: this.state.editingUsername ? "none" : "inherit"
-                }}>Change Username</a>
+                  display: this.state.editingUsername ? 'none' : 'inherit'
+                }}
+                >Change Username</a>
                 <a onClick={e => {
                   e.preventDefault();
                   console.log('Update username to - ' + username.value);
                   this.setState({
                     editingUsername: false
                   });
-                }}  style={{
-                  display: this.state.editingUsername ? "inherit" : "none"
-                }}>Save</a>
+                }} style={{
+                  display: this.state.editingUsername ? 'inherit' : 'none'
+                }}
+                >Save</a>
               </div>
             </label>
             <input className="form-control" id="username" name="username" defaultValue={this.props.data.username} disabled={
@@ -72,24 +74,25 @@ export class BasicSettings extends React.Component {
                     changingPassword: true
                   });
                 }} style={{
-                  display: this.state.changingPassword ? "none" : "inherit"
-                }}>Change Password</a>
+                  display: this.state.changingPassword ? 'none' : 'inherit'
+                }}
+                >Change Password</a>
               </div>
             </label>
             <div style={{
-              display: this.state.changingPassword ? "none" : "block",
-              width: "100%"
+              display: this.state.changingPassword ? 'none' : 'block',
+              width: '100%'
             }}>
               <input className="form-control" id="password" name="password" type="password" style={{
                 width: '100%'
-              }} defaultValue={this.props.data.password} readOnly="true"  ref={node => {
+              }} defaultValue={this.props.data.password} readOnly="true" ref={node => {
                 password = node;
               }}
               />
             </div>
             <div style={{
-              display: this.state.changingPassword ? "block" : "none",
-              width: "100%"
+              display: this.state.changingPassword ? 'block' : 'none',
+              width: '100%'
             }}>
 
                 <div className="input-group" style={{
@@ -102,7 +105,7 @@ export class BasicSettings extends React.Component {
                     }} ref={node => {
                       oldpass = node;
                     }}
-                  />
+                    />
                   </div>
                 </div>
 
@@ -142,32 +145,31 @@ export class BasicSettings extends React.Component {
                   <button className="form-control btn btn-warning" onClick={e => {
                     e.preventDefault();
                     if (oldpass.value === '') {
-                      alert("You must input your old password!")
+                      alert('You must input your old password!');
                       return;
                     }
 
                     if (oldpass.value !== password.value) {
-                      alert("Old password incorrect!");
+                      alert('Old password incorrect!');
                       return;
                     }
 
                     if (newpass.value === '') {
-                      alert("New password must be provided!");
+                      alert('New password must be provided!');
                       return;
                     }
 
-
                     if (newpass.value !== newpass2.value) {
-                      alert("Repeated password incorrect!");
+                      alert('Repeated password incorrect!');
                       return;
                     }
 
                     if (newpass.value === oldpass.value) {
-                      console.log("Password not changed");
+                      console.log('Password not changed');
                     }
                     else {
                       password.value = newpass.value;
-                      //todo: post back to server
+                      // todo: post back to server
                     }
 
                     this.setState({

@@ -2,7 +2,7 @@ import React from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import BasicSettings from './basic/BasicSettings';
-// import AppSettings from './apps/AppSettings';
+import AppSettings from './apps/AppSettings';
 
 export default function SettingPage (props) {
   return (
@@ -18,7 +18,7 @@ export default function SettingPage (props) {
           </TabPanel>
 
           <TabPanel>
-            <h4>Hello, world</h4>
+            <AppSettings/>
           </TabPanel>
         </Tabs>
       </div>

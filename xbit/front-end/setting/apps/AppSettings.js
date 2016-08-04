@@ -1,66 +1,74 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {toggleTodo, addTodo} from './AppSettingsActions';
+import {addApp, updateApp, removeApp} from './AppSettingsActions';
 
 export class AppSettings extends React.Component {
   render () {
-    let input;
     return (
       <div>
-        <form onSubmit={e => {
-          e.preventDefault();
-          if (!input.value.trim()) {
-            return;
-          }
-          this.props.actions.addTodo(input.value);
-          input.value = '';
-        }}>
-          <div className="form-group">
-            <input className="form-control" placeholder="Add a new todo" ref={node => {
-              input = node;
-            }}/>
-          </div>
-        </form>
-        <ul className="list-group">
-          {this.props.todos.map(todo =>
-            <li
-              onClick={() => this.props.actions.toggleTodo(todo.id)}
-              className="list-group-item"
-              style={{
-                textDecoration: todo.completed ? 'line-through' : 'none'
-              }}
-            >
-              {todo.text}
-            </li>
-          )}
-        </ul>
+        <div style={{'padding-bottom': '10px', 'border-bottom': '2px solid', height: '42px', 'line-height': '30px'}}>
+          Current Applications
+          <button className="btn btn-sm btn-success" onClick={e => {
+            e.preventDefault();
+          }} style={{float: 'right'}}
+          ><i className="fa fa-plus"/>&nbsp;&nbsp;New...</button>
+        </div>
+
+        <div className="table-responsive">
+          <table className="table table-striped">
+            <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Key</th>
+              <th>&nbsp;</th>
+            </tr>
+            </thead>
+            <tbody>
+            {this.props.apps.map(app =>
+              <tr style={{height: '30px'}}>
+                <td style={{'line-height': '30px'}}>{app.name}</td>
+                <td style={{'line-height': '30px'}}>{app.type}</td>
+                <td style={{'line-height': '30px'}}>{app.key}</td>
+                <td style={{'line-height': '30px'}}>
+                  <button className="btn btn-sm btn-danger"><i className="fa fa-remove"/></button>
+                  &nbsp;&nbsp;
+                  <button className="btn btn-sm btn-warning"><i className="fa fa-edit"/></button>
+                </td>
+              </tr>
+            )}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
 };
 
 AppSettings.propTypes = {
-  todos: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    completed: PropTypes.bool.isRequired,
-    text: PropTypes.string.isRequired
+  apps: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    key: PropTypes.string.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
-    toggleTodo: PropTypes.func.isRequired,
-    addTodo: PropTypes.func.isRequired
+    addApp: PropTypes.func.isRequired,
+    updateApp: PropTypes.func.isRequired,
+    removeApp: PropTypes.func.isRequired
   })
 };
 
 const mapStateToProps = (state) => {
   return {
-    todos: state.demo.todos
+    apps: state.settings.apps
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({toggleTodo, addTodo}, dispatch),
+    actions: bindActionCreators({addApp, updateApp, removeApp}, dispatch),
     dispatch
   };
 };

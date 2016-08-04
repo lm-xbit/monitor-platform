@@ -1,15 +1,20 @@
-let nextTodoId = 0;
-export const addTodo = (text) => {
+export const addApp = (text) => {
   return {
-    type: 'MODIFY',
-    id: nextTodoId++,
+    type: 'ADD',
     text
   };
 };
 
-export const toggleTodo = (id) => {
+export const updateApp = (id, key) => {
   return {
-    type: 'TOGGLE_TODO',
+    type: 'UPDATE',
+    key
+  };
+};
+
+export const removeApp = (id) => {
+  return {
+    type: 'REMOVE',
     id
   };
 };
