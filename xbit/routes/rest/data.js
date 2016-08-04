@@ -153,7 +153,7 @@ router.get("/:key", function (req, res) {
 
 });
 
-router.post("/:key", function(req, res, next) {
+router.post("/:key", function(req, res) {
     var deviceKey = req.params.key;
     logger.debug("Handling data reporting from device %s", deviceKey);
 
@@ -198,32 +198,6 @@ router.post("/:key", function(req, res, next) {
             message: 'OK'
         }
     );
-    /*
-    
-    var promises = [];
-    data.forEach(function(sample) {
-        logger.debug("Save sample with timestamp %d and metrics:\n%s", sample.timestamp, JSON.stringify(sample.metrics));
-        // TODO: save data to ES?
-        var promise;
-        // promise = "save data ..."
-        promise = Q.reject(new Error("Not implemented"));
-        promises.push(promise);
-    });
-
-    Q.all(promises).then(function() {
-        logger.debug("All samples have been saved successfully");
-        return res.json({
-            status: 200,
-            message: "OK"
-        });
-    }).fail(function(err) {
-        logger.error("Cannot save all or  some of the samples due to %s:\n%s", err.message, err.stack);
-        return res.json({
-            status: 500,
-            message: err.message || "Server failure"
-        });
-    });
-    */
 });
 
 module.exports = router;
