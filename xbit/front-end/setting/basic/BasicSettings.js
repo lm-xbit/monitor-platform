@@ -95,19 +95,19 @@ export class BasicSettings extends React.Component {
               width: '100%'
             }}>
 
-                <div className="input-group" style={{
-                  width: '100%'
-                }}>
-                  <label className="control-label col-sm-4" htmlFor="password">Old Password</label>
-                  <div className="col-sm-8">
-                    <input className="form-control" id="password" name="password" type="password" style={{
-                      width: '100%'
-                    }} ref={node => {
-                      oldpass = node;
-                    }}
-                    />
-                  </div>
+              <div className="input-group" style={{
+                width: '100%'
+              }}>
+                <label className="control-label col-sm-4" htmlFor="password">Old Password</label>
+                <div className="col-sm-8">
+                  <input className="form-control" id="password" name="password" type="password" style={{
+                    width: '100%'
+                  }} ref={node => {
+                    oldpass = node;
+                  }}
+                  />
                 </div>
+              </div>
 
               <div className="input-group" style={{
                 width: '100%'
@@ -166,8 +166,7 @@ export class BasicSettings extends React.Component {
 
                     if (newpass.value === oldpass.value) {
                       console.log('Password not changed');
-                    }
-                    else {
+                    } else {
                       password.value = newpass.value;
                       // todo: post back to server
                     }
