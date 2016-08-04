@@ -4,6 +4,11 @@ import React, {PropTypes} from 'react';
 import {lookupCountry} from './CountryAction';
 
 export class Country extends React.Component {
+  componentWillMount () {
+    console.log('will mount');
+    this.props.actions.lookupCountry();
+  }
+
   render () {
     return (
       <span>
