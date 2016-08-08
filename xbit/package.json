@@ -9,7 +9,8 @@
     "static": "http-server ./dist -p 8080",
     "build": "cp -r ./front-end/resources/ ./public && npm run compile",
     "eslint": "eslint --ext .js,.jsx front-end/** --ignore-path ./front-end/.eslintignore --fix",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "debug": "node --debug ./bin/www"
   },
   "devDependencies": {
     "autoprefixer": "^6.3.7",
@@ -53,6 +54,7 @@
   "dependencies": {
     "app-module-path": "^1.1.0",
     "body-parser": "~1.13.2",
+    "bootstrap": "^3.3.5",
     "bunyan": "^1.8.1",
     "chai": "~1.8.1",
     "classnames": "^2.2.5",
