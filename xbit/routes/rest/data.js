@@ -1,4 +1,3 @@
-var Q = require("q");
 var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
@@ -27,32 +26,139 @@ https://hostname/rest/data/<key>
        }
    ]
 }
-*/
+*;
 
 /**
  * Try save metrics reported at given timestamp to ES
  *
  * @return a promise representing the indexing operation
  */
-var indexData = function(timestamp, metrics) {
+var indexData = function(timestamp, key, metrics) {
+    var location = {};
+    for (var i = 0; i < metrics.length; i++) {
+        location[metrics[i].name] = metrics[i].value;
+    }
     var doc = {
+        key: key,
+        '@timestamp': timestamp,
+        'location': location
     };
+
+
 
     // TODO compose the doc according to the ES mapping
 
     return ESClient.index({
-        index: "index name ...",
-        type: "doc type ...",
+        index: "xbit",
+        type: "geoData",
         body: doc
     });
-}
+};
 
-router.post("/:key", function(req, res, next) {
+router.get("/:key", function (req, res) {
+    var deviceKey = req.params.key;
+    logger.debug("Get the data of device %s", deviceKey);
+    // TODO Device Verification
+    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
+        return res.json({
+            status: 403,
+            message: "Unknown device"
+        });
+    }
+
+    ESClient.search({
+        index:'xbit',
+        type:'geoData',
+        q: "key:" + deviceKey
+    }, function (error, response) {
+        if (error) {
+            logger.error("Fail to get the result - " + error);
+            return res.json(
+                {
+                    status: 502,
+                    message: "Internal error"
+                }
+            )
+        }
+        else {
+            logger.debug("Get the response - " + JSON.stringify(response));
+            /**
+             * {
+    "took": 4,
+    "timed_out": false,
+    "_shards": {
+      "total": 5,
+      "successful": 5,
+      "failed": 0
+    },
+    "hits": {
+      "total": 2,
+      "max_score": 1,
+      "hits": [
+        {
+          "_index": "xbit",
+          "_type": "geoData",
+          "_id": "1",
+          "_score": 1,
+          "_source": {
+            "key": "testKey",
+            "@timestamp": 1470154737000,
+            "location": {
+              "lat": 1,
+              "lon": 1,
+              "speed": 1
+            }
+          }
+        },
+        {
+          "_index": "xbit",
+          "_type": "geoData",
+          "_id": "AVZME0JoMHm2K7X8EcY2",
+          "_score": 0.30685282,
+          "_source": {
+            "key": "testKey",
+            "@timestamp": 1470154737000,
+            "location": {
+              "lat": 1,
+              "lon": 1,
+              "speed": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+             */
+            var result = [];
+            if (response.hits.total > 0) {
+                var array = response.hits.hits;
+                for (var i = 0; i < array.length; i++) {
+                    var doc = {
+                        id: array[i]._id,
+                        timestamp: array[i]._source['@timestamp'],
+                        location: array[i]._source['location']
+                    };
+                    result.push(doc);
+                }
+            }
+            return res.json(
+                {
+                    status: 200,
+                    message: "OK",
+                    data: result
+                }
+            );
+        }
+    });
+
+});
+
+router.post("/:key", function(req, res) {
     var deviceKey = req.params.key;
     logger.debug("Handling data reporting from device %s", deviceKey);
 
     // TODO Device Verification
-    if(deviceKey !== "test") {
+    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
         return res.json({
             status: 403,
             message: "Unknown device"
@@ -81,30 +187,17 @@ router.post("/:key", function(req, res, next) {
     }
 
     logger.debug("Receive data with %d samples", data.length);
-    
-    var promises = [];
-    data.forEach(function(sample) {
-        logger.debug("Save sample with timestamp %d and metrics:\n%s", sample.timestamp, JSON.stringify(sample.metrics));
-        // TODO: save data to ES?
-        var promise;
-        // promise = "save data ..."
-        promise = Q.reject(new Error("Not implemented"));
-        promises.push(promise);
-    });
 
-    Q.all(promises).then(function() {
-        logger.debug("All samples have been saved successfully");
-        return res.json({
+    for (var i = 0; i < data.length; i++) {
+        indexData(data[i].timestamp, deviceKey, data[i].metrics);
+    }
+
+    return res.json(
+        {
             status: 200,
-            message: "OK"
-        });
-    }).fail(function(err) {
-        logger.error("Cannot save all or  some of the samples due to %s:\n%s", err.message, err.stack);
-        return res.json({
-            status: 500,
-            message: err.message || "Server failure"
-        });
-    });
+            message: 'OK'
+        }
+    );
 });
 
 module.exports = router;

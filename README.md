@@ -14,3 +14,10 @@ npm run build
 npm run start
 // Go to localhost:3000/index.html
 ```
+
+####UI debug with API
+```sh
+npm run dev
+npm run start
+// GO to localhost:3000/debug.html
+```
