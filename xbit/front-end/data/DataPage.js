@@ -1,41 +1,73 @@
-import React from 'react';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import React, {PropTypes} from 'react';
+import {refreshLocation} from './DataActions';
 
-export default function GraphPage (props) {
-  return (
-    <div>
-      <button type="button" class="btn btn-primary">立即刷新</button>
-      <table class="table table-striped">
-    <thead>
-        <tr>
-          <th>时间</th>
-          <th>经度</th>
-          <th>纬度</th>
-          <th>速度</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row">2016-08-01 20:01:12 PDT</th>
-          <td>Mark</td>
-          <td>Otto</td>
-          <td>@mdo</td>
-        </tr>
-        <tr>
-          <th scope="row">2016-08-02 20:01:12 PDT</th>
-          <td>Jacob</td>
-          <td>Thornton</td>
-          <td>@fat</td>
-        </tr>
-        <tr>
-          <th scope="row">2016-08-03 20:01:12 PDT</th>
-          <td>Larry</td>
-          <td>the Bird</td>
-          <td>@twitter</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-  );
+export class DataPage extends React.Component {
+  componentWillMount () {
+    console.log('will mount');
+    this.props.actions.refreshLocation();
+  }
+  render () {
+    let input;
+    return (
+      <div>
+        <button type="button" class="btn btn-primary" onClick={() => this.props.actions.refreshLocation()}>立即刷新</button>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>经度</th>
+              <th>纬度</th>
+              <th>高度（米）</th>
+              <th>精度（米）</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.locations.map(app =>
+              <tr style={{height: '30px'}}>
+                <td style={{'line-height': '30px'}}>{new Date(app.timestamp).toString()}</td>
+                <td style={{'line-height': '30px'}}>{app.longitude}</td>
+                <td style={{'line-height': '30px'}}>{app.latitude}</td>
+                <td style={{'line-height': '30px'}}>{app.altitude}</td>
+                <td style={{'line-height': '30px'}}>{app.accuracy}</td>
+            </tr>
+          )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
 };
 
-GraphPage.propTypes = {};
+
+DataPage.propTypes = {
+  locations: PropTypes.arrayOf(PropTypes.shape({
+    timestamp: PropTypes.number.isRequired,
+    longitude: PropTypes.number.isRequired,
+    latitude: PropTypes.number.isRequired,
+    altitude: PropTypes.number.isRequired,
+    accuracy: PropTypes.number.isRequired
+  }).isRequired).isRequired,
+  actions: React.PropTypes.shape({
+    refreshData: PropTypes.func.isRequired
+  })
+};
+
+const mapStateToProps = (state) => {
+  return {
+    locations: state.datapage || []
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    actions: bindActionCreators({refreshLocation}, dispatch),
+    dispatch
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DataPage);

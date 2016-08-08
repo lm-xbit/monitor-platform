@@ -3,11 +3,13 @@ import {combineReducers} from 'redux';
 
 import demo from 'demo/demoReducer';
 import settings from 'setting/SettingReducer';
+import datapage from 'data/DataReducer';
 
 const rootReducer = combineReducers({
   routing: routerReducer,
   demo,
-  settings
+  settings,
+  datapage
 });
 
 export default rootReducer;
