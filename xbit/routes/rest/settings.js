@@ -8,7 +8,6 @@ var StatusCodes = require('status')
 
 var router = express.Router();
 
-
 router.post('/register', (req, res) => {
   var username = req.body.username;
   var password = req.body.password;

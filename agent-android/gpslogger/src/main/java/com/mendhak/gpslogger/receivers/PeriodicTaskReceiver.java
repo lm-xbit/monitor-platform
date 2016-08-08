@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.SystemClock;
 import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.common.IntentConstants;
 import com.mendhak.gpslogger.common.PreferenceHelper;
@@ -42,21 +41,32 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private static final Logger LOG = Logs.of(PeriodicTaskReceiver.class);
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private final OkHttpClient httpclient = new OkHttpClient();
+    private OkHttpClient httpclient;
 
+    static {
+        /*
+        if(LOG instanceof ch.qos.logback.classic.Logger){
+            ((ch.qos.logback.classic.Logger)LOG).setLevel(Level.ALL);
+        }
+        else {
+            LOG.warn("Logger cannot change loglevel to ALL");
+        }
+        */
+    }
     /**
      * We can gather sample at 5 seconds minimum, we try to cache at most 1 minutes data (so it is 12 slots)
      * We report either the cache is full or we have reached the report interval
      */
     private final static int _SAMPLING_INTERVAL = 5 * 1000;
     private final static int _REPORTING_INTERVAL = 60 * 1000;
-    private final static int _SLOT_NUM = 12;
+    private final static int _SLOT_NUM = 60;
     private final List<Sample> _samples = new ArrayList<Sample>(_SLOT_NUM);
 
     private boolean _ssl = false;
     private String _endpoint;
     private String _appKey;
     private int _reportInterval;
+    private long _lastReportEpoch = System.currentTimeMillis();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -68,7 +78,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 // TODO ...
             }
             else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
-                LOG.info("Try reporting samples back to server ...");
+                LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
                 _tryReportData();
             }
         }
@@ -93,6 +103,13 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         this._ssl = preferenceHelper.getMobileTrackingUseSSL();
         this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
 
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(30, TimeUnit.SECONDS);
+        builder.readTimeout(30, TimeUnit.SECONDS);
+        builder.writeTimeout(30, TimeUnit.SECONDS);
+
+        this.httpclient = builder.build();
+
         this._appKey = "mobile-tracking"; // TODO: generate per application KEY for user
 
         LOG.info("Initializing periodic task for reporting GPS data with end point - " + this._endpoint);
@@ -112,12 +129,15 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         }
 
         LOG.info("Try starting sampling timer and reporter alarm ...");
-
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmIntent.setAction(INTENT_ACTION_REPORT);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
-        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL, _REPORTING_INTERVAL, pendingIntent);
-
+        /**
+         * THIS LOOKS WON'T WORK because the intent handler will create a new instance PeriodicTaskReceiver????
+         * Give up to use the executor to manage the timer instead.
+         *
+         * // AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+         * // alarmIntent.setAction(INTENT_ACTION_REPORT);
+         * // PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+         * // alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL, _REPORTING_INTERVAL, pendingIntent);
+         */
         // reset ..
         _samples.clear();
 
@@ -126,10 +146,17 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         scheduler.scheduleAtFixedRate
                 (new Runnable() {
                     public void run() {
-                        LOG.info("Try collecting a GPS sample");
+                        LOG.debug("Try collecting a GPS sample");
                         Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
                         startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
                         context.startService(startServiceIntent);
+
+                        LOG.debug("Check reporter timer ...");
+                        long now = System.currentTimeMillis();
+                        if((now - _lastReportEpoch) >= _reportInterval) {
+                            _tryReportData();
+                            _lastReportEpoch = now;
+                        }
                     }
                 }, 5, 5, TimeUnit.SECONDS);
     }
@@ -159,11 +186,12 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         Location location = Session.getCurrentLocationInfo();
 
         if(location == null) {
-            LOG.warn("Found invalid current location for sample - " + curTime);
+            LOG.debug("Found invalid current location for sample - " + curTime);
+
             return new Sample(curTime);
         }
         else {
-            LOG.info(String.format(
+            LOG.debug(String.format(
                     "Has valid current location for sample - %d: (lat=%.2f, lng=%.2f, alt=%.2f, acc=%.2f)",
                     curTime, location.getLatitude(), location.getLongitude(), location.getAccuracy(), location.getAccuracy()
             ));
@@ -193,22 +221,29 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             path = String.format("http://%s/rest/data/%s", _endpoint, _appKey);
         }
 
-        // LOG.info("Try reporting with path - " + path);
+        LOG.debug("Try reporting with path - " + path);
 
         RequestBody body = RequestBody.create(JSON, data.toString());
-        Request httpost = new Request.Builder().url(path).post(body).build();
+        Request post = new Request.Builder()
+                .url(path)
+                // .addHeader("connection", "close")
+                .post(body).build();
 
-        Response res = httpclient.newCall(httpost).execute();
+        Response res = httpclient.newCall(post).execute();
 
-        LOG.info("Reporting get HTTP code - " + res.code());
 
+        retString = res.body().string();
         if (200 != res.code()) {
+            LOG.warn("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
+
             throw new Exception(String.format(
                     "Server returns %d: %s", res.code(), res.message()
             ));
         }
+        else {
+            LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
+        }
 
-        retString = res.body().string();
         // LOG.info("Receive response - " + retString);
         try{
 	        if ( new JSONObject(retString).getBoolean("u")){
@@ -340,11 +375,11 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 LOG.info("No data to report. Skip this reporting cycle");
             }
             else {
+                LOG.debug(String.format("Try reporting %d GPS samples", _samples.size()));
+
                 JSONObject data = _composePayload();
 
                 new ReportDataTask().execute(data);
-
-                LOG.info("GPS sample reported. Count - " + _samples.size());
 
                 // clean this
                 _samples.clear();
@@ -361,11 +396,14 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         protected Void doInBackground(JSONObject... samples) {
             try {
+                LOG.debug("Try reporting back " + samples.length + " samples to server ...");
                 for(JSONObject data : samples) {
                     _reportGpsData(data);
                 }
             }
             catch (Exception e) {
+                LOG.error("Last report data failed: " + e.getMessage());
+
                 this.exception = e;
             }
 

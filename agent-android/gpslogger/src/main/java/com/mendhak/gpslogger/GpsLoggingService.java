@@ -91,6 +91,7 @@ public class GpsLoggingService extends Service  {
     // Helpers and managers
     // ---------------------------------------------------
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
+    private boolean gpsManagerStarted = false;
     protected LocationManager gpsLocationManager;
     private LocationManager passiveLocationManager;
     private LocationManager towerLocationManager;
@@ -226,7 +227,7 @@ public class GpsLoggingService extends Service  {
                 boolean needToStartGpsManager = false;
 
                 if (bundle.getBoolean(IntentConstants.SAMPLE_LOCATION)) {
-                    LOG.info("Try sample GPS location");
+                    LOG.debug("Try sample GPS location");
                     periodicTaskReceiver.collectLocationSample(this);
                     return;
                 }
@@ -247,7 +248,7 @@ public class GpsLoggingService extends Service  {
                 }
 
                 if (bundle.getBoolean(IntentConstants.GET_NEXT_POINT)) {
-                    LOG.info("Intent received - Get Next Point");
+                    LOG.info("Intent received - Get Next Point: Location manager started? " + gpsManagerStarted + " By: " + this);
                     needToStartGpsManager = true;
                 }
 
@@ -561,12 +562,15 @@ public class GpsLoggingService extends Service  {
 
     private void startPassiveManager() throws SecurityException {
         if(preferenceHelper.getChosenListeners().contains(LocationManager.PASSIVE_PROVIDER)){
-            LOG.debug("Starting passive location listener");
+            LOG.info("Starting passive location listener");
             if(passiveLocationListener== null){
                 passiveLocationListener = new GeneralLocationListener(this, "PASSIVE");
             }
             passiveLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             passiveLocationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1000, 0, passiveLocationListener);
+        }
+        else {
+            LOG.info("Passive location listener is disabled");
         }
     }
 
@@ -579,6 +583,10 @@ public class GpsLoggingService extends Service  {
      * then nothing is requested.
      */
     private void startGpsManager() throws SecurityException {
+        if(gpsManagerStarted) {
+            // do nothing
+            return;
+        }
 
         //If the user has been still for more than the minimum seconds
         if(userHasBeenStillForTooLong()) {
@@ -588,10 +596,12 @@ public class GpsLoggingService extends Service  {
         }
 
         if (gpsLocationListener == null) {
+            LOG.debug("Start GPS location listener ...");
             gpsLocationListener = new GeneralLocationListener(this, "GPS");
         }
 
         if (towerLocationListener == null) {
+            LOG.debug("Start CELL location listener ...");
             towerLocationListener = new GeneralLocationListener(this, "CELL");
         }
 
@@ -610,6 +620,9 @@ public class GpsLoggingService extends Service  {
             Session.setUsingGps(true);
             startAbsoluteTimer();
         }
+        else {
+            LOG.info(String.format("GPS location not required (%s) or disabled (%s)", Session.isGpsEnabled(), preferenceHelper.getChosenListeners().contains(LocationManager.GPS_PROVIDER)));
+        }
 
         if (Session.isTowerEnabled() &&  ( preferenceHelper.getChosenListeners().contains(LocationManager.NETWORK_PROVIDER)  || !Session.isGpsEnabled() ) ) {
             LOG.info("Requesting cell and wifi location updates");
@@ -618,6 +631,9 @@ public class GpsLoggingService extends Service  {
             towerLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, towerLocationListener);
 
             startAbsoluteTimer();
+        }
+        else {
+            LOG.info(String.format("CELL location not required (%s) or disabled (%s)", Session.isTowerEnabled(), preferenceHelper.getChosenListeners().contains(LocationManager.NETWORK_PROVIDER)));
         }
 
         if(!Session.isTowerEnabled() && !Session.isGpsEnabled()) {
@@ -631,6 +647,31 @@ public class GpsLoggingService extends Service  {
 
         EventBus.getDefault().post(new ServiceEvents.WaitingForLocation(true));
         Session.setWaitingForLocation(true);
+
+        gpsManagerStarted = true;
+
+        Location loc = gpsLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known GPS location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        loc = towerLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known network location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        loc = passiveLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known passive location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        LOG.warn("Last location not known. Wait location update ...");
     }
 
     private boolean userHasBeenStillForTooLong() {
@@ -662,14 +703,26 @@ public class GpsLoggingService extends Service  {
      * values.
      */
     private void checkTowerAndGpsStatus() {
-        Session.setTowerEnabled(towerLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
-        Session.setGpsEnabled(gpsLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
+        boolean towerEnabled = towerLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        Session.setTowerEnabled(towerEnabled);
+
+        boolean gpsEnabled = gpsLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        Session.setGpsEnabled(gpsEnabled);
+
+        LOG.info(String.format(
+                "NETWORK location manager is available? %s, GPS location manager is available? %s",
+                towerEnabled, gpsEnabled
+        ));
     }
 
     /**
      * Stops the location managers
      */
     private void stopGpsManager() throws SecurityException {
+        if(!gpsManagerStarted) {
+            LOG.info("Try stopping GPS manager without first start it!");
+            return;
+        }
 
         if (towerLocationListener != null) {
             LOG.debug("Removing towerLocationManager updates");
@@ -685,6 +738,7 @@ public class GpsLoggingService extends Service  {
         Session.setWaitingForLocation(false);
         EventBus.getDefault().post(new ServiceEvents.WaitingForLocation(false));
 
+        gpsManagerStarted = false;
     }
 
     private void stopPassiveManager() throws SecurityException {
@@ -768,6 +822,8 @@ public class GpsLoggingService extends Service  {
 
         long currentTimeStamp = System.currentTimeMillis();
 
+        LOG.debug(String.format("Receive location change update: %s", loc));
+
         LOG.debug("Has description? " + Session.hasDescription() + ", Single point? " + Session.isSinglePointMode() + ", Last timestamp: " + Session.getLatestTimeStamp());
 
         // Don't log a point until the user-defined time has elapsed
@@ -784,6 +840,7 @@ public class GpsLoggingService extends Service  {
         }
 
         if(!isFromValidListener(loc)){
+            LOG.info("Ignore location update from invalid listener - " + loc.getProvider());
             return;
         }
 
@@ -794,15 +851,16 @@ public class GpsLoggingService extends Service  {
         if (preferenceHelper.shouldCreateNewFileOnceADay()) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
             String today = sdf.format(new Date());
-            if (!today.equals(Session.getCurrentFileName()))
+            if (!today.equals(Session.getCurrentFileName())) {
+                LOG.info(String.format("Crossing of day found for %s. Changing file name", today));
                 resetCurrentFileName(false);
+            }
         }
         
 
         // Don't do anything until the user-defined accuracy is reached
         // However, if user has set an annotation, just log the point, disregard any filters
         if (!Session.hasDescription() &&  preferenceHelper.getMinimumAccuracy() > 0) {
-
             //Don't apply the retry interval to passive locations
             if (!isPassiveLocation && preferenceHelper.getMinimumAccuracy() < Math.abs(loc.getAccuracy())) {
 
@@ -951,7 +1009,7 @@ public class GpsLoggingService extends Service  {
 
         if(Systems.isDozing(this)){
             //Only invoked once per 15 minutes in doze mode
-            LOG.debug("Device is dozing, using infrequent alarm");
+            LOG.info("Device is dozing, using infrequent alarm");
             nextPointAlarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + preferenceHelper.getMinimumLoggingInterval() * 1000, pi);
         }
         else {

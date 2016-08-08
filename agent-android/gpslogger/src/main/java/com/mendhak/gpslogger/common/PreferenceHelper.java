@@ -44,7 +44,7 @@ public class PreferenceHelper {
 
     @ProfilePreference(name= PreferenceNames.MTRACKING_ENDPOINT)
     public String getMobileTrackingEndpoint() {
-        return prefs.getString(PreferenceNames.MTRACKING_ENDPOINT, "52.197.83.138:8080");
+        return prefs.getString(PreferenceNames.MTRACKING_ENDPOINT, "54.222.244.228:8080");
     }
 
     @ProfilePreference(name= PreferenceNames.MTRACKING_REPORT_INTERVAL)
@@ -335,7 +335,7 @@ public class PreferenceHelper {
      */
     @ProfilePreference(name= PreferenceNames.MINIMUM_INTERVAL)
     public int getMinimumLoggingInterval() {
-        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "60"), 60);
+        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "5"), 5);
     }
 
     /**
