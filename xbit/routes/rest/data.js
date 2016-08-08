@@ -69,7 +69,8 @@ router.get("/:key", function (req, res) {
     ESClient.search({
         index:'xbit',
         type:'geoData',
-        q: "key:" + deviceKey
+        q: "key:" + deviceKey,
+        sort: "@timestamp:desc"
     }, function (error, response) {
         if (error) {
             logger.error("Fail to get the result - " + error);
