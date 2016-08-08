@@ -44,7 +44,7 @@ public class PreferenceHelper {
 
     @ProfilePreference(name= PreferenceNames.MTRACKING_ENDPOINT)
     public String getMobileTrackingEndpoint() {
-        return prefs.getString(PreferenceNames.MTRACKING_ENDPOINT, "52.197.83.138:8080");
+        return prefs.getString(PreferenceNames.MTRACKING_ENDPOINT, "54.222.244.228:8080");
     }
 
     @ProfilePreference(name= PreferenceNames.MTRACKING_REPORT_INTERVAL)

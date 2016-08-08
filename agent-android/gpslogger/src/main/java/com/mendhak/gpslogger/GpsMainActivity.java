@@ -795,6 +795,14 @@ public class GpsMainActivity extends AppCompatActivity
         }
 
         new MaterialDialog.Builder(this)
+                .title("Server IP/DNS")
+                .inputType(InputType.TYPE_CLASS_TEXT)
+                .title("Sever Port")
+                .inputType(InputType.TYPE_CLASS_NUMBER)
+                .show();
+
+        /*
+        new MaterialDialog.Builder(this)
                 .title(R.string.add_description)
                 .inputType(InputType.TYPE_CLASS_TEXT)
                 .negativeText(R.string.cancel)
@@ -812,7 +820,7 @@ public class GpsMainActivity extends AppCompatActivity
                     }
                 })
                 .show();
-
+        */
     }
 
 

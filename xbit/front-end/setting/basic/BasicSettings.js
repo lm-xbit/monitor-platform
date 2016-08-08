@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {updateUsername} from './BasicSettingsActions';
+import {loadBasicSettings, updateUsername} from './BasicSettingsActions';
 
 export class BasicSettings extends React.Component {
 
@@ -11,6 +11,26 @@ export class BasicSettings extends React.Component {
       editingUsername: false,
       changingPassword: false
     };
+  }
+
+  componentDidMount () {
+    console.log('Component loading! Simulating loading data ....');
+
+    this.props.actions.loadBasicSettings();
+    /*
+    this.serverRequest = $.get(this.props.source, function (result) {
+      var lastGist = result[0];
+      this.setState({
+        username: lastGist.owner.login,
+        lastGistUrl: lastGist.html_url
+      });
+    }.bind(this));
+    */
+  }
+
+  componentWillUnmount () {
+    console.log('Component unloading ...');
+    // this.serverRequest.abort();
   }
 
   render () {
@@ -48,7 +68,7 @@ export class BasicSettings extends React.Component {
                 >Save</a>
               </div>
             </label>
-            <input className="form-control" id="username" name="username" defaultValue={this.props.data.username} disabled={
+            <input className="form-control" id="username" name="username" defaultValue={this.props.basic.username} disabled={
               !this.state.editingUsername
             } style={{
               width: '100%'
@@ -59,7 +79,7 @@ export class BasicSettings extends React.Component {
           </div>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input className="form-control" id="email" name="email" type="email" value={this.props.data.email} disabled="true" style={{
+            <input className="form-control" id="email" name="email" type="email" value={this.props.basic.email} disabled="true" style={{
               width: '100%'
             }}/>
           </div>
@@ -85,7 +105,7 @@ export class BasicSettings extends React.Component {
             }}>
               <input className="form-control" id="password" name="password" type="password" style={{
                 width: '100%'
-              }} defaultValue={this.props.data.password} readOnly="true" ref={node => {
+              }} defaultValue={this.props.basic.password} readOnly="true" ref={node => {
                 password = node;
               }}
               />
@@ -187,25 +207,32 @@ export class BasicSettings extends React.Component {
 };
 
 BasicSettings.propTypes = {
-  /*
-  data: PropTypes.shape({
+  basic: PropTypes.shape({
     username: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired
   }),
-  */
   actions: PropTypes.shape({
-    updateUsername: PropTypes.func.isRequired,
+    loadBasicSettings: PropTypes.func.isRequired,
+    updateUsername: PropTypes.func.isRequired
   })
+};
+
+const mapStateToProps = (state) => {
+  console.log("Try render BASIC state", state.settings);
+
+  return {
+    basic: state.settings.basic
+  };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({updateUsername}, dispatch),
+    actions: bindActionCreators({updateUsername, loadBasicSettings}, dispatch),
     dispatch
   };
 };
 
 export default connect(
-  mapDispatchToProps
+  mapStateToProps, mapDispatchToProps
 )(BasicSettings);

@@ -16,8 +16,10 @@ npm run start
 ```
 
 ####UI debug with API
+Please install haproxy first
 ```sh
+cd /xbit
+haproxy -f xbit.haproxy.config -d
 npm run dev
-npm run start
-// GO to localhost:3000/debug.html
+// GO to localhost:8088/front-end/resources/index.html
 ```

@@ -1,9 +1,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {addApp, updateApp, removeApp} from './AppSettingsActions';
+import {loadAppSettings, addApp, updateApp, removeApp} from './AppSettingsActions';
 
 export class AppSettings extends React.Component {
+  componentDidMount () {
+    this.props.actions.loadAppSettings();
+  }
+
   render () {
     return (
       <div>
@@ -47,28 +51,35 @@ export class AppSettings extends React.Component {
 };
 
 AppSettings.propTypes = {
-  /*
   apps: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired
   }).isRequired).isRequired,
-  */
   actions: React.PropTypes.shape({
+    loadAppSettings: PropTypes.func.isRequired,
     addApp: PropTypes.func.isRequired,
     updateApp: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired
   })
 };
 
+const mapStateToProps = (state) => {
+  console.log("Try render APP state", state.settings);
+
+  return {
+    apps: state.settings.apps
+  };
+};
+
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({addApp, updateApp, removeApp}, dispatch),
+    actions: bindActionCreators({loadAppSettings, addApp, updateApp, removeApp}, dispatch),
     dispatch
   };
 };
 
 export default connect(
-  mapDispatchToProps
+  mapStateToProps, mapDispatchToProps
 )(AppSettings);

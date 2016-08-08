@@ -10,7 +10,8 @@ var bodyParser = require('body-parser');
 var routes = require('routes/index');
 var users = require('routes/users');
 
-var mongoose = require('mongoose');
+// var mongoose = require('mongoose');
+var mongoose = require('lib/mongo');
 var passport = require('passport');
 var BasicStrategy = require('passport-http').BasicStrategy;
 
@@ -49,8 +50,6 @@ var Account = require("./models/account");
 passport.use(new BasicStrategy(Account.authenticate()));
 passport.serializeUser(Account.serializeUser());
 passport.deserializeUser(Account.deserializeUser());
-
-mongoose.connect("mongodb://localhost/xbit_user");
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
