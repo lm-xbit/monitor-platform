@@ -1,5 +1,5 @@
 import React from 'react';
-import GdMap from './gdmap/gdmap';
+import GdMap from './gdmap/GdMap';
 
 export class GraphPage extends React.Component {
   render () {
