@@ -187,6 +187,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         if(location == null) {
             LOG.debug("Found invalid current location for sample - " + curTime);
+
             return new Sample(curTime);
         }
         else {

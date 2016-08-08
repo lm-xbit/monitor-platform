@@ -22,4 +22,33 @@ router.get("/users", passport.authenticate('basic'), function (req, res) {
     });
 });
 
+// Get user basic information
+router.get("/basic", function(req, res) {
+  return res.json({
+    status: 200,
+    settings: {
+      username: "Test User",
+      email: "testuser@somewhere.com",
+      password: "test"
+    }
+  })
+});
+
+router.get("/apps", function(req, res) {
+  return res.json({
+    status: 200,
+    apps: [{
+      id: "1111111",
+      name: "Type 1",
+      type: "mobile-tracking",
+      key: "app key 1"
+    }, {
+      id: "22222222",
+      name: "Type 2",
+      type: "Some Other App",
+      key: "app key 2"
+    }]
+  });
+});
+
 module.exports = router;

@@ -91,6 +91,7 @@ public class GpsLoggingService extends Service  {
     // Helpers and managers
     // ---------------------------------------------------
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
+    private boolean gpsManagerStarted = false;
     protected LocationManager gpsLocationManager;
     private LocationManager passiveLocationManager;
     private LocationManager towerLocationManager;
@@ -226,7 +227,7 @@ public class GpsLoggingService extends Service  {
                 boolean needToStartGpsManager = false;
 
                 if (bundle.getBoolean(IntentConstants.SAMPLE_LOCATION)) {
-                    LOG.info("Try sample GPS location");
+                    LOG.debug("Try sample GPS location");
                     periodicTaskReceiver.collectLocationSample(this);
                     return;
                 }
@@ -247,7 +248,7 @@ public class GpsLoggingService extends Service  {
                 }
 
                 if (bundle.getBoolean(IntentConstants.GET_NEXT_POINT)) {
-                    LOG.info("Intent received - Get Next Point");
+                    LOG.info("Intent received - Get Next Point: Location manager started? " + gpsManagerStarted + " By: " + this);
                     needToStartGpsManager = true;
                 }
 
@@ -582,6 +583,10 @@ public class GpsLoggingService extends Service  {
      * then nothing is requested.
      */
     private void startGpsManager() throws SecurityException {
+        if(gpsManagerStarted) {
+            // do nothing
+            return;
+        }
 
         //If the user has been still for more than the minimum seconds
         if(userHasBeenStillForTooLong()) {
@@ -642,6 +647,31 @@ public class GpsLoggingService extends Service  {
 
         EventBus.getDefault().post(new ServiceEvents.WaitingForLocation(true));
         Session.setWaitingForLocation(true);
+
+        gpsManagerStarted = true;
+
+        Location loc = gpsLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known GPS location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        loc = towerLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known network location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        loc = passiveLocationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+        if(loc != null) {
+            LOG.info("Got last known passive location - " + loc);
+            Session.setCurrentLocationInfo(loc);
+            return;
+        }
+
+        LOG.warn("Last location not known. Wait location update ...");
     }
 
     private boolean userHasBeenStillForTooLong() {
@@ -689,6 +719,10 @@ public class GpsLoggingService extends Service  {
      * Stops the location managers
      */
     private void stopGpsManager() throws SecurityException {
+        if(!gpsManagerStarted) {
+            LOG.info("Try stopping GPS manager without first start it!");
+            return;
+        }
 
         if (towerLocationListener != null) {
             LOG.debug("Removing towerLocationManager updates");
@@ -704,6 +738,7 @@ public class GpsLoggingService extends Service  {
         Session.setWaitingForLocation(false);
         EventBus.getDefault().post(new ServiceEvents.WaitingForLocation(false));
 
+        gpsManagerStarted = false;
     }
 
     private void stopPassiveManager() throws SecurityException {
@@ -974,7 +1009,7 @@ public class GpsLoggingService extends Service  {
 
         if(Systems.isDozing(this)){
             //Only invoked once per 15 minutes in doze mode
-            LOG.debug("Device is dozing, using infrequent alarm");
+            LOG.info("Device is dozing, using infrequent alarm");
             nextPointAlarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + preferenceHelper.getMinimumLoggingInterval() * 1000, pi);
         }
         else {
