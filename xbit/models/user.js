@@ -52,6 +52,12 @@ UserKeySchema.set('toJSON', {
 
 var UserSchema = new Schema(
   {
+    email: {
+      type: String,
+      index: true,
+      unique: true
+    },
+
     username: {
       type: String,
       index: true,

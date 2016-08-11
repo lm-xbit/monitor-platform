@@ -11,6 +11,9 @@ export class BasicSettings extends React.Component {
       editingUsername: false,
       changingPassword: false
     };
+
+    this.handlePasswordChange = this.handlePasswordChange.bind(this);
+    this.handleUsernameChange = this.handleUsernameChange.bind(this);
   }
 
   componentDidMount () {
@@ -31,6 +34,20 @@ export class BasicSettings extends React.Component {
   componentWillUnmount () {
     console.log('Component unloading ...');
     // this.serverRequest.abort();
+  }
+
+  handleUsernameChange (event) {
+    this.props.basic.username = event.target.value;
+
+    /**
+     * If is state, use this.setState to change, otherwise if we use props, we must call forceUpdate ...
+     */
+    this.forceUpdate();
+  }
+
+  handlePasswordChange (event) {
+    this.props.basic.password = event.target.value;
+    this.forceUpdate();
   }
 
   render () {
@@ -68,7 +85,7 @@ export class BasicSettings extends React.Component {
                 >Save</a>
               </div>
             </label>
-            <input className="form-control" id="username" name="username" defaultValue={this.props.basic.username} disabled={
+            <input className="form-control" id="username" name="username" value={this.props.basic.username} onChange={this.handleUsernameChange} disabled={
               !this.state.editingUsername
             } style={{
               width: '100%'
@@ -80,6 +97,12 @@ export class BasicSettings extends React.Component {
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input className="form-control" id="email" name="email" type="email" value={this.props.basic.email} disabled="true" style={{
+              width: '100%'
+            }}/>
+          </div>
+          <div className="form-group">
+            <label htmlFor="phone">Phone</label>
+            <input className="form-control" id="phone" name="phone" value={this.props.basic.phone} disabled="true" style={{
               width: '100%'
             }}/>
           </div>
@@ -105,7 +128,7 @@ export class BasicSettings extends React.Component {
             }}>
               <input className="form-control" id="password" name="password" type="password" style={{
                 width: '100%'
-              }} defaultValue={this.props.basic.password} readOnly="true" ref={node => {
+              }} value={this.props.basic.password} onChange={this.handlePasswordChange} readOnly="true" ref={node => {
                 password = node;
               }}
               />
@@ -114,7 +137,6 @@ export class BasicSettings extends React.Component {
               display: this.state.changingPassword ? 'block' : 'none',
               width: '100%'
             }}>
-
               <div className="input-group" style={{
                 width: '100%'
               }}>
@@ -210,6 +232,7 @@ BasicSettings.propTypes = {
   basic: PropTypes.shape({
     username: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
+    phone: PropTypes.string.isRequired,
     password: PropTypes.string.isRequired
   }),
   actions: PropTypes.shape({
@@ -219,7 +242,7 @@ BasicSettings.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  console.log("Try render BASIC state", state.settings);
+  console.log('Try render BASIC state', state.settings);
 
   return {
     basic: state.settings.basic
