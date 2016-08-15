@@ -26,7 +26,6 @@ export const loadGdMap = (doneFunction) => {
     cache: true
   }).done(function () {
     doneFunction();
-    // setInterval('getLocation(map)', 1000);
   });
 };
 
