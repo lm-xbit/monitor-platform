@@ -12,7 +12,11 @@ export class GdMap extends React.Component {
         map.addControl(toolBar);
         map.addControl(scale);
       });
-    });
+      setInterval(function () {
+        map.clearMap();
+        getLocation(map);
+      }, 3000); }
+    );
   };
   render () {
     return (

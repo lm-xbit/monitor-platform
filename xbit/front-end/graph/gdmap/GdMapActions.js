@@ -14,6 +14,7 @@ export const getLocation = (map) => {
         position: [converted[0], converted[1]],
         map: map
       });
+      addCircle(map, converted);
     }
   });
 };
@@ -26,4 +27,17 @@ export const loadGdMap = (doneFunction) => {
   }).done(function () {
     doneFunction();
   });
+};
+
+function addCircle (map, converted) {
+  var circle = new window.AMap.Circle({
+    center: new window.AMap.LngLat(converted[0], converted[1]),
+    radius: 300,
+    strokeColor: '#F33',
+    strokeOpacity: 1,
+    strokeWeight: 3,
+    fillColor: '#ee2200',
+    fillOpacity: 0.35
+  });
+  circle.setMap(map);
 };
