@@ -30,7 +30,42 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+if(process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, 'public')));
+}
+else {
+  app.use(express.static(path.join(__dirname, 'front-end/resources')));
+
+  var webpack = require('webpack');
+  var webpackDevMiddleware = require('webpack-dev-middleware');
+  var webpackHotMiddleware = require('webpack-hot-middleware');
+  var webpackDevConfig = require('./webpack/webpack.hot.config.js');
+
+  console.log("Non-production %s mode will use webpack to service frontend. Public path is %s", process.env.NODE_ENV, webpackDevConfig.output.publicPath);
+
+  try {
+    var compiler = webpack(webpackDevConfig);
+
+    console.log("#######Webpack config compiled ...");
+    // attach to the compiler & the server
+    app.use(webpackDevMiddleware(compiler, {
+      // public path should be the same with webpack config
+      publicPath: webpackDevConfig.output.publicPath,
+      noInfo: true,
+      stats: {
+        colors: true
+      }
+    }));
+
+    app.use(webpackHotMiddleware(compiler));
+
+    console.log("#######Webpack hot middleware hooked ...");
+  }
+  catch(err) {
+    console.log("Cannot load webpack hot middleware", err);
+  }
+}
+
 app.set('views', path.join(__dirname, 'views/'));
 
 app.use(require('express-session') ( {

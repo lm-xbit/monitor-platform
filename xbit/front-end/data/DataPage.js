@@ -12,8 +12,8 @@ export class DataPage extends React.Component {
     let input;
     return (
       <div>
-        <button type="button" class="btn btn-primary" onClick={() => this.props.actions.refreshLocation()}>立即刷新</button>
-        <table class="table table-striped">
+        <button type="button" className="btn btn-primary" onClick={() => this.props.actions.refreshLocation()}>立即刷新</button>
+        <table className="table table-striped">
           <thead>
             <tr>
               <th>时间</th>
@@ -31,16 +31,14 @@ export class DataPage extends React.Component {
                 <td style={{'line-height': '30px'}}>{app.latitude}</td>
                 <td style={{'line-height': '30px'}}>{app.altitude}</td>
                 <td style={{'line-height': '30px'}}>{app.accuracy}</td>
-            </tr>
-          )}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
     );
   }
 };
-
-
 DataPage.propTypes = {
   locations: PropTypes.arrayOf(PropTypes.shape({
     timestamp: PropTypes.number.isRequired,

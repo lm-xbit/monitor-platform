@@ -66,7 +66,7 @@ AppSettings.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  console.log("Try render APP state", state.settings);
+  console.log('Try render APP state', state.settings);
 
   return {
     apps: state.settings.apps

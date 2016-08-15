@@ -1,10 +1,11 @@
 import React from 'react';
 import activeComponent from 'react-router-active-component';
-import 'commonStyle/index.scss';
+import 'common/style/index.scss';
 import style from './App.scss';
 
 const NavLink = activeComponent('li');
 
+console.log('Style: ' + style.headerItem, style);
 const App = (props) => {
   return (
     <div>

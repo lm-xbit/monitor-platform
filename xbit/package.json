@@ -74,6 +74,7 @@
     "moment": "^2.14.1",
     "mongoose": "^4.4.1",
     "morgan": "~1.6.1",
+    "node-sass": "^3.8.0",
     "passport": "^0.2.1",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
@@ -88,10 +89,12 @@
     "redux": "^3.5.2",
     "redux-form": "^5.3.1",
     "redux-thunk": "^2.1.0",
+    "sass-loader": "^4.0.0",
     "serve-favicon": "~2.3.0",
-    "should": "~2.1.0"
+    "should": "~2.1.0",
+    "webpack-dev-middleware": "^1.6.1",
+    "webpack-hot-middleware": "^2.12.2"
   },
-  "main": "app.js",
   "author": "",
   "license": "ISC",
   "description": ""
