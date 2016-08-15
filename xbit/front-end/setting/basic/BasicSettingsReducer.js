@@ -1,7 +1,8 @@
 const data = (state = {
   username: '',
   password: '',
-  email: ''
+  email: '',
+  phone: ''
 }, action) => {
   switch (action.type) {
     case 'UPDATE_USERNAME':
@@ -15,6 +16,9 @@ const data = (state = {
         email: action.data.email,
         password: action.data.password
       });
+
+    case 'UPDATE_BASIC_SETTINGS_FAILURE':
+      return state;
 
     default:
       return state;

@@ -1,10 +1,12 @@
+var bunyan = require('bunyan');
 var express = require('express');
 var passport = require('passport');
 var Account = require('models/account');
 var User = require('models/user');
+var logger = bunyan.createLogger({name: "settings"});
 
-var Resp = require('resp')
-var StatusCodes = require('status')
+var Resp = require('resp');
+var StatusCodes = require('status');
 
 var router = express.Router();
 
@@ -109,11 +111,83 @@ router.get("/basic", function(req, res) {
   return res.json({
     status: 200,
     settings: {
-      username: "Test User",
-      email: "testuser@somewhere.com",
-      password: "test"
+        username: "Test User",
+        email: "testuser@somewhere.com",
+        phone: "13800138000",
+        password: "test"
     }
   })
+});
+
+router.post("/username/:email", function(req, res, next) {
+  var email = req.params.email;
+  User.where({email: email}).findOne( (err, user) => {
+    if(err) {
+        logger.error("Failed to find user by email %s: %s\n%s", email, err.message, err.stack);
+        return next(err);
+    }
+
+    if(user === null) {
+        logger.error("Cannot find user with given email address %s", email);
+        return next(new Error("No user found with email - " + email));
+    }
+
+    user.username = body.username;
+    user.save(function(err) {
+      if(err) {
+        return next(err);
+
+        return res.json({
+            status: 200,
+            settings: {
+                username: user.username,
+                email: user.email,
+                phone: user.phone,
+                password: user.password
+            }
+        });
+      }
+    })
+  });
+});
+
+router.post("/password/:email", function (req, res, next) {
+    var email = req.params.email;
+    User.where({email: email}).findOne((err, user) => {
+        if (err) {
+            logger.error("Failed to find user by email %s: %s\n%s", email, err.message, err.stack);
+            return next(err);
+        }
+
+        if (user === null) {
+            logger.error("Cannot find user with given email address %s", email);
+            return next(new Error("No user found with email - " + email));
+        }
+
+        if(user.password !== req.body.oldpass) {
+            return res.json({
+                status: 401,
+                message: "Invalid password"
+            });
+        }
+
+        user.password = body.newpass;
+        user.save(function (err) {
+            if (err) {
+                return next(err);
+
+                return res.json({
+                    status: 200,
+                    settings: {
+                        username: user.username,
+                        email: user.email,
+                        phone: user.phone,
+                        password: user.password
+                    }
+                });
+            }
+        })
+    });
 });
 
 router.get("/apps", function(req, res) {

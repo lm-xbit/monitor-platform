@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {loadBasicSettings, updateUsername} from './BasicSettingsActions';
+import {loadBasicSettings, saveUsername, changePassword} from './BasicSettingsActions';
 
 export class BasicSettings extends React.Component {
 
@@ -75,7 +75,19 @@ export class BasicSettings extends React.Component {
                 >Change Username</a>
                 <a onClick={e => {
                   e.preventDefault();
-                  console.log('Update username to - ' + username.value);
+                  // console.log('Update username to - ' + username.value);
+                  this.props.actions.saveUsername(
+                    this.props.basic.email,
+                    username.value
+                  );
+                  /*
+                  this.props.dispatch(
+                    this.props.actions.saveUsername(
+                      this.props.basic.email,
+                      username.value
+                    ));
+                  */
+
                   this.setState({
                     editingUsername: false
                   });
@@ -209,8 +221,8 @@ export class BasicSettings extends React.Component {
                     if (newpass.value === oldpass.value) {
                       console.log('Password not changed');
                     } else {
-                      password.value = newpass.value;
-                      // todo: post back to server
+                      // password.value = newpass.value;
+                      this.props.actions.changePassword(this.props.basic.email, oldpass.value, newpass.value);
                     }
 
                     this.setState({
@@ -237,7 +249,8 @@ BasicSettings.propTypes = {
   }),
   actions: PropTypes.shape({
     loadBasicSettings: PropTypes.func.isRequired,
-    updateUsername: PropTypes.func.isRequired
+    saveUsername: PropTypes.func.isRequired,
+    changePassword: PropTypes.func.isRequired
   })
 };
 
@@ -251,7 +264,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({updateUsername, loadBasicSettings}, dispatch),
+    actions: bindActionCreators({saveUsername, changePassword, loadBasicSettings}, dispatch),
     dispatch
   };
 };
