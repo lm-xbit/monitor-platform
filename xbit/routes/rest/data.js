@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 var logger = bunyan.createLogger({name: "data"});
 var ESClient = require("lib/esclient");
+var passport = require('passport');
 
 // fix me: debugging mode
 logger.level("debug");
@@ -56,6 +57,10 @@ var indexData = function(timestamp, key, metrics) {
 };
 
 router.get("/:key", function (req, res) {
+    if (!req.user) {
+        res.render("login");
+        return;
+    }
     var deviceKey = req.params.key;
     logger.debug("Get the data of device %s", deviceKey);
     // TODO Device Verification
@@ -155,6 +160,12 @@ router.get("/:key", function (req, res) {
 });
 
 router.post("/:key", function(req, res) {
+
+    // TODO: Should check the authentication
+    // if (!req.user) {
+    //     res.render("login");
+    //     return;
+    // }
     var deviceKey = req.params.key;
     logger.debug("Handling data reporting from device %s", deviceKey);
 

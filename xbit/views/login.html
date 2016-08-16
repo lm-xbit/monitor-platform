@@ -4,66 +4,65 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="shortcut icon" type="image/x-icon" href="/xbit.ico" />
+    <link rel="stylesheet" type="text/css" href="assets/styles/bootstrap.css">
 
-		<link rel="stylesheet" type="text/css" href="assets/styles/bootstrap.css">
+    <!-- Website CSS style -->
+    <link rel="stylesheet" type="text/css" href="assets/styles/main.css">
 
-		<!-- Website CSS style -->
-		<link rel="stylesheet" type="text/css" href="assets/styles/main.css">
+    <!-- Website Font style -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
 
-		<!-- Website Font style -->
-	    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
-
-		<!-- Google Fonts -->
-		<link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
-		<link href='https://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
+    <!-- Google Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
 
     <style>
 
     </style>
 </head>
 <body>
-  <body>
-		<div class="container">
-			<div class="row main">
-				<div class="panel-heading">
-	               <div class="panel-title text-center">
-	               		<h1 class="title">Welcome to xBit</h1>
-	               	</div>
-	            </div>
-				<div class="main-login main-center">
-					<form class="form-horizontal" method="post" action="#">
+<div class="container">
+    <div class="row main">
+        <div class="panel-heading">
+            <div class="panel-title text-center">
+                <h1 class="title">Welcome to xBit</h1>
+            </div>
+        </div>
+        <div class="main-login main-center">
+            <div class="form-horizontal">
 
-						<div class="form-group">
-							<label for="username" class="cols-sm-2 control-label">Username</label>
-							<div class="cols-sm-10">
-								<div class="input-group">
-									<span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
-									<input type="text" class="form-control" name="username" id="username"  placeholder="Enter your Username"/>
-								</div>
-							</div>
-						</div>
+                <div class="form-group">
+                    <label for="username" class="cols-sm-2 control-label">Username</label>
+                    <div class="cols-sm-10">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
+                            <input type="text" class="form-control" name="username" id="username"
+                                   placeholder="Enter your Username"/>
+                        </div>
+                    </div>
+                </div>
 
-						<div class="form-group">
-							<label for="password" class="cols-sm-2 control-label">Password</label>
-							<div class="cols-sm-10">
-								<div class="input-group">
-									<span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
-									<input type="password" class="form-control" name="password" id="password"  placeholder="Enter your Password"/>
-								</div>
-							</div>
-						</div>
+                <div class="form-group">
+                    <label for="password" class="cols-sm-2 control-label">Password</label>
+                    <div class="cols-sm-10">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-lock fa-lg" aria-hidden="true"></i></span>
+                            <input type="password" class="form-control" name="password" id="password"
+                                   placeholder="Enter your Password"/>
+                        </div>
+                    </div>
+                </div>
 
-						<div class="form-group ">
-							<button type="button" class="btn btn-success btn-lg btn-block login-button">Login</button>
-						</div>
-						<div class="login-register">
-				            <a href="/signup">Signup</a>
-				         </div>
-					</form>
-				</div>
-			</div>
-		</div>
+                <div class="form-group ">
+                    <button type="button" class="btn btn-success btn-lg btn-block login-button">Login</button>
+                </div>
+                <div class="login-register">
+                    <a href="/signup">Signup</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
@@ -72,7 +71,7 @@
         $('.login-button').on('click', function () {
             var userName = $('#username').val().trim();
             var password = $('#password').val().trim();
-            if(userName && password) {
+            if (userName && password) {
                 login(userName, password);
             } else {
                 alertError('Please input user name and password.');
@@ -80,35 +79,32 @@
         });
     });
 
-    function login (username, password) {
+    function login(username, password) {
         $.ajax({
             url: '/rest/settings/login',
             type: 'POST',
             contentType: 'application/json',
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader ("Authorization", "Basic " + btoa(username + ":" + password));
-            },
-            //data: JSON.stringify({username: username, password: password}),
-            success: function(res){
+            data: JSON.stringify({username: username, password: password}),
+            success: function (res) {
                 redirectQueryUrl();
             },
-            error: function(err){
+            error: function (err) {
                 alertError(err);
             }
         });
     }
 
-    function alertError (err) {
-        if(typeof err === 'string') {
+    function alertError(err) {
+        if (typeof err === 'string') {
             alert(err)
-        } else if(err && err.errmsg) {
+        } else if (err && err.errmsg) {
             alert(err.errmsg);
         } else {
             alert('Unknown error.');
         }
     }
 
-    function redirectQueryUrl () {
+    function redirectQueryUrl() {
         window.location.href = getQueryVariable('url') || '/index';
     }
 
