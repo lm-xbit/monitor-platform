@@ -14,7 +14,7 @@
     "js": "node --harmony"
   },
   "watch": [
-    "lib", "models", "routes", "views"
+    "*.js", "lib", "models", "routes", "views"
   ],
   "env": {
     "NODE_ENV": "development"

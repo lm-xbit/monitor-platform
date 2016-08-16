@@ -5,12 +5,14 @@ var passport = require('passport');
 
 /* GET home page. */
 router.get('/', function(req, res) {
+  console.log("Try rendering landing page ");
   if (!req.user) {
+    console.log("Render login page ....");
     res.render('login');
   } else {
+    console.log("Render index page for user ....", req.user);
     res.render('index');
   }
-
 });
 
 router.get('/signup', function(req, res) {

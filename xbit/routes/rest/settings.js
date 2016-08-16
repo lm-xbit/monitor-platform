@@ -10,7 +10,7 @@ var StatusCodes = require('status')
 var router = express.Router();
 
 router.post('/register', function(req, res, next) {
-  User.register(new User({ username : req.body.username }), req.body.password, function(err, user) {
+  User.register(new User({ email: req.body.email, username : req.body.username }), req.body.password, function(err, user) {
     if (err) {
       return res.status(401).send("Fail to login - " + err);
     }
@@ -26,12 +26,15 @@ router.post('/register', function(req, res, next) {
   });
 });
 
-router.post('/login',
-  passport.authenticate('local'), function(req, res, next) {
+router.post('/login', passport.authenticate('local'), function(req, res, next) {
   req.session.save(function (err) {
     if (err) {
       return next(err);
     }
+
+    var inspect = require("util").inspect;
+    logger.info("User logged in: %s", inspect(req.session.user));
+
     res.redirect('/');
   });
 });
@@ -87,7 +90,7 @@ router.put('/user/:id', passport.authenticate('local'), (req, res) => {
       }
     });
   }
-  var update = {}
+  var update = {};
   update.userKeys = user.userKeys;
   if (user.password) {
     update.password = user.password;
@@ -174,32 +177,53 @@ router.post("/password/:email", function (req, res, next) {
 
 // Get user basic information
 router.get("/basic", function(req, res) {
-    return res.json({
-        status: 200,
-        settings: {
-            username: "Test User",
-            email: "testuser@somewhere.com",
-            phone: "13800138000",
-            password: "test"
+    var email = req.session.passport.user;
+    logger.info("Try getting basic information for user " + email);
+
+    User.findOne({email: email}, function(err, user) {
+        if(err) {
+            logger.error("Cannot get basic information for user %s due to %s", email, err.message)
+            return next(err);
         }
-    })
+
+        if(!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        return res.json({
+            status: 200,
+            settings: {
+                username: user.username,
+                email: user.email,
+                phone: user.phone,
+                password: user.password
+            }
+        })
+    });
 });
 
 router.get("/apps", function(req, res) {
-    return res.json({
-        status: 200,
-        apps: [{
-            id: "1111111",
-            name: "Type 1",
-            type: "mobile-tracking",
-            key: "app key 1"
-        }, {
-            id: "22222222",
-            name: "Type 2",
-            type: "Some Other App",
-            key: "app key 2"
-        }]
+    var email = req.session.passport.user;
+    logger.info("Try getting basic information for user " + email);
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot get basic information for user %s due to %s", email, err.message)
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        res.json({
+            status: 200,
+            apps: user.userKeys
+        });
     });
+
 });
 
 module.exports = router;

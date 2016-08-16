@@ -33,7 +33,15 @@ var UserSchema = new Schema(
     email: {
       type: String,
       index: true,
-      unique: true
+      unique: true,
+      validate: {
+        validator: function(email) {
+          var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+          return re.test(email)
+        },
+        message: "Invalid email address provided"
+      },
+      required: [true, 'Email address is required'],
     },
 
     username: {
@@ -122,5 +130,5 @@ UserSchema.set('toJSON', {
 });
 
 
-UserSchema.plugin(passportLocalMongoose);
+UserSchema.plugin(passportLocalMongoose, {usernameField: 'email'});
 module.exports = mongoose.model('User', UserSchema);

@@ -37,6 +37,16 @@
 						</div>
 
 						<div class="form-group">
+							<label for="email" class="cols-sm-2 control-label">Email</label>
+							<div class="cols-sm-10">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
+									<input type="email" class="form-control" name="email" id="email"  placeholder="Your Email Address ..."/>
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
 							<label for="password" class="cols-sm-2 control-label">Password</label>
 							<div class="cols-sm-10">
 								<div class="input-group">
@@ -71,12 +81,13 @@
   <script>
       $(document).ready(function () {
           $('.login-button').on('click', function () {
+			  var email = $('#email').val().trim();
               var userName = $('#username').val().trim();
               var password = $('#password').val().trim();
               var confirm =$('#confirm').val().trim();
-              if(userName && password && confirm) {
+              if(email && userName && password && confirm) {
                if (password ===confirm) {
-                 signup(userName, password);
+                 signup(email, userName, password);
                }
                else{
                  alertError('Password does not align.');
@@ -84,17 +95,17 @@
 
 
               } else {
-                  alertError('Please input user name and password.');
+                  alertError('Please input your user name, email address and password.');
               }
           });
       });
 
-      function signup (username, password) {
+      function signup (email, username, password) {
           $.ajax({
               url: '/rest/settings/register',
               type: 'POST',
               contentType: 'application/json',
-              data: JSON.stringify({username: username, password: password}),
+              data: JSON.stringify({email: email, username: username, password: password}),
               success: function(res){
                   redirectQueryUrl();
               },

@@ -6,11 +6,42 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var mongoose = require('lib/mongo');
+var mongoStore = require('connect-mongo')(session);
 
 var routes = require('routes/index');
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+
+// passport config
+var User = require("./models/user");
+//passport.use(User.createStrategy());
+passport.use(new LocalStrategy(function(username, password, cb) {
+  var auth = User.authenticate();
+
+  console.log("Try authenticate user " + username + " with password " + password);
+  auth(username, password, function(err, data) {
+    if(err) {
+      console.log("Failed to login due to " + err.message, err);
+    }
+    else {
+      if (data) {
+        console.log("User login failed!")
+      }
+      else {
+        console.log("User logged in successfully", data);
+      }
+    }
+
+    cb(err, data);
+  });
+}));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 
 var app = express();
 
@@ -65,22 +96,20 @@ else {
 
 app.set('views', path.join(__dirname, 'views/'));
 
-app.use(require('express-session') ( {
+app.use(session ( {
   secret : 'xbit',
   resave : false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store  : new mongoStore({ mongooseConnection: mongoose.connection }),
+  cookie : {
+    maxAge: 30 * 60 * 1000  // 30 minutes, in milliseconds
+  }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', routes);
-
-// passport config
-var User = require("./models/user");
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

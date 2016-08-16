@@ -32,12 +32,12 @@
             <div class="form-horizontal">
 
                 <div class="form-group">
-                    <label for="username" class="cols-sm-2 control-label">Username</label>
+                    <label for="email" class="cols-sm-2 control-label">Email Address</label>
                     <div class="cols-sm-10">
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
-                            <input type="text" class="form-control" name="username" id="username"
-                                   placeholder="Enter your Username"/>
+                            <input type="email" class="form-control" name="email" id="email"
+                                   placeholder="Registered Email Address"/>
                         </div>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
 <script>
     $(document).ready(function () {
         $('.login-button').on('click', function () {
-            var userName = $('#username').val().trim();
+            var userName = $('#email').val().trim();
             var password = $('#password').val().trim();
             if (userName && password) {
                 login(userName, password);

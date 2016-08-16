@@ -203,11 +203,6 @@ export class BasicSettings extends React.Component {
                       return;
                     }
 
-                    if (oldpass.value !== password.value) {
-                      alert('Old password incorrect!');
-                      return;
-                    }
-
                     if (newpass.value === '') {
                       alert('New password must be provided!');
                       return;
