@@ -20,7 +20,7 @@ app.engine('.html', require('ejs').__express);
 app.set('view engine', 'html');
 
 // uncomment after placing your favicon in /public
-app.use(favicon(__dirname + '/front-end/resources/assets/xbit.ico'));
+app.use(favicon(__dirname + '/front-end/resources/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -31,7 +31,7 @@ if(process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, 'public')));
 }
 else {
-  app.use(express.static(path.join(__dirname, 'front-end/resources/assets')));
+  app.use(express.static(path.join(__dirname, 'front-end/resources')));
 
   var webpack = require('webpack');
   var webpackDevMiddleware = require('webpack-dev-middleware');
