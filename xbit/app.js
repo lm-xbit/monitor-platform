@@ -31,7 +31,7 @@ if(process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, 'public')));
 }
 else {
-  app.use(express.static(path.join(__dirname, 'front-end/resources')));
+  app.use(express.static(path.join(__dirname, 'front-end/resources/assets')));
 
   var webpack = require('webpack');
   var webpackDevMiddleware = require('webpack-dev-middleware');
@@ -84,7 +84,7 @@ passport.deserializeUser(User.deserializeUser());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  var err = new Error('Not Found - ' + req.url);
   err.status = 404;
   next(err);
 });
