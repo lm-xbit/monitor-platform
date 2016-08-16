@@ -14,4 +14,4 @@ var StatusCodes = {
   NOT_FOUND: 1005
 }
 
-module.exports = StatusCodes
+module.exports = StatusCodes;
