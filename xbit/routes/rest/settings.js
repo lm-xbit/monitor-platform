@@ -1,55 +1,50 @@
 var express = require('express');
 var passport = require('passport');
-var Account = require('models/account');
 var User = require('models/user');
 
-var Resp = require('resp')
+var Resp = require('resp');
 var StatusCodes = require('status')
 
 var router = express.Router();
 
-router.post('/register', (req, res) => {
-  var username = req.body.username;
-  var password = req.body.password;
-
-  User.where({username: username}).findOne( (err, user) => {
+router.post('/register', function(req, res, next) {
+  User.register(new User({ username : req.body.username }), req.body.password, function(err, user) {
     if (err) {
-      return res.json(new Resp(StatusCodes.INTERNAL_ERROR, "register failed for interal error"));
+      return res.status(401).send("Fail to login - " + err);
     }
 
-    if (user) {
-      return res.json(new Resp(StatusCodes.USER_EXISTS, "username has existed, please choose another username"));
-    }
-
-    // save new user to db
-    user = new User({username: username, password: password});
-    user.save( (err, user, numAffected) => {
-      if (err || numAffected == 0) {
-        return res.json(new Resp(StatusCodes.INTERNAL_ERROR, "save user failed"));
-      }
-
-      return res.json(new Resp(StatusCodes.OK, "registry successfully", user.toJSON()));
+    passport.authenticate('local')(req, res, function () {
+      req.session.save(function (err) {
+        if (err) {
+          return next(err);
+        }
+        res.redirect('/');
+      });
     });
   });
 });
 
-router.post('/login', (req, res) => {
-  var username = req.body.username;
-  var password = req.body.password;
-
-  User.where( {username: username, password: password} ).findOne( (err, user) => {
-    if (err || !user) {
-      return res.json(new Resp(StatusCodes.LOGIN_FAILED, "invalid username or password"));
+router.post('/login',
+  passport.authenticate('local'), function(req, res, next) {
+  req.session.save(function (err) {
+    if (err) {
+      return next(err);
     }
-    if (user) {
-      // todo: update session
-
-      return res.json(new Resp(StatusCodes.OK, StatusCodes.OK_STR, user.toJSON()));
-    }
+    res.redirect('/');
   });
 });
 
-router.get('/user/:id', (req, res) => {
+router.get('/logout', function(req, res, next) {
+  req.logout();
+  req.session.save(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
+});
+
+router.get('/user/:id',passport.authenticate('local'), (req, res) => {
   var uid = req.params.id;
 
   if (!uid) {
@@ -67,7 +62,7 @@ router.get('/user/:id', (req, res) => {
   });
 });
 
-router.put('/user/:id', (req, res) => {
+router.put('/user/:id', passport.authenticate('local'), (req, res) => {
   var uid = req.params.id;
   var user = req.body;
 
@@ -101,35 +96,6 @@ router.put('/user/:id', (req, res) => {
       return res.json(new Resp(StatusCodes.INTERNAL_ERROR, "update user info failed"));
     }
     return res.json(new Resp(StatusCodes.OK, StatusCodes.OK_STR, user.toJSON()));
-  });
-});
-
-// Get user basic information
-router.get("/basic", function(req, res) {
-  return res.json({
-    status: 200,
-    settings: {
-      username: "Test User",
-      email: "testuser@somewhere.com",
-      password: "test"
-    }
-  })
-});
-
-router.get("/apps", function(req, res) {
-  return res.json({
-    status: 200,
-    apps: [{
-      id: "1111111",
-      name: "Type 1",
-      type: "mobile-tracking",
-      key: "app key 1"
-    }, {
-      id: "22222222",
-      name: "Type 2",
-      type: "Some Other App",
-      key: "app key 2"
-    }]
   });
 });
 

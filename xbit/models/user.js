@@ -2,8 +2,6 @@ var mongoose = require('lib/mongo');
 var passportLocalMongoose = require('passport-local-mongoose');
 var moment = require('moment');
 
-var dateFormat = 'YYYY-MM-DD HH:mm:ss Z';
-
 var Schema = mongoose.Schema;
 
 function dateFormat(time) {
@@ -30,26 +28,6 @@ var UserKeySchema = new Schema(
   }
 );
 
-UserKeySchema.pre('save', function(next){
-  var now = Date.now();
-
-  this.updateOn = now;
-  if (!this.createOn) {
-    this.createOn = now;
-  }
-  next();
-});
-
-UserKeySchema.set('toJSON', {
-  transform: function (doc, ret, options) {
-    ret.id = ret._id;
-    ret.updateOn = moment(ret.updateOn).format(dateFormat);
-    ret.createOn = moment(ret.createOn).format(dateFormat);
-    delete ret._id;
-    delete ret.__v;
-  }
-});
-
 var UserSchema = new Schema(
   {
     username: {
@@ -73,8 +51,8 @@ var UserSchema = new Schema(
           return pass && !pass.match(/^\s*$/)
         },
         message: 'password cannot be empty'
-      },
-      required: [true, 'password cannot be empty']
+      }
+//      required: [true, 'password cannot be empty']
     },
 
     phone: {type: String, default: ''},
@@ -93,6 +71,37 @@ var UserSchema = new Schema(
   }
 );
 
+UserKeySchema.pre('save', function(next){
+  var now = Date.now();
+
+  this.updateOn = now;
+  if (!this.createOn) {
+    this.createOn = now;
+  }
+  next();
+});
+
+UserKeySchema.set('toJSON', {
+  transform: function (doc, ret, options) {
+    ret.id = ret._id;
+    ret.updateOn = moment(ret.updateOn).format(dateFormat);
+    ret.createOn = moment(ret.createOn).format(dateFormat);
+    delete ret._id;
+    delete ret.__v;
+  }
+});
+
+UserSchema.pre('save', function(next) {
+  console.info("Try to save the user");
+  var now = Date.now();
+  this.updateOn = now;
+
+  if (!this.createOn) {
+    this.createOn = now;
+  }
+  next();
+});
+
 UserSchema.set('toJSON', {
   transform: function (doc, ret, options) {
     ret.id = ret._id;
@@ -106,15 +115,6 @@ UserSchema.set('toJSON', {
   }
 });
 
-UserSchema.pre('save', function(next) {
-  var now = Date.now();
-  this.updateOn = now;
 
-  if (!this.createOn) {
-    this.createOn = now;
-  }
-  next();
-});
-
-// UserSchema.plugin(passportLocalMongoose);
+UserSchema.plugin(passportLocalMongoose);
 module.exports = mongoose.model('User', UserSchema);
