@@ -60,13 +60,15 @@ config.eslint = {
 };
 
 config.plugins = config.plugins.concat(
-    new webpack.HotModuleReplacementPlugin(),
+    new webpack.HotModuleReplacementPlugin()
+    /*
     new HtmlWebpackPlugin({
         title: 'Xbit',
         template: 'front-end/indexTemplate.html',
         filename: 'front-end/resources/index.html',
         inject: true,
     })
+    */
 );
 
 config.resolve = {

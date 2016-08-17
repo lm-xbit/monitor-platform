@@ -1,20 +1,54 @@
 import $ from 'jquery';
 import converter from 'coordtransform';
 
-export const getLocation = (map) => {
+var offset = 1;
+export const updateLocation = (map, hot) => {
   $.getJSON('/rest/data/mobile-tracking', '', function (json) {
-    map.setZoom(14);
-    if (json.data && json.data.length > 0) {
-      var latestData = json.data[json.data.length - 1];
-      var converted = converter.wgs84togcj02(latestData.location.longitude, latestData.location.latitude);
+    // long, lat
+    var pos = null;
 
-      map.setCenter(converted);
-      var marker = new window.AMap.Marker({
-        // position: [latestData.location.longitude, latestData.location.latitude],
-        position: [converted[0], converted[1]],
-        map: map
-      });
-      addCircle(map, converted);
+    if (json.data && json.data.length > 0) {
+      pos = json.data[json.data.length - 1].location;
+    } else {
+      /**
+       * Testing purpose. Let's remove this in production environment
+       * @type {{longitude: number, latitude: number}}
+       */
+      pos = {
+        longitude: 103.982584 + ++offset * 0.0001,
+        latitude: 30.681369
+      };
+    }
+
+    if (pos) {
+      var converted = converter.wgs84togcj02(pos.longitude, pos.latitude);
+
+      if (!hot.marker) {
+        hot.marker = new window.AMap.Marker({
+          map: map,
+          position: converted
+        });
+
+        // for the first time, let's focus the center ...
+        map.setCenter(converted);
+      } else {
+        hot.marker.setPosition(converted);
+      }
+
+      if (!hot.circle) {
+        hot.circle = new window.AMap.Circle({
+          center: converted,
+          radius: 300,
+          strokeColor: '#F33',
+          strokeOpacity: 1,
+          strokeWeight: 3,
+          fillColor: '#ee2200',
+          fillOpacity: 0.35,
+          map: map
+        });
+      } else {
+        hot.circle.setCenter(converted);
+      }
     }
   });
 };
@@ -29,15 +63,3 @@ export const loadGdMap = (doneFunction) => {
   });
 };
 
-function addCircle (map, converted) {
-  var circle = new window.AMap.Circle({
-    center: new window.AMap.LngLat(converted[0], converted[1]),
-    radius: 300,
-    strokeColor: '#F33',
-    strokeOpacity: 1,
-    strokeWeight: 3,
-    fillColor: '#ee2200',
-    fillOpacity: 0.35
-  });
-  circle.setMap(map);
-};

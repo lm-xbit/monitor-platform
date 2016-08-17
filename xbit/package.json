@@ -7,7 +7,7 @@
     "dev": "NODE_ENV=development webpack-dev-server --hot --inline --history-api-fallback --config ./webpack/webpack.dev.config.js",
     "compile": "NODE_ENV=production webpack -p --config ./webpack/webpack.production.config.js",
     "static": "http-server ./dist -p 8080",
-    "build": "cp -r ./front-end/resources/ ./public && npm run compile && rm ./public/index.html",
+    "build": "cp -r ./front-end/resources/ ./public && npm run compile",
     "eslint": "eslint --ext .js,.jsx front-end/** --ignore-path ./front-end/.eslintignore --fix",
     "start": "node ./bin/www",
     "debug": "node --debug ./bin/www"

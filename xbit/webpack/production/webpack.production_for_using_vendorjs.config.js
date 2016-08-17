@@ -37,12 +37,13 @@ config.plugins = config.plugins.concat([
 
   new ExtractTextPlugin('assets/styles/[name].css?[hash]-[chunkhash]-[contenthash]-[name]', {
     allChunks: true
-  }),
-
+  })
+  /*
   new HtmlWebpackPlugin({
     filename: 'index.html',
     template: 'front-end/resources/index.html'
   })
+  */
 ]);
 
 config.module.loaders = config.module.loaders.concat(
