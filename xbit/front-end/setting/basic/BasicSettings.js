@@ -12,7 +12,6 @@ export class BasicSettings extends React.Component {
       changingPassword: false
     };
 
-    this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
   }
 
@@ -45,14 +44,8 @@ export class BasicSettings extends React.Component {
     this.forceUpdate();
   }
 
-  handlePasswordChange (event) {
-    this.props.basic.password = event.target.value;
-    this.forceUpdate();
-  }
-
   render () {
     let username;
-    let password;
     let oldpass;
     let newpass;
     let newpass2;
@@ -119,7 +112,8 @@ export class BasicSettings extends React.Component {
             }}/>
           </div>
           <div className="form-group">
-            <label htmlFor="username">Password
+            <label htmlFor="username">
+              Manage Password
               <div style={{
                 float: 'right'
               }}>
@@ -138,12 +132,6 @@ export class BasicSettings extends React.Component {
               display: this.state.changingPassword ? 'none' : 'block',
               width: '100%'
             }}>
-              <input className="form-control" id="password" name="password" type="password" style={{
-                width: '100%'
-              }} value={this.props.basic.password} onChange={this.handlePasswordChange} readOnly="true" ref={node => {
-                password = node;
-              }}
-              />
             </div>
             <div style={{
               display: this.state.changingPassword ? 'block' : 'none',
@@ -239,8 +227,7 @@ BasicSettings.propTypes = {
   basic: PropTypes.shape({
     username: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
-    phone: PropTypes.string.isRequired,
-    password: PropTypes.string.isRequired
+    phone: PropTypes.string.isRequired
   }),
   actions: PropTypes.shape({
     loadBasicSettings: PropTypes.func.isRequired,

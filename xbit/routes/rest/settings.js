@@ -127,8 +127,7 @@ router.post("/username/:email", function(req, res, next) {
             settings: {
                 username: user.username,
                 email: user.email,
-                phone: user.phone,
-                password: user.password
+                phone: user.phone
             }
         });
       }
@@ -149,29 +148,42 @@ router.post("/password/:email", function (req, res, next) {
             return next(new Error("No user found with email - " + email));
         }
 
-        if(user.password !== req.body.oldpass) {
-            return res.json({
-                status: 401,
-                message: "Invalid password"
-            });
-        }
-
-        user.password = body.newpass;
-        user.save(function (err) {
-            if (err) {
+        user.authenticate(req.body.oldpass, function(err, ok) {
+            if(err) {
+                logger.error("Cannot authenticate user " + email);
                 return next(err);
+            }
 
+            if(!ok) {
+                logger.error("Password incorrect. Cannot change password for " + email);
                 return res.json({
-                    status: 200,
-                    settings: {
-                        username: user.username,
-                        email: user.email,
-                        phone: user.phone,
-                        password: user.password
-                    }
+                    status: 401,
+                    message: "Invalid password"
                 });
             }
-        })
+
+            user.setPassword(req.body.newpass, function(err, self) {
+                if(err) {
+                    logger.error("Cannot change password to new password!", err);
+                    return next(err);
+                }
+
+                self.save(function (err) {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    return res.json({
+                        status: 200,
+                        settings: {
+                            username: self.username,
+                            email: self.email,
+                            phone: self.phone
+                        }
+                    });
+                })
+            });
+        });
     });
 });
 
@@ -196,8 +208,7 @@ router.get("/basic", function(req, res) {
             settings: {
                 username: user.username,
                 email: user.email,
-                phone: user.phone,
-                password: user.password
+                phone: user.phone
             }
         })
     });

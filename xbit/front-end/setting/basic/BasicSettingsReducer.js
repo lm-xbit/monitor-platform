@@ -1,6 +1,5 @@
 const data = (state = {
   username: '',
-  password: '',
   email: '',
   phone: ''
 }, action) => {
@@ -14,7 +13,7 @@ const data = (state = {
       return Object.assign({}, state, {
         username: action.data.username,
         email: action.data.email,
-        password: action.data.password
+        phone: action.data.phone
       });
 
     case 'UPDATE_BASIC_SETTINGS_FAILURE':

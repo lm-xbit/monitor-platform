@@ -11,7 +11,7 @@ export class AppSettings extends React.Component {
   render () {
     return (
       <div>
-        <div style={{'padding-bottom': '10px', 'border-bottom': '2px solid', height: '42px', 'line-height': '30px'}}>
+        <div style={{'paddingBottom': '10px', 'borderBottom': '2px solid', height: '42px', 'lineHeight': '30px'}}>
           Current Applications
           <button className="btn btn-sm btn-success" onClick={e => {
             e.preventDefault();
