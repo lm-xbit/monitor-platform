@@ -238,6 +238,64 @@ router.get("/apps", function(req, res) {
     });
 });
 
+
+/**
+ * DELETE an APP
+ */
+router.delete("/apps/:key", function(req, res) {
+    var email = req.session.passport.user;
+    logger.info("Try delete APP with key %s for user %s", req.params.key, email);
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        if(!user.userKeys) {
+            user.userKeys = [];
+        }
+
+        var removed = false;
+        for(var idx = 0; idx < user.userKeys.length; idx ++) {
+            var app = user.userKeys[idx];
+            if(app.key === req.params.key) {
+                removed = true;
+
+                logger.debug("Try removing application with key " + app.key);
+                user.userKeys.splice(idx, 1);
+
+                break;
+            }
+        }
+
+        if(!removed) {
+            logger.error("Cannot find application with key " + req.params.key);
+            return res.json({
+                status: 404,
+                message: "Application key not found"
+            });
+        }
+
+        user.save(function(err) {
+            if(err) {
+                logger.error("Failed to remove application due to " + err.message);
+                return next(err);
+            }
+
+            return res.json({
+                status: 200,
+                apps: user.userKeys
+            });
+        });
+    });
+});
+
 /**
  * Updating an APP
  */
@@ -269,6 +327,8 @@ router.post("/apps", function(req, res) {
                 logger.debug("Try updating application with key " + app.key);
                 app.name = req.body.name;
                 app.description = req.body.description;
+
+                break;
             }
         }
 

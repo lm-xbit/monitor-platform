@@ -16,24 +16,21 @@ export const appSettingsLoaded = (data) => {
   };
 };
 
-export const addApp = (text) => {
-  return {
-    type: 'APP_SETTINGS_ADD',
-    text
-  };
-};
-
-export const updateApp = (id, key) => {
-  return {
-    type: 'APP_SETTINGS_UPDATE',
-    key
-  };
-};
-
-export const removeApp = (id) => {
-  return {
-    type: 'APP_SETTINGS_REMOVE',
-    id
+export const removeApp = (key) => {
+  return function (dispatch) {
+    // creating
+    $.ajax('/rest/settings/apps/' + key, {
+      method: 'DELETE'
+    }).always(function (data) {
+      if (!data || data.status !== 200) {
+        alert('Cannot delete the application - ' + data ? data.message : 'Unknown error');
+      } else {
+        dispatch({
+          type: 'POPULATE_APP_SETTINGS',
+          data: data.apps
+        });
+      }
+    });
   };
 };
 

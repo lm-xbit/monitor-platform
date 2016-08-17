@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {loadAppSettings, addApp, updateApp, removeApp, commitChange} from './AppSettingsActions';
+import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 
 export class AppSettings extends React.Component {
@@ -25,6 +25,7 @@ export class AppSettings extends React.Component {
     this.updateApplication = this.updateApplication.bind(this);
     this.commitChange = this.commitChange.bind(this);
     this.updateApplication = this.updateApplication.bind(this);
+    this.removeApplication = this.removeApplication.bind(this);
   }
 
   componentDidMount () {
@@ -54,6 +55,12 @@ export class AppSettings extends React.Component {
     this.setState({isEditing: true, currentApp: app});
 
     this.setState({modalIsOpen: true});
+  }
+
+  removeApplication (app) {
+    if (confirm('Are you sure to remove this application?')) {
+      this.props.actions.removeApp(app.key);
+    }
   }
 
   closeModal () {
@@ -114,7 +121,10 @@ export class AppSettings extends React.Component {
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
                 <td style={{'lineHeight': '30px'}}>{app.key}</td>
                 <td style={{'lineHeight': '30px'}}>
-                  <button className="btn btn-sm btn-danger"><i className="fa fa-remove"/></button>
+                  <button className="btn btn-sm btn-danger" onClick={e => {
+                    this.removeApplication(app);
+                    e.preventDefault();
+                  }}><i className="fa fa-remove"/></button>
                   &nbsp;&nbsp;
                   <button className="btn btn-sm btn-warning" onClick={e => {
                     this.updateApplication(app);
@@ -191,8 +201,6 @@ AppSettings.propTypes = {
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     loadAppSettings: PropTypes.func.isRequired,
-    addApp: PropTypes.func.isRequired,
-    updateApp: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired,
     commitChange: PropTypes.func.isRequired
   })
@@ -208,7 +216,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({loadAppSettings, addApp, updateApp, removeApp, commitChange}, dispatch),
+    actions: bindActionCreators({loadAppSettings, removeApp, commitChange}, dispatch),
     dispatch
   };
 };
