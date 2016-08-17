@@ -12,20 +12,23 @@ function dateFormat(time) {
 }
 
 var UserKeySchema = new Schema(
-  {
+    {
       key: {
         type: String,
         validate: {
-          validator: function(k) {
+          validator: function (k) {
             return k && !k.match(/^\s*$/);
           },
           message: 'key cannot be empty'
         },
         required: [true, 'key cannot be empty']
       },
-      createOn: {type: Number, default: Date.now() },
-      updateOn: {type: Number, default: Date.now() }
-  }
+      name: String,
+      type: String,
+      description: String,
+      createOn: {type: Number, default: Date.now()},
+      updateOn: {type: Number, default: Date.now()}
+    }
 );
 
 var UserSchema = new Schema(
@@ -98,8 +101,8 @@ UserKeySchema.pre('save', function(next){
 UserKeySchema.set('toJSON', {
   transform: function (doc, ret, options) {
     ret.id = ret._id;
-    ret.updateOn = moment(ret.updateOn).format(dateFormat);
-    ret.createOn = moment(ret.createOn).format(dateFormat);
+    ret.updateOn = moment(ret.updateOn).format('MMMM Do YYYY, h:mm:ss a');
+    ret.createOn = moment(ret.createOn).format('MMMM Do YYYY, h:mm:ss a');
     delete ret._id;
     delete ret.__v;
   }

@@ -1,7 +1,9 @@
 var bunyan = require('bunyan');
+var inspect = require("util").inspect;
 var express = require('express');
 var passport = require('passport');
 var User = require('models/user');
+var shortID = require("shortid");
 var logger = bunyan.createLogger({name: "settings"});
 
 var Resp = require('resp');
@@ -118,20 +120,20 @@ router.post("/username/:email", function(req, res, next) {
     }
 
     user.username = body.username;
-    user.save(function(err) {
-      if(err) {
-        return next(err);
+      user.save(function (err) {
+          if (err) {
+              return next(err);
+          }
 
-        return res.json({
-            status: 200,
-            settings: {
-                username: user.username,
-                email: user.email,
-                phone: user.phone
-            }
-        });
-      }
-    })
+          return res.json({
+              status: 200,
+              settings: {
+                  username: user.username,
+                  email: user.email,
+                  phone: user.phone
+              }
+          });
+      });
   });
 });
 
@@ -234,7 +236,103 @@ router.get("/apps", function(req, res) {
             apps: user.userKeys
         });
     });
+});
 
+/**
+ * Updating an APP
+ */
+router.post("/apps", function(req, res) {
+    var email = req.session.passport.user;
+    logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        if(!user.userKeys) {
+            user.userKeys = [];
+        }
+
+        var updated = false;
+        for(var idx = 0; idx < user.userKeys.length; idx ++) {
+            var app = user.userKeys[idx];
+            if(app.key === req.body.key) {
+                updated = true;
+
+                logger.debug("Try updating application with key " + app.key);
+                app.name = req.body.name;
+                app.description = req.body.description;
+            }
+        }
+
+        if(!updated) {
+            logger.error("Cannot find application with key " + req.body.key);
+            return res.json({
+                status: 404,
+                message: "Application key not found"
+            });
+        }
+
+        user.save(function(err) {
+            if(err) {
+                logger.error("Failed to create new application due to " + err.message);
+                return next(err);
+            }
+
+            return res.json({
+                status: 200,
+                apps: user.userKeys
+            });
+        });
+    });
+});
+
+/**
+ * Creating an APP
+ */
+router.put("/apps", function(req, res) {
+    var email = req.session.passport.user;
+    logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        if(!user.userKeys) {
+            user.userKeys = [];
+        }
+
+        req.body.key = shortID.generate();
+
+        logger.info("Try create new application with key %s for user %s", req.body.key, email);
+        user.userKeys.push(req.body);
+
+        user.save(function(err) {
+            if(err) {
+                logger.error("Failed to create new application due to " + err.message);
+                return next(err);
+            }
+
+            return res.json({
+                status: 200,
+                apps: user.userKeys
+            });
+        });
+    });
 });
 
 module.exports = router;
