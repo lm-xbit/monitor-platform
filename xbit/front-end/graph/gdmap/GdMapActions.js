@@ -16,7 +16,8 @@ export const updateLocation = (map, hot) => {
        */
       pos = {
         longitude: 103.982584 + ++offset * 0.0001,
-        latitude: 30.681369
+        latitude: 30.681369,
+        accuracy: 50,
       };
     }
 
@@ -41,13 +42,28 @@ export const updateLocation = (map, hot) => {
           radius: 300,
           strokeColor: '#F33',
           strokeOpacity: 1,
-          strokeWeight: 3,
+          strokeWeight: 1,
           fillColor: '#ee2200',
           fillOpacity: 0.35,
           map: map
         });
       } else {
         hot.circle.setCenter(converted);
+      }
+
+      if (!hot.range) {
+        hot.range = new window.AMap.Circle({
+          center: converted,
+          radius: pos.accuracy,
+          strokeColor: '#FF',
+          strokeOpacity: 1,
+          strokeWeight: 1,
+          fillColor: '#3333FF',
+          fillOpacity: 0.5,
+          map: map
+        });
+      } else {
+        hot.range.setCenter(converted);
       }
     }
   });
