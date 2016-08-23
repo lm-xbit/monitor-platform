@@ -1,1 +1,40 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.canelmas.let:let-plugin:0.1.9'
+        classpath "com.mendhak.gradlecrowdin:crowdin-plugin:0.0.8"
+        classpath 'org.jacoco:org.jacoco.core:0.7.4.201502262128'
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+
+        jcenter()
+
+        maven {
+            url "https://jitpack.io"
+        }
+
+        maven {
+            //GPSLogger's own 3rd party JARs not in any repo
+            url "https://raw.github.com/mendhak/gpslogger-support-files/master/repository"
+        }
+
+        maven {
+            //dirchooser needs com.gu needs this
+            url "https://guardian.github.com/maven/repo-releases"
+        }
+
+    }
+}

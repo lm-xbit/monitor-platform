@@ -184,4 +184,7 @@
   <string name="opengts_server_communication_method">通信方法</string>
   <string name="autoopengts_server_path">服务器路径</string>
   <string name="autoopengts_device_id">设备 ID</string>
+  <string name="qr_scanning">扫描中...</string>
+  <string name="qr_re_scanning">重新扫描</string>
+  <string name="qr_scan_result">扫描结果</string>
 </resources>
