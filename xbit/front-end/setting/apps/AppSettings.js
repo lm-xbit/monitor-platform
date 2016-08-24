@@ -3,6 +3,7 @@ import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
 import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
+import QRCode from 'qrcode.react';
 
 export class AppSettings extends React.Component {
   constructor (props) {
@@ -67,6 +68,14 @@ export class AppSettings extends React.Component {
     this.setState({modalIsOpen: false});
   }
 
+  getAppStatus (app) {
+    if (app.connected) {
+      return 'Connected on ' + app.connectedOn;
+    } else {
+      return 'Not connected!';
+    }
+  }
+
   commitChange () {
     if (this.state.currentApp.name.trim() === '') {
       alert('You must give a name to this application');
@@ -110,7 +119,7 @@ export class AppSettings extends React.Component {
               <tr>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Key</th>
+                <th>Status</th>
                 <th>&nbsp;</th>
               </tr>
             </thead>
@@ -119,14 +128,27 @@ export class AppSettings extends React.Component {
               <tr style={{height: '30px'}}>
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
-                <td style={{'lineHeight': '30px'}}>{app.key}</td>
+                <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
                 <td style={{'lineHeight': '30px'}}>
-                  <button className="btn btn-sm btn-danger" onClick={e => {
+                  <button className="btn btn-xs btn-success" onClick={e => {
+                    this.updateApplication(app);
+                    e.preventDefault();
+                  }} style={{
+                    display: app.connected ? 'none' : 'inherit'
+                  }}><i className="fa fa-plug"/></button>
+                  <button className="btn btn-xs btn-success" onClick={e => {
+                    this.updateApplication(app);
+                    e.preventDefault();
+                  }} style={{
+                    display: app.connected ? 'inherit' : 'none'
+                  }}><i className="fa fa-retweet"/></button>
+                  &nbsp;&nbsp;
+                  <button className="btn btn-xs btn-danger" onClick={e => {
                     this.removeApplication(app);
                     e.preventDefault();
                   }}><i className="fa fa-remove"/></button>
                   &nbsp;&nbsp;
-                  <button className="btn btn-sm btn-warning" onClick={e => {
+                  <button className="btn btn-xs btn-warning" onClick={e => {
                     this.updateApplication(app);
                     e.preventDefault();
                   }}><i className="fa fa-edit"/></button>
@@ -175,6 +197,12 @@ export class AppSettings extends React.Component {
                   <label className="control-label" htmlFor="key">Key</label>
                   <input className="form-control" id="key" name="key" readOnly value={this.state.currentApp.key} placeholder="System will automatically generate key for this app"/>
                 </div>
+                <div className="form-group" style={{
+                  display: this.state.currentApp.type === '' ? 'none' : 'inherit'
+                }}>
+                  <label className="control-label" htmlFor="url">Download App</label>
+                  <QRCode value={'This is the download link for ' + this.state.currentApp.type}/>
+                </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="description">Description</label>
                   <textarea className="form-control" id="description" name="description" value={this.state.currentApp.description} onChange={this.handleInputChange('description')} placeholder="Description of the app"/>
@@ -197,7 +225,11 @@ AppSettings.propTypes = {
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    key: PropTypes.string.isRequired
+    key: PropTypes.string.isRequired,
+    connected: PropTypes.bool.isRequired,
+    connectedOn: PropTypes.any.isRequired,
+    connectCode: PropTypes.string.isRequired,
+    connectInfo: PropTypes.string.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     loadAppSettings: PropTypes.func.isRequired,

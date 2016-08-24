@@ -25,6 +25,11 @@ var UserKeySchema = new Schema(
       },
       name: String,
       type: String,
+      connected: Boolean, // if this APP has been connected?
+      connectedOn: Date,   // when this device is connected
+      connectCode: String, // code for requesting connecting
+      connectInfo: String, // information of connected device
+
       description: String,
       createOn: {type: Number, default: Date.now()},
       updateOn: {type: Number, default: Date.now()}

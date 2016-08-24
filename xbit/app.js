@@ -98,7 +98,8 @@ app.set('views', path.join(__dirname, 'views/'));
 
 app.use(session ( {
   secret : 'xbit',
-  resave : false,
+  resave : true,
+  name: 'SID',
   saveUninitialized: false,
   store  : new mongoStore({ mongooseConnection: mongoose.connection }),
   cookie : {
@@ -117,7 +118,6 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-
 
 app.use(function(err, req, res, next) {
   console.error(err.stack);
