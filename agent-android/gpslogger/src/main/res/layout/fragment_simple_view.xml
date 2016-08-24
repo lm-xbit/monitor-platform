@@ -89,7 +89,7 @@
                     android:alignmentMode="alignBounds"
                     android:columnOrderPreserved="false"
                     android:columnCount="4"
-                    android:rowCount="7"
+                    android:rowCount="8"
                     >
 
 
@@ -275,9 +275,20 @@
                         android:textIsSelectable="true"
                         />
 
+                    <ImageView
+                        android:id="@+id/qr_scan"
+                        android:layout_gravity="center|top"
+                        android:layout_width="@dimen/simpleview_grid_iconwidth"
+                        android:layout_height="@dimen/simlpeview_grid_iconheight"
+                        android:src="@drawable/find_qr"
+                        android:layout_column="0"
+                        android:layout_row="4"
+                        android:contentDescription="@string/txt_travel_distance"
+                        />
+
                     <TextView
                         android:id="@+id/simpleview_txtfilepath"
-                        android:layout_row="4"
+                        android:layout_row="5"
                         android:layout_column="0"
                         android:layout_columnSpan="4"
                         android:layout_gravity="center"
@@ -292,7 +303,7 @@
                         android:text=""/>
 
                     <LinearLayout android:layout_column="0"
-                        android:layout_row="5"
+                        android:layout_row="6"
                         android:layout_columnSpan="4"
                         android:layout_width="fill_parent"
                         android:layout_gravity="center"
@@ -333,7 +344,7 @@
                     </LinearLayout>
 
                     <Space
-                        android:layout_row="6"
+                        android:layout_row="7"
                         android:layout_column="0"
                         android:layout_columnSpan="3"
                         android:layout_gravity="fill"

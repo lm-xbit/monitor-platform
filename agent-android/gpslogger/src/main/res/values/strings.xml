@@ -477,4 +477,8 @@
     <string name="debuglog_attach_to_email">Attach debug log to email</string>
     <string name="debuglog_attach_to_email_summary">Attaches debug log to an email along with some diagnostic information</string>
 
+    <string name="qr_scanning">scanning...</string>
+    <string name="qr_re_scanning">restart_scanning</string>
+    <string name="qr_scan_result">the result of scanning</string>
+
 </resources>
