@@ -11,6 +11,7 @@ export class AppSettings extends React.Component {
 
     this.state = {
       modalIsOpen: false,
+      connectInProgress: false,
       isEditing: false,
       currentApp: {
         name: '',
@@ -21,12 +22,14 @@ export class AppSettings extends React.Component {
     };
 
     this.closeModal = this.closeModal.bind(this);
+    this.closeConnectModal = this.closeConnectModal.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.createApplication = this.createApplication.bind(this);
     this.updateApplication = this.updateApplication.bind(this);
     this.commitChange = this.commitChange.bind(this);
     this.updateApplication = this.updateApplication.bind(this);
     this.removeApplication = this.removeApplication.bind(this);
+    this.connectApplication = this.connectApplication.bind(this);
   }
 
   componentDidMount () {
@@ -52,6 +55,10 @@ export class AppSettings extends React.Component {
     this.setState({modalIsOpen: true});
   }
 
+  connectApplication (app) {
+    this.setState({connectInProgress: true, currentApp: app});
+  }
+
   updateApplication (app) {
     this.setState({isEditing: true, currentApp: app});
 
@@ -66,6 +73,10 @@ export class AppSettings extends React.Component {
 
   closeModal () {
     this.setState({modalIsOpen: false});
+  }
+
+  closeConnectModal () {
+    this.setState({connectInProgress: false});
   }
 
   getAppStatus (app) {
@@ -131,17 +142,16 @@ export class AppSettings extends React.Component {
                 <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
                 <td style={{'lineHeight': '30px'}}>
                   <button className="btn btn-xs btn-success" onClick={e => {
-                    this.updateApplication(app);
+                    this.connectApplication(app);
                     e.preventDefault();
-                  }} style={{
-                    display: app.connected ? 'none' : 'inherit'
-                  }}><i className="fa fa-plug"/></button>
-                  <button className="btn btn-xs btn-success" onClick={e => {
-                    this.updateApplication(app);
-                    e.preventDefault();
-                  }} style={{
-                    display: app.connected ? 'inherit' : 'none'
-                  }}><i className="fa fa-retweet"/></button>
+                  }}>
+                    <i className="fa fa-plug" style={{
+                      display: app.connected ? 'none' : 'inherit'
+                    }}/>
+                    <i className="fa fa-retweet" style={{
+                      display: app.connected ? 'inherit' : 'none'
+                    }}/>
+                  </button>
                   &nbsp;&nbsp;
                   <button className="btn btn-xs btn-danger" onClick={e => {
                     this.removeApplication(app);
@@ -212,6 +222,38 @@ export class AppSettings extends React.Component {
             <div className="modal-footer">
               <button type="button" className="btn btn-default" onClick={this.closeModal}>Close</button>
               <button type="button" className="btn btn-primary" onClick={this.commitChange}>Save changes</button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          className="modal-dialog modal-sm"
+          isOpen={this.state.connectInProgress}
+          onRequestClose={this.closeConnectModal}
+          shouldCloseOnOverlayClick={false}
+        >
+          <div className="modal-content" style={{
+            width: '300px'
+          }}>
+            <div className="modal-body">
+              <form>
+                <div className="form-group">
+                  <label className="control-label">Direction</label>
+                  <div>Please install the download APP first, then using the installed APP to scan below QR Code.</div>
+                  <div>
+                    <div style={{
+                      'padding-top': '20px',
+                      width: '50%',
+                      margin: '0 auto'
+                    }}>
+                      <QRCode value={'This is the connect information for ' + this.state.currentApp.name}/>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" onClick={this.closeConnectModal}>Abort ...</button>
             </div>
           </div>
         </Modal>
