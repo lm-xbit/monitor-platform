@@ -9,27 +9,30 @@ var User = require('models/user');
 // fix me: debugging mode
 logger.level("debug");
 
+
 // expose API to mobile client for now
 /**
  * POST
  * https://hostname/rest/connect/<key>
  * {
- *    info: "mobile info"
+ *    code: "xyz123",
+ *    info: <opaque>
  * }
  */
-router.post("/:key", function(req, res) {
+router.post("/:key", function(req, res, next) {
     var deviceKey = req.params.key;
-    logger.debug("Handling data reporting from device %s", deviceKey);
+    var code = req.body.code;
 
-    // TODO Device Verification
-    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
-        return res.json({
-            status: 403,
-            message: "Unknown device"
-        });
+    if(!deviceKey || deviceKey === '') {
+        logger.error("Missing device key or device key invalid - " + deviceKey);
+        return res.status(404).send("Invalid APP");
+    }
+    else if(!code || code === '') {
+        logger.error("Device key %s missing connect code or connect code invalid: %s", deviceKey, code);
+        return res.status(404).send("Invalid APP");
     }
 
-    logger.debug("Try APP connect information:\n%s", JSON.stringify(req.body));
+    logger.debug("Try connect APP with key %s, code %s and information:\n%s", deviceKey, code, JSON.stringify(req.body));
 
     //TODO: how to search users with the given key????
     User.findOne({"userKeys.key": deviceKey}, function(err, user) {
@@ -46,16 +49,23 @@ router.post("/:key", function(req, res) {
         var updated = false;
         user.userKeys.forEach(function(app) {
             if(app.key === deviceKey) {
-                logger.info("Update APP's connect info to %s. Previous connected? %s", req.body.info, app.connected);
-                app.connectInfo = req.body.info;
-                app.connectedOn = Date.now();
-                updated = true;
+                if(app.connectCode !== code) {
+                    logger.error("APP connect code incorrect. Expecting %s, got %s", app.connectCode, code);
+                }
+                else {
+                    logger.info("Update APP's connect info to %s. Previous connected? %s", req.body.info, app.connected);
+                    app.connected = true;
+                    app.connectCode = ""; // empty to avoid mis-connect
+                    app.connectInfo = req.body.info;
+                    app.connectedOn = Date.now();
+                    updated = true;
+                }
             }
         });
 
         if(updated) {
             user.save(function () {
-                return res({
+                return res.json({
                     status: 200,
                     message: "OK"
                 });

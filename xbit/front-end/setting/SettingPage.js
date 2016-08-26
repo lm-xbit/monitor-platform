@@ -8,7 +8,7 @@ export default class SettingPage extends React.Component {
   render () {
     return (
       <div style={{padding: '20px'}}>
-        <div style={{width: '400px'}}>
+        <div>
           <Tabs>
             <TabList>
               <Tab>Basic Settings</Tab>

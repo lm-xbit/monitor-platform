@@ -28,7 +28,7 @@ var UserKeySchema = new Schema(
       connected: Boolean, // if this APP has been connected?
       connectedOn: Date,   // when this device is connected
       connectCode: String, // code for requesting connecting
-      connectInfo: String, // information of connected device
+      connectInfo: mongoose.Schema.Types.Mixed, // information of connected device
 
       description: String,
       createOn: {type: Number, default: Date.now()},

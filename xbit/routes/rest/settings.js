@@ -300,7 +300,7 @@ router.delete("/apps/:key", function(req, res, next) {
  */
 router.post("/apps", function(req, res, next) {
     var email = req.session.passport.user;
-    logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
+    logger.info("Try updating APP for user %s:\n%s", email, inspect(req.body));
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
@@ -399,7 +399,7 @@ router.put("/apps", function(req, res, next) {
  */
 router.get('/connect/:key', function(req, res, next) {
     var email = req.session.passport.user;
-    logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
+    logger.info("Try connect APP %s for user %s", req.params.key, email);
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
@@ -420,7 +420,7 @@ router.get('/connect/:key', function(req, res, next) {
         var app = null;
         for(var idx = 0; idx < user.userKeys.length; idx ++) {
             app = user.userKeys[idx];
-            if(app.key === req.body.key) {
+            if(app.key === req.params.key) {
                 updated = true;
 
                 var code = shortID.generate();
@@ -449,7 +449,7 @@ router.get('/connect/:key', function(req, res, next) {
 
             return res.json({
                 status: 200,
-                connect: {
+                data: {
                     code: app.connectCode,
                     gate: {
                         ssl: config.ssl,
@@ -464,6 +464,55 @@ router.get('/connect/:key', function(req, res, next) {
                 }
             });
         });
+    });
+});
+
+/**
+ * Get connect status for an APP
+ */
+router.get("/status/:key", function(req, res, next) {
+    var deviceKey = req.params.key;
+
+    if(!deviceKey || deviceKey === '') {
+        logger.error("Missing device key or device key invalid - " + deviceKey);
+        return res.status(404).send("Invalid APP");
+    }
+
+    logger.debug("Checking connect status for APP with key %s", deviceKey);
+
+    //TODO: how to search users with the given key????
+    User.findOne({"userKeys.key": deviceKey}, function(err, user) {
+        if(err) {
+            logger.error("Cannot locate APP for key %s - %s:\n%s", deviceKey, err.message, err.stack);
+            return res.status(500).send("Internal error");
+        }
+
+        if(!user) {
+            logger.error("Cannot find APP with key %s", deviceKey);
+            return res.status(404).send("User APP not found");
+        }
+
+        var connected = false;
+        var connectedOn = null;
+        user.userKeys.forEach(function(app) {
+            if(app.key === deviceKey) {
+                // the APP is connected only when connectCode is empty and connected is set to true
+                if(app.connectCode === '' && app.connected) {
+                    connected = true;
+                    connectedOn = app.connectedOn;
+                }
+                else {
+                    logger.info("APP still not connected. Connect code: %s, connected?%s", app.connectCode, app.connected)
+                }
+            }
+        });
+
+        res.json({
+            status: connected ? 200 : 100,
+            data: {
+                connectedOn: connectedOn
+            }
+        })
     });
 });
 

@@ -1,9 +1,10 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {prepareDeviceConnectInfo, loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
+import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
+import $ from 'jquery';
 
 export class AppSettings extends React.Component {
   constructor (props) {
@@ -18,7 +19,9 @@ export class AppSettings extends React.Component {
         type: '',
         description: '',
         key: ''
-      }
+      },
+      connectTimer: null,
+      connectInfo: null
     };
 
     this.closeModal = this.closeModal.bind(this);
@@ -56,8 +59,29 @@ export class AppSettings extends React.Component {
   }
 
   connectApplication (app) {
-    this.props.actions.prepareDeviceConnectInfo(app.key);
-    this.setState({connectInProgress: true, currentApp: app});
+    var self = this;
+    $.get('/rest/settings/connect/' + app.key).always(function (resp) {
+      if (resp.status !== 200) {
+        alert('Operation failed! Please try again.');
+        return;
+      }
+
+      var timer = setInterval(function () {
+        $.get('/rest/settings/status/' + app.key).always(function (resp2) {
+          console.log('status query - ' + JSON.stringify(resp2));
+
+          if (resp2.status === 200) {
+            clearInterval(timer);
+            app.connected = true;
+            app.connectedOn = resp2.data.connectedOn;
+            self.setState({connectInProgress: false, connectTimer: null, connectInfo: null});
+            self.forceUpdate();
+          }
+        });
+      }, 5000);
+
+      self.setState({connectInProgress: true, connectTimer: timer, connectInfo: resp.data});
+    });
   }
 
   updateApplication (app) {
@@ -77,7 +101,11 @@ export class AppSettings extends React.Component {
   }
 
   closeConnectModal () {
-    this.setState({connectInProgress: false});
+    if (this.state.connectTimer) {
+      clearInterval(this.state.connectTimer);
+    }
+
+    this.setState({connectInProgress: false, connectTimer: null, connectInfo: null});
   }
 
   getAppStatus (app) {
@@ -141,7 +169,7 @@ export class AppSettings extends React.Component {
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
-                <td style={{'lineHeight': '30px'}}>
+                <td style={{'lineHeight': '30px', 'min-width': '120px'}}>
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
                     e.preventDefault();
@@ -247,7 +275,7 @@ export class AppSettings extends React.Component {
                       width: '50%',
                       margin: '0 auto'
                     }}>
-                      <QRCode value={'This is the connect information for ' + this.state.currentApp.name}/>
+                      <QRCode value={JSON.stringify(this.state.connectInfo)}/>
                     </div>
                   </div>
                 </div>
@@ -275,7 +303,6 @@ AppSettings.propTypes = {
     connectInfo: PropTypes.string.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
-    prepareDeviceConnectInfo: PropTypes.func.isRequired,
     loadAppSettings: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired,
     commitChange: PropTypes.func.isRequired
@@ -292,7 +319,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({prepareDeviceConnectInfo, loadAppSettings, removeApp, commitChange}, dispatch),
+    actions: bindActionCreators({loadAppSettings, removeApp, commitChange}, dispatch),
     dispatch
   };
 };
