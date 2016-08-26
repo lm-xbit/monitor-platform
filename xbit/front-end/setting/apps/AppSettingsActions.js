@@ -1,4 +1,12 @@
 import $ from 'jquery';
+export const prepareDeviceConnectInfo = (key) => {
+  return function(dispatch) {
+    $.get('/rest/settins/connect/' + key).always(function(resp) {
+      dispatch
+    })
+  }
+};
+
 export const loadAppSettings = () => {
   return function (dispatch) {
     $.get('/rest/settings/apps').always(function (resp) {

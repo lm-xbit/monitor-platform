@@ -7,7 +7,7 @@ var shortID = require("shortid");
 var logger = bunyan.createLogger({name: "settings"});
 
 var Resp = require('resp');
-var StatusCodes = require('status')
+var StatusCodes = require('status');
 
 var router = express.Router();
 
@@ -88,7 +88,6 @@ router.put('/user/:id', passport.authenticate('local'), (req, res) => {
 
       if (!value.key) {
         array.splice(index, 1); // remove this element from array
-        return;
       }
     });
   }
@@ -190,13 +189,13 @@ router.post("/password/:email", function (req, res, next) {
 });
 
 // Get user basic information
-router.get("/basic", function(req, res) {
+router.get("/basic", function(req, res, next) {
     var email = req.session.passport.user;
     logger.info("Try getting basic information for user " + email);
 
     User.findOne({email: email}, function(err, user) {
         if(err) {
-            logger.error("Cannot get basic information for user %s due to %s", email, err.message)
+            logger.error("Cannot get basic information for user %s due to %s", email, err.message);
             return next(err);
         }
 
@@ -216,13 +215,13 @@ router.get("/basic", function(req, res) {
     });
 });
 
-router.get("/apps", function(req, res) {
+router.get("/apps", function(req, res, next) {
     var email = req.session.passport.user;
     logger.info("Try getting basic information for user " + email);
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
-            logger.error("Cannot get basic information for user %s due to %s", email, err.message)
+            logger.error("Cannot get basic information for user %s due to %s", email, err.message);
             return next(err);
         }
 
@@ -242,13 +241,13 @@ router.get("/apps", function(req, res) {
 /**
  * DELETE an APP
  */
-router.delete("/apps/:key", function(req, res) {
+router.delete("/apps/:key", function(req, res, next) {
     var email = req.session.passport.user;
     logger.info("Try delete APP with key %s for user %s", req.params.key, email);
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
-            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            logger.error("Cannot create application for user %s due to %s", email, err.message);
             return next(err);
         }
 
@@ -299,13 +298,13 @@ router.delete("/apps/:key", function(req, res) {
 /**
  * Updating an APP
  */
-router.post("/apps", function(req, res) {
+router.post("/apps", function(req, res, next) {
     var email = req.session.passport.user;
     logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
-            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            logger.error("Cannot create application for user %s due to %s", email, err.message);
             return next(err);
         }
 
@@ -357,13 +356,13 @@ router.post("/apps", function(req, res) {
 /**
  * Creating an APP
  */
-router.put("/apps", function(req, res) {
+router.put("/apps", function(req, res, next) {
     var email = req.session.passport.user;
     logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
 
     User.findOne({email: email}, function(err, user) {
         if (err) {
-            logger.error("Cannot create application for user %s due to %s", email, err.message)
+            logger.error("Cannot create application for user %s due to %s", email, err.message);
             return next(err);
         }
 

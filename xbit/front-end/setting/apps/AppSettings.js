@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
+import {prepareDeviceConnectInfo, loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
 
@@ -56,6 +56,7 @@ export class AppSettings extends React.Component {
   }
 
   connectApplication (app) {
+    this.props.actions.prepareDeviceConnectInfo(app.key);
     this.setState({connectInProgress: true, currentApp: app});
   }
 
@@ -274,6 +275,7 @@ AppSettings.propTypes = {
     connectInfo: PropTypes.string.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
+    prepareDeviceConnectInfo: PropTypes.func.isRequired,
     loadAppSettings: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired,
     commitChange: PropTypes.func.isRequired
@@ -290,7 +292,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({loadAppSettings, removeApp, commitChange}, dispatch),
+    actions: bindActionCreators({prepareDeviceConnectInfo, loadAppSettings, removeApp, commitChange}, dispatch),
     dispatch
   };
 };
