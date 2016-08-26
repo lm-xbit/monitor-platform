@@ -1,10 +1,10 @@
 import $ from 'jquery';
 export const prepareDeviceConnectInfo = (key) => {
-  return function(dispatch) {
-    $.get('/rest/settins/connect/' + key).always(function(resp) {
-      dispatch
-    })
-  }
+  return function (dispatch) {
+    $.get('/rest/settings/connect/' + key).always(function (resp) {
+      dispatch({});
+    });
+  };
 };
 
 export const loadAppSettings = () => {

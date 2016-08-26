@@ -394,4 +394,77 @@ router.put("/apps", function(req, res, next) {
     });
 });
 
+/**
+ * Get a new connect code for the given app
+ */
+router.get('/connect/:key', function(req, res, next) {
+    var email = req.session.passport.user;
+    logger.info("Try creating new APP for user %s:\n%s", email, inspect(req.body));
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot create application for user %s due to %s", email, err.message);
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        if(!user.userKeys) {
+            user.userKeys = [];
+        }
+
+        var updated = false;
+        var app = null;
+        for(var idx = 0; idx < user.userKeys.length; idx ++) {
+            app = user.userKeys[idx];
+            if(app.key === req.body.key) {
+                updated = true;
+
+                var code = shortID.generate();
+                logger.debug("Try creating new connect code %s for application %s with key %s", code, app.name, app.key);
+                app.connectCode = code;
+
+                break;
+            }
+        }
+
+        if(!updated) {
+            logger.error("Cannot find application with key " + req.body.key);
+            return res.json({
+                status: 404,
+                message: "Application key not found"
+            });
+        }
+
+        user.save(function(err) {
+            if(err) {
+                logger.error("Failed to create new connection for application due to " + err.message);
+                return next(err);
+            }
+
+            var config = require("config");
+
+            return res.json({
+                status: 200,
+                connect: {
+                    code: app.connectCode,
+                    gate: {
+                        ssl: config.ssl,
+                        host: config.address,
+                        port: config.port
+                    },
+                    app: {
+                        key: app.key,
+                        type: app.type,
+                        interval: 30
+                    }
+                }
+            });
+        });
+    });
+});
+
 module.exports = router;

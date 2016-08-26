@@ -212,7 +212,7 @@ export class AppSettings extends React.Component {
                   display: this.state.currentApp.type === '' ? 'none' : 'inherit'
                 }}>
                   <label className="control-label" htmlFor="url">Download App</label>
-                  <QRCode value={'This is the download link for ' + this.state.currentApp.type}/>
+                  <QRCode value={'/downloads/android/' + this.state.currentApp.type + '.apk'}/>
                 </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="description">Description</label>
