@@ -453,7 +453,7 @@ router.get('/connect/:key', function(req, res, next) {
                     code: app.connectCode,
                     gate: {
                         ssl: config.ssl,
-                        host: config.address,
+                        host: config.dns || config.address,
                         port: config.port
                     },
                     app: {
