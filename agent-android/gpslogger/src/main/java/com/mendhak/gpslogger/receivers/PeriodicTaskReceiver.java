@@ -31,10 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created with IntelliJ IDEA.
- * User: ning.chen
- * Date: 3/22/16
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: ning.chen Date: 3/22/16 To change this template use File | Settings | File Templates.
  */
 public class PeriodicTaskReceiver extends BroadcastReceiver {
     private static final String INTENT_ACTION_REPORT = "REPORT_gps_location_samples";
@@ -53,9 +50,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         }
         */
     }
+
     /**
-     * We can gather sample at 5 seconds minimum, we try to cache at most 1 minutes data (so it is 12 slots)
-     * We report either the cache is full or we have reached the report interval
+     * We can gather sample at 5 seconds minimum, we try to cache at most 1 minutes data (so it is 12 slots) We report either the cache is full or we
+     * have reached the report interval
      */
     private final static int _SAMPLING_INTERVAL = 5 * 1000;
     private final static int _REPORTING_INTERVAL = 60 * 1000;
@@ -73,11 +71,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         if (!Strings.isNullOrEmpty(intent.getAction())) {
             if (intent.getAction().equals("android.intent.action.BATTERY_LOW")) {
                 // TODO ...
-            }
-            else if (intent.getAction().equals("android.intent.action.BATTERY_OKAY")) {
+            } else if (intent.getAction().equals("android.intent.action.BATTERY_OKAY")) {
                 // TODO ...
-            }
-            else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
+            } else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
                 LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
                 _tryReportData();
             }
@@ -88,7 +84,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         Sample sample = _gatherSample(System.currentTimeMillis());
         _samples.add(sample);
 
-        if(_samples.size() >= (_SLOT_NUM * 2)) {
+        if (_samples.size() >= (_SLOT_NUM * 2)) {
             LOG.warn("Too many samples have been gathered. Force reporting back to server ...");
             _tryReportData();
         }
@@ -102,6 +98,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         this._reportInterval = preferenceHelper.getMobileTrackingReportInterval() * 1000;
         this._ssl = preferenceHelper.getMobileTrackingUseSSL();
         this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
+        this._appKey = preferenceHelper.getMobileTrackingAppKey();
+
+        LOG.info("_endpoint:" + _endpoint + ",_appKey:" + _appKey + ",_ssl:" + _ssl + ",_reportInterval:" + _reportInterval);
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.connectTimeout(30, TimeUnit.SECONDS);
@@ -109,8 +108,6 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         builder.writeTimeout(30, TimeUnit.SECONDS);
 
         this.httpclient = builder.build();
-
-        this._appKey = "mobile-tracking"; // TODO: generate per application KEY for user
 
         LOG.info("Initializing periodic task for reporting GPS data with end point - " + this._endpoint);
     }
@@ -136,29 +133,29 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
          * // AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
          * // alarmIntent.setAction(INTENT_ACTION_REPORT);
          * // PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
-         * // alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL, _REPORTING_INTERVAL, pendingIntent);
+         * // alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL,
+         * _REPORTING_INTERVAL, pendingIntent);
          */
         // reset ..
         _samples.clear();
 
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-        scheduler.scheduleAtFixedRate
-                (new Runnable() {
-                    public void run() {
-                        LOG.debug("Try collecting a GPS sample");
-                        Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
-                        startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
-                        context.startService(startServiceIntent);
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            public void run() {
+                LOG.debug("Try collecting a GPS sample");
+                Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
+                startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
+                context.startService(startServiceIntent);
 
-                        LOG.debug("Check reporter timer ...");
-                        long now = System.currentTimeMillis();
-                        if((now - _lastReportEpoch) >= _reportInterval) {
-                            _tryReportData();
-                            _lastReportEpoch = now;
-                        }
-                    }
-                }, 5, 5, TimeUnit.SECONDS);
+                LOG.debug("Check reporter timer ...");
+                long now = System.currentTimeMillis();
+                if ((now - _lastReportEpoch) >= _reportInterval) {
+                    _tryReportData();
+                    _lastReportEpoch = now;
+                }
+            }
+        }, 5, 5, TimeUnit.SECONDS);
     }
 
     /**
@@ -185,47 +182,39 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private Sample _gatherSample(long curTime) {
         Location location = Session.getCurrentLocationInfo();
 
-        if(location == null) {
+        if (location == null) {
             LOG.debug("Found invalid current location for sample - " + curTime);
 
             return new Sample(curTime);
-        }
-        else {
-            LOG.debug(String.format(
-                    "Has valid current location for sample - %d: (lat=%.2f, lng=%.2f, alt=%.2f, acc=%.2f)",
-                    curTime, location.getLatitude(), location.getLongitude(), location.getAccuracy(), location.getAccuracy()
-            ));
+        } else {
+            LOG.debug(String.format("Has valid current location for sample - %d: (lat=%.2f, lng=%.2f, alt=%.2f, acc=%.2f)", curTime, location
+                    .getLatitude(), location.getLongitude(), location.getAccuracy(), location.getAccuracy()));
 
-            return new Sample(curTime, location.getLatitude(), location.getLongitude(), location.getAltitude(),
-            		location.getSpeed(), location.getBearing(), location.getAccuracy());
+            return new Sample(curTime, location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getSpeed(), location
+                    .getBearing(), location.getAccuracy());
         }
     }
 
     /**
-     * Report GPS Data
-     * We report data to make sure samples in sets of 4
-     * (as each minute contains 4 samples)
+     * Report GPS Data We report data to make sure samples in sets of 4 (as each minute contains 4 samples)
      *
-     * If there are more data than required, we would just
-     * keep them in cache to wait next time for the reporting
+     * If there are more data than required, we would just keep them in cache to wait next time for the reporting
      */
     private void _reportGpsData(JSONObject data) throws Exception {
-    	String retString;
+        String retString;
 
-    	String path;
+        String path;
 
-        if(_ssl) {
+        if (_ssl) {
             path = String.format("https://%s/rest/data/%s", _endpoint, _appKey);
-        }
-        else {
+        } else {
             path = String.format("http://%s/rest/data/%s", _endpoint, _appKey);
         }
 
         LOG.debug("Try reporting with path - " + path);
 
         RequestBody body = RequestBody.create(JSON, data.toString());
-        Request post = new Request.Builder()
-                .url(path)
+        Request post = new Request.Builder().url(path)
                 // .addHeader("connection", "close")
                 .post(body).build();
 
@@ -236,52 +225,28 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         if (200 != res.code()) {
             LOG.warn("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
 
-            throw new Exception(String.format(
-                    "Server returns %d: %s", res.code(), res.message()
-            ));
-        }
-        else {
+            throw new Exception(String.format("Server returns %d: %s", res.code(), res.message()));
+        } else {
             LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
         }
 
         // LOG.info("Receive response - " + retString);
-        try{
-	        if ( new JSONObject(retString).getBoolean("u")){
-	            loadConf();
-	        }
-        }catch (Exception e){
-        	//Do nothing!
+        try {
+            if (new JSONObject(retString).getBoolean("u")) {
+                loadConf();
+            }
+        } catch (Exception e) {
+            //Do nothing!
         }
     }
 
     /**
      * init submitting data by creating the JSON object to be reported
      *
-     * {
-     *    status: 200,
-     *    message: "OK",
-     *    data: [{
-     *        timestamp: xxxx,
-     *        metrics: [{
-     *            name: metric1,
-     *            value: 123
-     *        }, {
-     *            name: metric2,
-     *            value: 456
-     *        }]
-     *    }, {
-     *        timestamp: xxxx,
-     *        metrics: [{
-     *            name: metric1,
-     *            value: 123
-     *        }, {
-     *            name: metric2,
-     *            value: 456
-     *        }]
-     *    }]
-     * }
+     * { status: 200, message: "OK", data: [{ timestamp: xxxx, metrics: [{ name: metric1, value: 123 }, { name: metric2, value: 456 }] }, { timestamp:
+     * xxxx, metrics: [{ name: metric1, value: 123 }, { name: metric2, value: 456 }] }] }
      */
-    private JSONObject _composePayload(){
+    private JSONObject _composePayload() {
         JSONObject submitData = new JSONObject();
         JSONArray samples = new JSONArray();
         try {
@@ -289,14 +254,14 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             submitData.put("message", "OK");
             submitData.put("data", samples);
 
-            for(Sample sample : _samples) {
+            for (Sample sample : _samples) {
                 JSONObject tmp = new JSONObject();
                 samples.put(tmp);
 
                 tmp.put("timestamp", sample.epoch);
                 tmp.put("metrics", _toMetrics(sample));
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             LOG.error("Cannot create data to post - " + e.getMessage(), e);
         }
 
@@ -312,28 +277,28 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         // for such cases, we just leave the "value" property be omitted
         JSONObject lat = new JSONObject();
         lat.put("name", "latitude");
-        if(!Double.isNaN(sample.lat)) {
+        if (!Double.isNaN(sample.lat)) {
             lat.put("value", sample.lat);
         }
         metrics.put(lat);
 
         JSONObject lng = new JSONObject();
         lng.put("name", "longitude");
-        if(!Double.isNaN(sample.lng)) {
+        if (!Double.isNaN(sample.lng)) {
             lng.put("value", sample.lng);
         }
         metrics.put(lng);
 
         JSONObject alt = new JSONObject();
         alt.put("name", "altitude");
-        if(!Double.isNaN(sample.alt)) {
+        if (!Double.isNaN(sample.alt)) {
             alt.put("value", sample.alt);
         }
         metrics.put(alt);
 
         JSONObject acc = new JSONObject();
         acc.put("name", "accuracy");
-        if(!Double.isNaN(sample.accuracy)) {
+        if (!Double.isNaN(sample.accuracy)) {
             acc.put("value", sample.accuracy);
         }
         metrics.put(acc);
@@ -344,9 +309,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     /**
      * TODO
      */
-    private void loadConf(){
+    private void loadConf() {
         /*
-    	String path = String.format("https://%s/santaba/api/getMobileConf?c=%s&h=%s&k=%s", _endpoint, _type, _user, _app);
+        String path = String.format("https://%s/santaba/api/getMobileConf?c=%s&h=%s&k=%s", _endpoint, _type, _user, _app);
         LOG.debug("Try get configuration from - " + path);
 
         try{
@@ -373,8 +338,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         try {
             if (_samples.size() == 0) {
                 LOG.info("No data to report. Skip this reporting cycle");
-            }
-            else {
+            } else {
                 LOG.debug(String.format("Try reporting %d GPS samples", _samples.size()));
 
                 JSONObject data = _composePayload();
@@ -384,8 +348,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 // clean this
                 _samples.clear();
             }
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             LOG.error("Cannot report data - " + e.getMessage(), e);
         }
     }
@@ -397,11 +360,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         protected Void doInBackground(JSONObject... samples) {
             try {
                 LOG.debug("Try reporting back " + samples.length + " samples to server ...");
-                for(JSONObject data : samples) {
+                for (JSONObject data : samples) {
                     _reportGpsData(data);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LOG.error("Last report data failed: " + e.getMessage());
 
                 this.exception = e;
