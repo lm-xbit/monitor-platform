@@ -533,7 +533,8 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         toast.show();
     }
 
-    @AskPermission({Manifest.permission.CAMERA})
+    @AskPermission({Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest
+            .permission.WRITE_EXTERNAL_STORAGE})
     private void toCaptureActivity() {
         CaptureActivity.launch(getActivity());
     }

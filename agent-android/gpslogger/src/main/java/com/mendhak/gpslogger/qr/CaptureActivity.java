@@ -12,6 +12,7 @@ import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.Animation;
@@ -19,7 +20,11 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.*;
 import com.dtr.zbar.build.ZBarDecoder;
+import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.R;
+import com.mendhak.gpslogger.common.PreferenceHelper;
+import com.mendhak.gpslogger.model.Config;
+import com.mendhak.gpslogger.utils.GsonUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -42,6 +47,8 @@ public class CaptureActivity extends Activity {
     private boolean barcodeScanned = false;
     private boolean previewing = true;
 
+    private PreferenceHelper mPreferenceHelper;
+
     public static void launch(Context context) {
         Intent intent = new Intent(context, CaptureActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION);
@@ -53,6 +60,9 @@ public class CaptureActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        mPreferenceHelper = PreferenceHelper.getInstance();
+
         findViewById();
         addEvents();
     }
@@ -155,7 +165,7 @@ public class CaptureActivity extends Activity {
 
             initCrop();
             ZBarDecoder zBarDecoder = new ZBarDecoder();
-            String result = zBarDecoder.decodeCrop(rotatedData, size.width, size.height, mCropRect.left, mCropRect.top, mCropRect.width(),
+            final String result = zBarDecoder.decodeCrop(rotatedData, size.width, size.height, mCropRect.left, mCropRect.top, mCropRect.width(),
                     mCropRect.height());
 
             if (!TextUtils.isEmpty(result)) {
@@ -164,6 +174,21 @@ public class CaptureActivity extends Activity {
                 mCamera.stopPreview();
                 barcodeScanned = true;
                 Toast.makeText(CaptureActivity.this, result, Toast.LENGTH_SHORT).show();
+
+                new Handler().post(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            final Config config = GsonUtil.fromJson(result, Config.class);
+                            CheckConnectionManager.stance.checkConnetion(config);
+                        } catch (Exception e) {
+                            Log.e("CaptureActivity", e.getMessage(), e);
+                            Toast.makeText(CaptureActivity.this, "The format is error!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
                 CaptureActivity.this.finish();
             }
         }
