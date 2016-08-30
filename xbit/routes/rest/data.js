@@ -348,17 +348,20 @@ router.post("/:key", function(req, res) {
 
         var app = undefined;
         for(var idx = 0; idx < user.userKeys.length; idx ++) {
-            if(user.userKeys[idx] === deviceKey) {
+            console.log("Try checking APP", deviceKey, idx, user.userKeys[idx]);
+            if(user.userKeys[idx].key === deviceKey) {
                 app = user.userKeys[idx];
                 break;
             }
         }
 
         if(!app || app.key !== deviceKey) {
+            console.log("App invalid", deviceKey, app);
             return res.status(403).send("APP invalid");
         }
 
         if(!app.connected) {
+            console.log("App not connected", deviceKey, app);
             return res.status(401).send("APP not connected");
         }
 
