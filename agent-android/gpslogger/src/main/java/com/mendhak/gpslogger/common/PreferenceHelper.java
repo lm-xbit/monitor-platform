@@ -43,7 +43,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingUseSSL(boolean ssl) {
-        prefs.edit().putBoolean(PreferenceNames.MTRACKING_REPORT_INTERVAL, ssl).apply();
+        prefs.edit().putBoolean(PreferenceNames.MTRACKING_USE_SSL, ssl).apply();
     }
 
     @ProfilePreference(name = PreferenceNames.MTRACKING_ENDPOINT)
@@ -52,7 +52,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingEndpoint(String endpoint) {
-        prefs.edit().putString(PreferenceNames.MTRACKING_REPORT_INTERVAL, endpoint).apply();
+        prefs.edit().putString(PreferenceNames.MTRACKING_ENDPOINT, endpoint).apply();
     }
 
     @ProfilePreference(name = PreferenceNames.MTRACKING_REPORT_INTERVAL)
@@ -70,7 +70,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingAppKey(String appKey) {
-        prefs.edit().putString(PreferenceNames.MTRACKING_REPORT_INTERVAL, appKey).apply();
+        prefs.edit().putString(PreferenceNames.MTRACKING_APP_KEY, appKey).apply();
     }
 
     /**
