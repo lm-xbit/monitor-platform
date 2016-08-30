@@ -30,6 +30,7 @@ var UserKeySchema = new Schema(
       connectCode: String, // code for requesting connecting
       connectInfo: mongoose.Schema.Types.Mixed, // information of connected device
 
+      lastReportedOn: Date, // when this APP last reported back data?
       description: String,
       createOn: {type: Number, default: Date.now()},
       updateOn: {type: Number, default: Date.now()}

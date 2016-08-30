@@ -110,9 +110,17 @@ export class AppSettings extends React.Component {
 
   getAppStatus (app) {
     if (app.connected) {
-      return 'Connected on ' + app.connectedOn;
+      return 'Connected at ' + app.connectedOn;
     } else {
       return 'Not connected!';
+    }
+  }
+
+  getAppActivity (app) {
+    if (app.lastReportedOn) {
+      return 'Last Reported at ' + app.lastReportedOn;
+    } else {
+      return 'No Activity Detected';
     }
   }
 
@@ -160,6 +168,7 @@ export class AppSettings extends React.Component {
                 <th>Name</th>
                 <th>Type</th>
                 <th>Status</th>
+                <th>Last Activity</th>
                 <th>&nbsp;</th>
               </tr>
             </thead>
@@ -169,6 +178,7 @@ export class AppSettings extends React.Component {
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
+                <td style={{'lineHeight': '30px'}}>{this.getAppActivity(app)}</td>
                 <td style={{'lineHeight': '30px', 'min-width': '120px'}}>
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
@@ -300,7 +310,8 @@ AppSettings.propTypes = {
     connected: PropTypes.bool.isRequired,
     connectedOn: PropTypes.any.isRequired,
     connectCode: PropTypes.string.isRequired,
-    connectInfo: PropTypes.string.isRequired
+    connectInfo: PropTypes.string.isRequired,
+    lastReportedOn: PropTypes.any.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     loadAppSettings: PropTypes.func.isRequired,
