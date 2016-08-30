@@ -10,7 +10,12 @@ export class AppSettings extends React.Component {
   constructor (props) {
     super(props);
 
+    var http = location.protocol;
+    var slashes = http.concat("//");
+    var host = slashes.concat(window.location.hostname);
+
     this.state = {
+      base: host,
       modalIsOpen: false,
       connectInProgress: false,
       isEditing: false,
@@ -250,7 +255,7 @@ export class AppSettings extends React.Component {
                   display: this.state.currentApp.type === '' ? 'none' : 'inherit'
                 }}>
                   <label className="control-label" htmlFor="url">Download App</label>
-                  <QRCode value={'/downloads/android/' + this.state.currentApp.type + '.apk'}/>
+                  <QRCode value={this.state.base + '/downloads/android/' + this.state.currentApp.type + '.apk'}/>
                 </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="description">Description</label>
