@@ -69,11 +69,22 @@ public class CheckConnectionManager {
                     } else {
                         LOG.debug("Reporting get HTTP code - " + response.code() + " and payload:\n" + retString);
                         saveConfig();
+                        return "Ok";
                     }
                 } catch (IOException e) {
                     Log.e("CheckConnectionManager", e.getMessage(), e);
                 }
                 return null;
+            }
+
+            @Override
+            protected void onPostExecute(Object o) {
+                if (o != null) {
+                    EventBus.getDefault().post(new ProfileEvents.UpdatePeriodicProfile());
+                    EventBus.getDefault().post(new CommandEvents.RequestStartStop(true));
+                } else {
+                    super.onPostExecute(o);
+                }
             }
         };
 
@@ -87,9 +98,6 @@ public class CheckConnectionManager {
         mPreferenceHelper.setMobileTrackingUseSSL(gate.ssl);
         mPreferenceHelper.setMobileTrackingEndpoint(gate.host + ":" + gate.port);
         mPreferenceHelper.setMobileTrackingReportInterval(app.interval);
-        EventBus.getDefault().post(new ProfileEvents.UpdatePeriodicProfile());
-
-        EventBus.getDefault().post(new CommandEvents.RequestStartStop(true));
     }
 
 }
