@@ -14,11 +14,7 @@ import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Sample;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -91,16 +87,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     }
 
     public void initialize() {
-        PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
-        /**
-         * Todo: configurable
-         */
-        this._reportInterval = preferenceHelper.getMobileTrackingReportInterval() * 1000;
-        this._ssl = preferenceHelper.getMobileTrackingUseSSL();
-        this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
-        this._appKey = preferenceHelper.getMobileTrackingAppKey();
-
-        LOG.info("_endpoint:" + _endpoint + ",_appKey:" + _appKey + ",_ssl:" + _ssl + ",_reportInterval:" + _reportInterval);
+        updateConfigParams();
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         builder.connectTimeout(30, TimeUnit.SECONDS);
@@ -110,6 +97,16 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         this.httpclient = builder.build();
 
         LOG.info("Initializing periodic task for reporting GPS data with end point - " + this._endpoint);
+    }
+
+    public void updateConfigParams() {
+        PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
+        this._reportInterval = preferenceHelper.getMobileTrackingReportInterval() * 1000;
+        this._ssl = preferenceHelper.getMobileTrackingUseSSL();
+        this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
+        this._appKey = preferenceHelper.getMobileTrackingAppKey();
+
+        LOG.info("_endpoint:" + _endpoint + ",_appKey:" + _appKey + ",_ssl:" + _ssl + ",_reportInterval:" + _reportInterval);
     }
 
     /**
