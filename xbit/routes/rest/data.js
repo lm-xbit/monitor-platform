@@ -4,6 +4,7 @@ var router = express.Router();
 var logger = bunyan.createLogger({name: "data"});
 var ESClient = require("lib/esclient");
 var passport = require('passport');
+var User = require('models/user');
 
 // fix me: debugging mode
 // logger.level("debug");
