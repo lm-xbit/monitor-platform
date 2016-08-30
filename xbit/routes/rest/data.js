@@ -334,47 +334,71 @@ router.post("/:key", function(req, res) {
     var deviceKey = req.params.key;
     logger.debug("Handling data reporting from device %s", deviceKey);
 
-    // TODO Device Verification
-    if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
+    User.findOne({"userKeys.key": deviceKey}, function(err, user) {
+        if (err) {
+            logger.error("Cannot locate APP for key %s - %s:\n%s", deviceKey, err.message, err.stack);
+            return res.status(500).send("Internal error");
+        }
+
+        if (!user) {
+            logger.error("Cannot find APP with key %s", deviceKey);
+            return res.status(404).send("User APP not found");
+        }
+
+        var app = undefined;
+        for(var idx = 0; idx < user.userKeys.length; idx ++) {
+            if(user.userKeys[idx] === deviceKey) {
+                app = user.userKeys[idx];
+                break;
+            }
+        }
+
+        if(!app || app.key !== deviceKey) {
+            return res.status(403).send("APP invalid");
+        }
+
+        if(!app.connected) {
+            return res.status(401).send("APP not connected");
+        }
+
+        app.lastReportedOn = Date.now();
+
+        // save, without care the result
+        user.save();
+
+        // OK, let's take this APP as valid
+        logger.debug("Try processing reported data:\n%s", JSON.stringify(req.body));
+
+        if(req.body.status != 200) {
+            logger.error("Receive non 200 status code %d: %s", req.body.status, req.body.message);
+            return res.json({
+                status: 200,
+                message: "OK"
+            });
+        }
+
+        // OK, we have data to handle
+        var data = req.body.data;
+        if(data.length === 0) {
+            // TODO: heart beat handling?
+            logger.debug("No metrics reported. Take as heartbeat");
+            return res.json({
+                status: 200,
+                message: "OK"
+            });
+        }
+
+        logger.debug("Receive data with %d samples", data.length);
+
+        for (var i = 0; i < data.length; i++) {
+            indexData(data[i].timestamp, deviceKey, data[i].metrics);
+        }
+
         return res.json({
-            status: 403,
-            message: "Unknown device"
-        });
-    }
-
-    logger.debug("Try processing reported data:\n%s", JSON.stringify(req.body));
-    
-    if(req.body.status != 200) {
-        logger.error("Receive non 200 status code %d: %s", req.body.status, req.body.message);
-        return res.json({
-            status: 200,
-            message: "OK"
-        });
-    }
-
-    // OK, we have data to handle
-    var data = req.body.data;
-    if(data.length === 0) {
-        // TODO: heart beat handling?
-        logger.debug("No metrics reported. Take as heartbeat");
-        return res.json({
-            status: 200,
-            message: "OK"
-        });
-    }
-
-    logger.debug("Receive data with %d samples", data.length);
-
-    for (var i = 0; i < data.length; i++) {
-        indexData(data[i].timestamp, deviceKey, data[i].metrics);
-    }
-
-    return res.json(
-        {
             status: 200,
             message: 'OK'
-        }
-    );
+        });
+    });
 });
 
 module.exports = router;
