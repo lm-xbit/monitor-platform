@@ -391,6 +391,9 @@ router.post("/:key", function(req, res) {
         logger.debug("Receive data with %d samples", data.length);
 
         for (var i = 0; i < data.length; i++) {
+            if (data[i].metrics.length == 0) {
+                continue;
+            }
             indexData(data[i].timestamp, deviceKey, data[i].metrics);
         }
 

@@ -32,4 +32,11 @@ public class ProfileEvents {
             this.profileName = profileNameToDelete;
         }
     }
+
+    /**
+     * Update the the parameters about the periodic (host/key..)
+     */
+    public static class UpdatePeriodicProfile {
+
+    }
 }
