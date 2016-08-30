@@ -1166,4 +1166,9 @@ public class GpsLoggingService extends Service {
             LOG.error("Could not save profile to file", e);
         }
     }
+
+    @EventBusHook
+    public void onEvent(ProfileEvents.UpdatePeriodicProfile event) {
+        periodicTaskReceiver.updateConfigParams();
+    }
 }

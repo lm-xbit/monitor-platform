@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.events.CommandEvents;
+import com.mendhak.gpslogger.common.events.ProfileEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Config;
 import com.mendhak.gpslogger.model.ConnectionInfo;
@@ -67,19 +68,12 @@ public class CheckConnectionManager {
                         LOG.warn("Reporting get HTTP code - " + response.code() + " and payload:\n" + retString);
                     } else {
                         LOG.debug("Reporting get HTTP code - " + response.code() + " and payload:\n" + retString);
-                        return "Ok";
+                        saveConfig();
                     }
                 } catch (IOException e) {
                     Log.e("CheckConnectionManager", e.getMessage(), e);
                 }
                 return null;
-            }
-
-            @Override
-            protected void onPostExecute(Object o) {
-                if (o != null) {
-                    saveConfig();
-                }
             }
         };
 
@@ -93,6 +87,7 @@ public class CheckConnectionManager {
         mPreferenceHelper.setMobileTrackingUseSSL(gate.ssl);
         mPreferenceHelper.setMobileTrackingEndpoint(gate.host + ":" + gate.port);
         mPreferenceHelper.setMobileTrackingReportInterval(app.interval);
+        EventBus.getDefault().post(new ProfileEvents.UpdatePeriodicProfile());
 
         EventBus.getDefault().post(new CommandEvents.RequestStartStop(true));
     }
