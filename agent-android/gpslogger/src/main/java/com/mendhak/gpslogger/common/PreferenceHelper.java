@@ -56,8 +56,8 @@ public class PreferenceHelper {
     }
 
     @ProfilePreference(name = PreferenceNames.MTRACKING_REPORT_INTERVAL)
-    public int getMobileTrackingReportInterval() {
-        return prefs.getInt(PreferenceNames.MTRACKING_REPORT_INTERVAL, 60);
+    public Long getMobileTrackingReportInterval() {
+        return prefs.getLong(PreferenceNames.MTRACKING_REPORT_INTERVAL, 60);
     }
 
     public void setMobileTrackingReportInterval(long value) {

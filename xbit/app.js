@@ -115,9 +115,11 @@ app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found - ' + req.method + ' ' + req.url);
-  err.status = 404;
-  next(err);
+  // var err = new Error('Not Found - ' + req.method + ' ' + req.url);
+  // err.status = 404;
+  // next(err);
+  console.error("Got unexpected request: " + req.method + " " + req.url, req);
+  res.status(401).send("Forbidden");
 });
 
 app.use(function(err, req, res, next) {
