@@ -59,7 +59,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private boolean _ssl = false;
     private String _endpoint;
     private String _appKey;
-    private int _reportInterval;
+    private long _reportInterval;
     private long _lastReportEpoch = System.currentTimeMillis();
 
     @Override
