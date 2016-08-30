@@ -10,7 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/assets/styles/main.css">
 
     <!-- Website Font style -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
 
     <!-- Google Fonts -->
     <link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
@@ -65,19 +65,30 @@
 </div>
 
 </body>
-<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
         $('.login-button').on('click', function () {
-            var userName = $('#email').val().trim();
+            var email = $('#email').val().trim();
             var password = $('#password').val().trim();
-            if (userName && password) {
-                login(userName, password);
+
+            if (email && password) {
+                if (!isEmail(email)) {
+                    alert("Invalid email format");
+                }
+                else {
+                    login(email, password);
+                }
             } else {
                 alertError('Please input user name and password.');
             }
         });
     });
+
+    function isEmail(email) {
+        var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+        return regex.test(email);
+    }
 
     function login(username, password) {
         $.ajax({
@@ -85,11 +96,16 @@
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({username: username, password: password}),
-            success: function (res) {
+            success: function (data, textStatus, jqXHR) {
                 redirectQueryUrl();
             },
-            error: function (err) {
-                alertError(err);
+            error: function (jqXHR, textStatus, errorThrown) {
+                if (jqXHR.status == 401) {
+                    alert("Email or password is wrong")
+                }
+                else {
+                    alert("Login Fail - " + textStatus + "; " + errorThrown)
+                }
             }
         });
     }
