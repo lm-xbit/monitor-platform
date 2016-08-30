@@ -11,8 +11,8 @@ export class AppSettings extends React.Component {
     super(props);
 
     var http = location.protocol;
-    var slashes = http.concat("//");
-    var host = slashes.concat(window.location.hostname);
+    var slashes = http.concat('//');
+    var host = slashes.concat(window.location.host);
 
     this.state = {
       base: host,
