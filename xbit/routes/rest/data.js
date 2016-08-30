@@ -6,7 +6,7 @@ var ESClient = require("lib/esclient");
 var passport = require('passport');
 
 // fix me: debugging mode
-logger.level("debug");
+// logger.level("debug");
 
 // expose API to mobile client for now
 /**
@@ -137,7 +137,7 @@ router.get("/:key", function (req, res) {
           },
           function (error, response) {
               if (error) {
-                  console.error(error);
+                  logger.error(error);
                   return res.json(
                     {
                         status: 502,
@@ -202,7 +202,7 @@ router.get("/:key", function (req, res) {
             }
           },
                    */
-                  console.info("Get the response - " + JSON.stringify(response));
+                  logger.debug("Get the response - " + JSON.stringify(response));
                   var result = [];
                   if (response.hits.total > 0) {
                       var array = response.aggregations.result.buckets;
