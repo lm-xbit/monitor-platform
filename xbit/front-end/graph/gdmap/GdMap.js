@@ -82,19 +82,21 @@ export class GdMap extends React.Component {
 
     return (
       <div style={{height: '100%'}}>
-        <form className="form-inline">
-          <div className="form-group" style={{marginBottom: '10px'}}>
-            <label style={{float: 'left', marginRight: '10px'}} for="app" className="control-label">Select Application</label>
-            <select className="form-control" style={{width: '200px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
-              {
-                this.props.apps.map(
-                  app => <option value={app.key}>{app.name}</option>
-                )
-              }
-            </select>
-          </div>
-        </form>
-        <div style={{ margin: 'auto', width: '100%', height: '100%' }} id="map-container" >
+        <div style={{height: '50px'}}>
+          <form className="form-inline">
+            <div className="form-group" style={{marginBottom: '10px'}}>
+              <label style={{float: 'left', marginRight: '10px'}} for="app" className="control-label">Select Application</label>
+              <select className="form-control" style={{width: '200px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
+                {
+                  this.props.apps.map(
+                    app => <option value={app.key}>{app.name}</option>
+                  )
+                }
+              </select>
+            </div>
+          </form>
+        </div>
+        <div style={{ margin: 'auto', width: '100%', height: 'calc(100% - 50px)' }} id="map-container" >
         </div>
       </div>
     );
