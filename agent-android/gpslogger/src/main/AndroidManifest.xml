@@ -158,7 +158,7 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".senders.AlarmReceiver" />
+        <receiver android:name=".receivers.AlarmReceiver" />
 
         <!--android:theme="@style/Theme.AppCompat.Translucent"-->
         <activity

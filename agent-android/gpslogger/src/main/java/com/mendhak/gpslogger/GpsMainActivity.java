@@ -25,8 +25,11 @@ import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -37,12 +40,28 @@ import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.DisplayMetrics;
-import android.view.*;
-import android.widget.*;
+import android.view.Display;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.SpinnerAdapter;
+import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.amulyakhare.textdrawable.TextDrawable;
-import com.mendhak.gpslogger.common.*;
+import com.mendhak.gpslogger.common.EventBusHook;
+import com.mendhak.gpslogger.common.PreferenceHelper;
+import com.mendhak.gpslogger.common.Session;
+import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.events.ProfileEvents;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
@@ -50,11 +69,13 @@ import com.mendhak.gpslogger.common.events.UploadEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
 import com.mendhak.gpslogger.loggers.Files;
-import com.mendhak.gpslogger.senders.FileSender;
-import com.mendhak.gpslogger.senders.FileSenderFactory;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
-import com.mendhak.gpslogger.ui.fragments.display.*;
+import com.mendhak.gpslogger.ui.fragments.display.GenericViewFragment;
+import com.mendhak.gpslogger.ui.fragments.display.GpsBigViewFragment;
+import com.mendhak.gpslogger.ui.fragments.display.GpsDetailedViewFragment;
+import com.mendhak.gpslogger.ui.fragments.display.GpsLogViewFragment;
+import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
@@ -70,7 +91,8 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener, ActionBar.OnNavigationListener {
 
@@ -686,47 +708,8 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
             case R.id.mnuOnePoint:
                 logSinglePoint();
                 return true;
-            case R.id.mnuShare:
-                share();
-                return true;
-            case R.id.mnuOSM:
-                uploadToOpenStreetMap();
-                return true;
-            case R.id.mnuDropBox:
-                uploadToDropBox();
-                return true;
-            case R.id.mnuGDocs:
-                uploadToGoogleDocs();
-                return true;
-            case R.id.mnuOpenGTS:
-                sendToOpenGTS();
-                return true;
-            case R.id.mnuFtp:
-                sendToFtp();
-                return true;
-            case R.id.mnuEmail:
-                selectAndEmailFile();
-                return true;
-            case R.id.mnuAutoSendNow:
-                forceAutoSendNow();
-            case R.id.mnuOwnCloud:
-                uploadToOwnCloud();
-                return true;
             default:
                 return true;
-        }
-    }
-
-
-    private void forceAutoSendNow() {
-        LOG.debug("User forced an auto send");
-
-        if (preferenceHelper.isAutoSendEnabled()) {
-            Dialogs.progress(this, getString(R.string.autosend_sending), getString(R.string.please_wait));
-            EventBus.getDefault().post(new CommandEvents.AutoSend(null));
-
-        } else {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.UPLOAD);
         }
     }
 
@@ -770,214 +753,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                 .show();
         */
     }
-
-
-    private void uploadToOpenStreetMap() {
-        if (!FileSenderFactory.getOsmSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OSM);
-            return;
-        }
-
-        showFileListDialog(FileSenderFactory.getOsmSender());
-    }
-
-    private void uploadToDropBox() {
-
-        if (!FileSenderFactory.getDropBoxSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.DROPBOX);
-            return;
-        }
-
-        showFileListDialog(FileSenderFactory.getDropBoxSender());
-    }
-
-
-    private void uploadToOwnCloud() {
-
-        if (!FileSenderFactory.getOwnCloudSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OWNCLOUD);
-            return;
-        }
-
-        showFileListDialog(FileSenderFactory.getOwnCloudSender());
-    }
-
-    private void sendToOpenGTS() {
-        if (!FileSenderFactory.getOpenGTSSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OPENGTS);
-        } else {
-            showFileListDialog(FileSenderFactory.getOpenGTSSender());
-        }
-    }
-
-    private void uploadToGoogleDocs() {
-        if (!FileSenderFactory.getGoogleDriveSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GDOCS);
-            return;
-        }
-
-        showFileListDialog(FileSenderFactory.getGoogleDriveSender());
-    }
-
-    private void sendToFtp() {
-        if (!FileSenderFactory.getFtpSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.FTP);
-        } else {
-            showFileListDialog(FileSenderFactory.getFtpSender());
-        }
-    }
-
-    private void selectAndEmailFile() {
-        if (!FileSenderFactory.getEmailSender().isAvailable()) {
-            launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.EMAIL);
-        } else {
-            showFileListDialog(FileSenderFactory.getEmailSender());
-        }
-    }
-
-    private void showFileListDialog(final FileSender sender) {
-
-        if (!Systems.isNetworkAvailable(this)) {
-            Dialogs.alert(getString(R.string.sorry), getString(R.string.no_network_message), this);
-            return;
-        }
-
-        final File gpxFolder = new File(preferenceHelper.getGpsLoggerFolder());
-
-        if (gpxFolder.exists() && Files.fromFolder(gpxFolder, sender).length > 0) {
-            File[] enumeratedFiles = Files.fromFolder(gpxFolder, sender);
-
-            //Order by last modified
-            Arrays.sort(enumeratedFiles, new Comparator<File>() {
-                public int compare(File f1, File f2) {
-                    if (f1 != null && f2 != null) {
-                        return -1 * Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
-                    }
-                    return -1;
-                }
-            });
-
-            List<String> fileList = new ArrayList<>(enumeratedFiles.length);
-
-            for (File f : enumeratedFiles) {
-                fileList.add(f.getName());
-            }
-
-            final String[] files = fileList.toArray(new String[fileList.size()]);
-
-            new MaterialDialog.Builder(this).title(R.string.osm_pick_file).items(files).positiveText(R.string.ok).itemsCallbackMultiChoice(null,
-                    new MaterialDialog.ListCallbackMultiChoice() {
-                @Override
-                public boolean onSelection(MaterialDialog materialDialog, Integer[] integers, CharSequence[] charSequences) {
-
-                    List<Integer> selectedItems = Arrays.asList(integers);
-
-                    List<File> chosenFiles = new ArrayList<>();
-
-                    for (Object item : selectedItems) {
-                        LOG.info("Selected file to upload- " + files[Integer.valueOf(item.toString())]);
-                        chosenFiles.add(new File(gpxFolder, files[Integer.valueOf(item.toString())]));
-                    }
-
-                    if (chosenFiles.size() > 0) {
-                        Dialogs.progress(GpsMainActivity.this, getString(R.string.please_wait), getString(R.string.please_wait));
-                        userInvokedUpload = true;
-                        sender.uploadFile(chosenFiles);
-
-                    }
-                    return true;
-                }
-            }).show();
-
-        } else {
-            Dialogs.alert(getString(R.string.sorry), getString(R.string.no_files_found), this);
-        }
-    }
-
-    /**
-     * Allows user to send a GPX/KML file along with location, or location only using a provider. 'Provider' means any application that can accept
-     * such an intent (Facebook, SMS, Twitter, Email, K-9, Bluetooth)
-     */
-    private void share() {
-
-        try {
-
-            final String locationOnly = getString(R.string.sharing_location_only);
-            final File gpxFolder = new File(preferenceHelper.getGpsLoggerFolder());
-            if (gpxFolder.exists()) {
-
-                File[] enumeratedFiles = Files.fromFolder(gpxFolder);
-
-                Arrays.sort(enumeratedFiles, new Comparator<File>() {
-                    public int compare(File f1, File f2) {
-                        return -1 * Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
-                    }
-                });
-
-                List<String> fileList = new ArrayList<>(enumeratedFiles.length);
-
-                for (File f : enumeratedFiles) {
-                    fileList.add(f.getName());
-                }
-
-                fileList.add(0, locationOnly);
-                final String[] files = fileList.toArray(new String[fileList.size()]);
-
-                new MaterialDialog.Builder(this).title(R.string.osm_pick_file).items(files).positiveText(R.string.ok).itemsCallbackMultiChoice
-                        (null, new MaterialDialog.ListCallbackMultiChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog materialDialog, Integer[] integers, CharSequence[] charSequences) {
-                        List<Integer> selectedItems = Arrays.asList(integers);
-
-                        final Intent intent = new Intent(Intent.ACTION_SEND);
-                        intent.setType("*/*");
-
-                        if (selectedItems.size() <= 0) {
-                            return false;
-                        }
-
-                        if (selectedItems.contains(0)) {
-
-                            intent.setType("text/plain");
-
-                            intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.sharing_mylocation));
-                            if (Session.hasValidLocation()) {
-                                String bodyText = getString(R.string.sharing_googlemaps_link, String.valueOf(Session.getCurrentLatitude()), String
-                                        .valueOf(Session.getCurrentLongitude()));
-                                intent.putExtra(Intent.EXTRA_TEXT, bodyText);
-                                intent.putExtra("sms_body", bodyText);
-                                startActivity(Intent.createChooser(intent, getString(R.string.sharing_via)));
-                            }
-                        } else {
-
-                            intent.setAction(Intent.ACTION_SEND_MULTIPLE);
-                            intent.putExtra(Intent.EXTRA_SUBJECT, "Here are some files.");
-                            intent.setType("*/*");
-
-                            ArrayList<Uri> chosenFiles = new ArrayList<>();
-
-                            for (Object path : selectedItems) {
-                                File file = new File(gpxFolder, files[Integer.valueOf(path.toString())]);
-                                Uri uri = Uri.fromFile(file);
-                                chosenFiles.add(uri);
-                            }
-
-                            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, chosenFiles);
-                            startActivity(Intent.createChooser(intent, getString(R.string.sharing_via)));
-                        }
-                        return true;
-                    }
-                }).show();
-
-
-            } else {
-                Dialogs.alert(getString(R.string.sorry), getString(R.string.no_files_found), this);
-            }
-        } catch (Exception ex) {
-            LOG.error("Sharing problem", ex);
-        }
-    }
-
 
     /**
      * Provides a connection to the GPS Logging Service

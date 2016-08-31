@@ -69,45 +69,9 @@ public class MainPreferenceActivity extends AppCompatActivity {
                 setTitle(R.string.settings_screen_name);
                 preferenceFragment = new GeneralSettingsFragment();
                 break;
-            case PREFERENCE_FRAGMENTS.LOGGING:
-                setTitle(R.string.pref_logging_title);
-                preferenceFragment = new LoggingSettingsFragment();
-                break;
             case PREFERENCE_FRAGMENTS.PERFORMANCE:
                 setTitle(R.string.pref_performance_title);
                 preferenceFragment = new PerformanceSettingsFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.UPLOAD:
-                setTitle(R.string.title_drawer_uploadsettings);
-                preferenceFragment = new UploadSettingsFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.FTP:
-                setTitle(R.string.autoftp_setup_title);
-                preferenceFragment = new FtpFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.EMAIL:
-                setTitle(R.string.autoemail_title);
-                preferenceFragment = new AutoEmailFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.OPENGTS:
-                setTitle(R.string.opengts_setup_title);
-                preferenceFragment = new OpenGTSFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.GDOCS:
-                setTitle(R.string.gdocs_setup_title);
-                preferenceFragment = new GoogleDriveSettingsFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.DROPBOX:
-                setTitle(R.string.dropbox_setup_title);
-                preferenceFragment = new DropboxAuthorizationFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.OSM:
-                setTitle(R.string.osm_setup_title);
-                preferenceFragment = new OSMAuthorizationFragment();
-                break;
-            case PREFERENCE_FRAGMENTS.OWNCLOUD:
-                setTitle(R.string.owncloud_setup_title);
-                preferenceFragment = new OwnCloudSettingsFragment();
                 break;
         }
 

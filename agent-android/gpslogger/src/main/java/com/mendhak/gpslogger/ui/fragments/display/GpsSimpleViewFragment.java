@@ -19,7 +19,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.text.Html;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +37,6 @@ import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
-import com.mendhak.gpslogger.loggers.Files;
 import com.mendhak.gpslogger.qr.CaptureActivity;
 import org.slf4j.Logger;
 
@@ -122,9 +120,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     }
 
     private void showPreferencesSummary() {
-        showCurrentFileName(Session.getCurrentFileName());
-
-
         ImageView imgGpx = (ImageView) rootView.findViewById(R.id.simpleview_imgGpx);
         ImageView imgKml = (ImageView) rootView.findViewById(R.id.simpleview_imgKml);
         ImageView imgCsv = (ImageView) rootView.findViewById(R.id.simpleview_imgCsv);
@@ -163,28 +158,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         } else {
             imgLink.setVisibility(View.GONE);
         }
-
-        if (!preferenceHelper.shouldLogToGpx() && !preferenceHelper.shouldLogToKml() && !preferenceHelper.shouldLogToPlainText()) {
-            showCurrentFileName(null);
-        }
-
-    }
-
-    private void showCurrentFileName(String newFileName) {
-        TextView txtFilename = (TextView) rootView.findViewById(R.id.simpleview_txtfilepath);
-        if (newFileName == null || newFileName.length() <= 0) {
-            txtFilename.setText("");
-            txtFilename.setVisibility(View.INVISIBLE);
-            return;
-        }
-
-        txtFilename.setVisibility(View.VISIBLE);
-        txtFilename.setText(Html.fromHtml("<em>" + preferenceHelper.getGpsLoggerFolder() + "/<strong><br />" + Session.getCurrentFileName() +
-                "</strong></em>"));
-
-        Files.setFileExplorerLink(txtFilename, Html.fromHtml("<em><font color='blue'><u>" + preferenceHelper.getGpsLoggerFolder() + "</u></font>" +
-                "/<strong><br />" + Session.getCurrentFileName() + "</strong></em>"), preferenceHelper.getGpsLoggerFolder(), context);
-
     }
 
     private enum IconColorIndicator {
@@ -307,11 +280,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
             setSatelliteCount(-1);
             setActionButtonStart();
         }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ServiceEvents.FileNamed fileNamed) {
-        showCurrentFileName(fileNamed.newFileName);
     }
 
     public void displayLocationInfo(Location locationInfo) {

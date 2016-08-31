@@ -35,7 +35,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import com.google.android.gms.common.ConnectionResult;
@@ -55,13 +54,10 @@ import com.mendhak.gpslogger.common.events.ProfileEvents;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
-import com.mendhak.gpslogger.loggers.FileLoggerFactory;
 import com.mendhak.gpslogger.loggers.Files;
-import com.mendhak.gpslogger.loggers.nmea.NmeaFileLogger;
 import com.mendhak.gpslogger.model.Sample;
+import com.mendhak.gpslogger.receivers.AlarmReceiver;
 import com.mendhak.gpslogger.receivers.PeriodicTaskReceiver;
-import com.mendhak.gpslogger.senders.AlarmReceiver;
-import com.mendhak.gpslogger.senders.FileSenderFactory;
 import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
@@ -386,29 +382,6 @@ public class GpsLoggingService extends Service {
         }
     }
 
-    /**
-     * Method to be called if user has chosen to auto email log files when he stops logging
-     */
-    private void autoSendLogFileOnStop() {
-        if (preferenceHelper.isAutoSendEnabled() && preferenceHelper.shouldAutoSendOnStopLogging()) {
-            autoSendLogFile(null);
-        }
-    }
-
-    /**
-     * Calls the Auto Senders which process the files and send it.
-     */
-    private void autoSendLogFile(@Nullable String formattedFileName) {
-
-        LOG.debug("Filename: " + formattedFileName);
-
-        if (!Strings.isNullOrEmpty(formattedFileName) || !Strings.isNullOrEmpty(Session.getCurrentFileName())) {
-            String fileToSend = Strings.isNullOrEmpty(formattedFileName) ? Session.getCurrentFileName() : formattedFileName;
-            FileSenderFactory.autoSendFiles(fileToSend);
-            setupAutoSendTimers();
-        }
-    }
-
     private void resetAutoSendTimersIfNecessary() {
 
         if (Session.getAutoSendDelay() != preferenceHelper.getAutoSendInterval()) {
@@ -471,7 +444,7 @@ public class GpsLoggingService extends Service {
         Session.setLatestTimeStamp(0);
         stopAbsoluteTimer();
         // Email log file before setting location info to null
-        autoSendLogFileOnStop();
+
         cancelAlarm();
         Session.setCurrentLocationInfo(null);
         Session.setSinglePointMode(false);
@@ -905,7 +878,6 @@ public class GpsLoggingService extends Service {
             LOG.debug("Logging passive location to file");
         }
 
-        writeToFile(loc);
         resetAutoSendTimersIfNecessary();
         stopManagerAndResetAlarm();
 
@@ -1006,32 +978,6 @@ public class GpsLoggingService extends Service {
         }
     }
 
-
-    /**
-     * Calls file helper to write a given location to a file.
-     *
-     * @param loc
-     *         Location object
-     */
-    private void writeToFile(Location loc) {
-        Session.setAddNewTrackSegment(false);
-
-        try {
-            LOG.debug("Calling file writers");
-            FileLoggerFactory.write(getApplicationContext(), loc);
-
-            if (Session.hasDescription()) {
-                LOG.info("Writing annotation: " + Session.getDescription());
-                FileLoggerFactory.annotate(getApplicationContext(), Session.getDescription(), loc);
-            }
-        } catch (Exception e) {
-            LOG.error(getString(R.string.could_not_write_to_file), e);
-        }
-
-        Session.clearDescription();
-        EventBus.getDefault().post(new ServiceEvents.AnnotationStatus(true));
-    }
-
     /**
      * Informs the main service client of the number of visible satellites.
      *
@@ -1044,11 +990,7 @@ public class GpsLoggingService extends Service {
     }
 
     public void onNmeaSentence(long timestamp, String nmeaSentence) {
-
-        if (preferenceHelper.shouldLogToNmea()) {
-            NmeaFileLogger nmeaLogger = new NmeaFileLogger(Session.getCurrentFileName());
-            nmeaLogger.write(timestamp, nmeaSentence);
-        }
+        // DO NOTHING
     }
 
     /**
@@ -1079,13 +1021,6 @@ public class GpsLoggingService extends Service {
         }
 
         EventBus.getDefault().removeStickyEvent(CommandEvents.RequestStartStop.class);
-    }
-
-    @EventBusHook
-    public void onEvent(CommandEvents.AutoSend autoSend) {
-        autoSendLogFile(autoSend.formattedFileName);
-
-        EventBus.getDefault().removeStickyEvent(CommandEvents.AutoSend.class);
     }
 
     @EventBusHook
