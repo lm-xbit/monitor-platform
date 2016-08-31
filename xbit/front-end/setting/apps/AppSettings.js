@@ -4,6 +4,7 @@ import React, {PropTypes} from 'react';
 import {loadAppSettings, starApp, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
+import ReactTooltip from 'react-tooltip'
 import $ from 'jquery';
 
 export class AppSettings extends React.Component {
@@ -201,7 +202,7 @@ export class AppSettings extends React.Component {
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
                     e.preventDefault();
-                  }}>
+                  }} data-tip="Connect or re-connect this application ...">
                     <i className="fa fa-plug" style={{
                       display: app.connected ? 'none' : 'inherit'
                     }}/>
@@ -213,19 +214,25 @@ export class AppSettings extends React.Component {
                   <button className="btn btn-xs btn-danger" onClick={e => {
                     this.removeApplication(app);
                     e.preventDefault();
-                  }}><i className="fa fa-remove"/></button>
+                  }} data-tip="Delete this application ...">
+                    <i className="fa fa-remove"/>
+                  </button>
                   &nbsp;&nbsp;
                   <button className="btn btn-xs btn-warning" onClick={e => {
                     this.updateApplication(app);
                     e.preventDefault();
-                  }}><i className="fa fa-edit"/></button>
+                  }} data-tip="Edit and update information of this application ...">
+                    <i className="fa fa-edit"/>
+                  </button>
                   &nbsp;&nbsp;
                   <button className='btn btn-xs btn-success' style={{
                     display: app.primary ? 'none' : 'inherit'
                   }} onClick={e => {
                     this.starApplication(app);
                     e.preventDefault();
-                  }}><i className='fa fa-star'/></button>
+                  }} data-tip="Make this application my primary application ...">
+                    <i className='fa fa-star'/>
+                  </button>
                 </td>
               </tr>
             )}
@@ -321,6 +328,7 @@ export class AppSettings extends React.Component {
             </div>
           </div>
         </Modal>
+        <ReactTooltip />
       </div>
     );
   }
