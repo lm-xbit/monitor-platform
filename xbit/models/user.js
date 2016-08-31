@@ -25,6 +25,7 @@ var UserKeySchema = new Schema(
       },
       name: String,
       type: String,
+      primary: Boolean, // if this is the primary APP. Only one primary APP shall exists
       connected: Boolean, // if this APP has been connected?
       connectedOn: Date,   // when this device is connected
       connectCode: String, // code for requesting connecting

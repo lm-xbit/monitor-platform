@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
+import {loadAppSettings, starApp, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
 import $ from 'jquery';
@@ -34,8 +34,8 @@ export class AppSettings extends React.Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.createApplication = this.createApplication.bind(this);
     this.updateApplication = this.updateApplication.bind(this);
+    this.starApplication = this.starApplication.bind(this);
     this.commitChange = this.commitChange.bind(this);
-    this.updateApplication = this.updateApplication.bind(this);
     this.removeApplication = this.removeApplication.bind(this);
     this.connectApplication = this.connectApplication.bind(this);
   }
@@ -93,6 +93,12 @@ export class AppSettings extends React.Component {
     this.setState({isEditing: true, currentApp: app});
 
     this.setState({modalIsOpen: true});
+  }
+
+  starApplication (app) {
+    if (confirm('Are you sure to make this application the primary application?')) {
+      this.props.actions.starApp(app.key);
+    }
   }
 
   removeApplication (app) {
@@ -170,6 +176,7 @@ export class AppSettings extends React.Component {
           <table className="table table-striped">
             <thead>
               <tr>
+                <th style={{width: '30px'}}>&nbsp;</th>
                 <th>Name</th>
                 <th>Type</th>
                 <th>Status</th>
@@ -179,12 +186,18 @@ export class AppSettings extends React.Component {
             </thead>
             <tbody>
             {this.props.apps.map(app =>
-              <tr style={{height: '30px'}}>
+              <tr style={{height: '30px', width: '30px'}}>
+                <td style={{'lineHeight': '30px', 'paddingTop': '15px'}}>
+                  <i style={{
+                    color: 'green',
+                    display: app.primary ? 'inherit' : 'none'
+                  }} className='fa fa-star'/>
+                </td>
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppActivity(app)}</td>
-                <td style={{'lineHeight': '30px', 'min-width': '120px'}}>
+                <td style={{'lineHeight': '30px', 'minWidth': '120px'}}>
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
                     e.preventDefault();
@@ -206,6 +219,13 @@ export class AppSettings extends React.Component {
                     this.updateApplication(app);
                     e.preventDefault();
                   }}><i className="fa fa-edit"/></button>
+                  &nbsp;&nbsp;
+                  <button className='btn btn-xs btn-success' style={{
+                    display: app.primary ? 'none' : 'inherit'
+                  }} onClick={e => {
+                    this.starApplication(app);
+                    e.preventDefault();
+                  }}><i className='fa fa-star'/></button>
                 </td>
               </tr>
             )}
@@ -312,6 +332,7 @@ AppSettings.propTypes = {
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
+    primary: PropTypes.bool.isRequired,
     connected: PropTypes.bool.isRequired,
     connectedOn: PropTypes.any.isRequired,
     connectCode: PropTypes.string.isRequired,
@@ -320,6 +341,7 @@ AppSettings.propTypes = {
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     loadAppSettings: PropTypes.func.isRequired,
+    starApp: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired,
     commitChange: PropTypes.func.isRequired
   })
@@ -335,7 +357,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({loadAppSettings, removeApp, commitChange}, dispatch),
+    actions: bindActionCreators({loadAppSettings, starApp, removeApp, commitChange}, dispatch),
     dispatch
   };
 };

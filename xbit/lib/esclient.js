@@ -2,7 +2,7 @@ var ES = require('elasticsearch');
 
 var eshost = process.env.ESHOST || "127.0.0.1";
 var esport = process.env.ESPORT || 9200;
-var eslog = process.env.ESLOG || "info";
+var eslog = process.env.ESLOG || "error";
 
 console.log("Try create ES client with log level " + eslog + " and endpoint " + eshost + ":" + esport + " ...");
 

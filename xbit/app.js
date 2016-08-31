@@ -102,9 +102,10 @@ app.use(session ( {
   resave : true,
   name: 'SID',
   saveUninitialized: false,
+  rolling: true,
   store  : new mongoStore({ mongooseConnection: mongoose.connection }),
   cookie : {
-    maxAge: 30 * 60 * 1000  // 30 minutes, in milliseconds
+    maxAge: 60 * 60 * 1000  // 60 minutes, in milliseconds
   }
 }));
 

@@ -17,6 +17,24 @@ export const appSettingsLoaded = (data) => {
   };
 };
 
+export const starApp = (key) => {
+  return function (dispatch) {
+    // creating
+    $.ajax('/rest/settings/star/' + key, {
+      method: 'POST'
+    }).always(function (data) {
+      if (!data || data.status !== 200) {
+        alert('Cannot star the application - ' + data ? data.message : 'Unknown error');
+      } else {
+        dispatch({
+          type: 'POPULATE_APP_SETTINGS',
+          data: data.apps
+        });
+      }
+    });
+  };
+};
+
 export const removeApp = (key) => {
   return function (dispatch) {
     // creating

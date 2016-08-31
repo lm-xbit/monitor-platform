@@ -239,6 +239,64 @@ router.get("/apps", function(req, res, next) {
 
 
 /**
+ * Star an APP
+ */
+router.post("/star/:key", function(req, res, next) {
+    var email = req.session.passport.user;
+    logger.info("Try star APP with key %s for user %s", req.params.key, email);
+
+    User.findOne({email: email}, function(err, user) {
+        if (err) {
+            logger.error("Cannot create application for user %s due to %s", email, err.message);
+            return next(err);
+        }
+
+        if (!user) {
+            logger.error("User %s not found", email);
+            return next(new Error("User email not found"));
+        }
+
+        if(!user.userKeys) {
+            user.userKeys = [];
+        }
+
+        var starred = false;
+        // make all other not the primary!!!
+        user.userKeys.forEach(function(app) {
+            if(app.key !== req.params.key) {
+                app.primary = false;
+            }
+            else {
+                logger.info("Try star application with key " + app.key);
+                app.primary = true;
+                starred = true;
+            }
+        });
+
+        if(!starred) {
+            logger.error("Cannot find application with key " + req.params.key);
+            return res.json({
+                status: 404,
+                message: "Application key not found"
+            });
+        }
+
+
+        user.save(function(err) {
+            if(err) {
+                logger.error("Failed to star application due to " + err.message);
+                return next(err);
+            }
+
+            return res.json({
+                status: 200,
+                apps: user.userKeys
+            });
+        });
+    });
+});
+
+/**
  * DELETE an APP
  */
 router.delete("/apps/:key", function(req, res, next) {
