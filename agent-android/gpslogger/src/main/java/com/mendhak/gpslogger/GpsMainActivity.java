@@ -74,7 +74,6 @@ import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
 import com.mendhak.gpslogger.ui.fragments.display.GenericViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsBigViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsDetailedViewFragment;
-import com.mendhak.gpslogger.ui.fragments.display.GpsLogViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -569,10 +568,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
             case 2:
                 transaction.replace(R.id.container, GpsBigViewFragment.newInstance());
                 break;
-            case 3:
-                transaction.replace(R.id.container, GpsLogViewFragment.newInstance());
-                break;
-
         }
         transaction.commitAllowingStateLoss();
     }
