@@ -5,7 +5,6 @@ import ch.qos.logback.classic.android.LogcatAppender;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
-import com.mendhak.gpslogger.common.PreferenceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,20 +30,12 @@ public class Logs {
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             lc.reset();
 
-            //final String LOG_DIR = "/sdcard/GPSLogger";
-            final String LOG_DIR = PreferenceHelper.getInstance().getGpsLoggerFolder();
-
             GpsRollingFileAppender<ILoggingEvent> rollingFileAppender = new GpsRollingFileAppender<>();
             rollingFileAppender.setAppend(true);
             rollingFileAppender.setContext(lc);
 
-            // OPTIONAL: Set an active log file (separate from the rollover files).
-            // If rollingPolicy.fileNamePattern already set, you don't need this.
-            rollingFileAppender.setFile(LOG_DIR + "/debuglog.txt");
-            rollingFileAppender.setLazy(true);
 
             TimeBasedRollingPolicy<ILoggingEvent> rollingPolicy = new TimeBasedRollingPolicy<>();
-            rollingPolicy.setFileNamePattern(LOG_DIR + "/debuglog.%d.txt");
             rollingPolicy.setMaxHistory(3);
             rollingPolicy.setParent(rollingFileAppender);  // parent and context required!
             rollingPolicy.setContext(lc);

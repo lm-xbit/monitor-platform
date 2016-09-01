@@ -1,16 +1,22 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
-import {loadAppSettings, removeApp, commitChange} from './AppSettingsActions';
+import {loadAppSettings, starApp, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
+import ReactTooltip from 'react-tooltip'
 import $ from 'jquery';
 
 export class AppSettings extends React.Component {
   constructor (props) {
     super(props);
 
+    var http = location.protocol;
+    var slashes = http.concat('//');
+    var host = slashes.concat(window.location.host);
+
     this.state = {
+      base: host,
       modalIsOpen: false,
       connectInProgress: false,
       isEditing: false,
@@ -29,8 +35,8 @@ export class AppSettings extends React.Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.createApplication = this.createApplication.bind(this);
     this.updateApplication = this.updateApplication.bind(this);
+    this.starApplication = this.starApplication.bind(this);
     this.commitChange = this.commitChange.bind(this);
-    this.updateApplication = this.updateApplication.bind(this);
     this.removeApplication = this.removeApplication.bind(this);
     this.connectApplication = this.connectApplication.bind(this);
   }
@@ -88,6 +94,12 @@ export class AppSettings extends React.Component {
     this.setState({isEditing: true, currentApp: app});
 
     this.setState({modalIsOpen: true});
+  }
+
+  starApplication (app) {
+    if (confirm('Are you sure to make this application the primary application?')) {
+      this.props.actions.starApp(app.key);
+    }
   }
 
   removeApplication (app) {
@@ -165,6 +177,7 @@ export class AppSettings extends React.Component {
           <table className="table table-striped">
             <thead>
               <tr>
+                <th style={{width: '30px'}}>&nbsp;</th>
                 <th>Name</th>
                 <th>Type</th>
                 <th>Status</th>
@@ -174,16 +187,22 @@ export class AppSettings extends React.Component {
             </thead>
             <tbody>
             {this.props.apps.map(app =>
-              <tr style={{height: '30px'}}>
+              <tr style={{height: '30px', width: '30px'}}>
+                <td style={{'lineHeight': '30px', 'paddingTop': '15px'}}>
+                  <i style={{
+                    color: 'green',
+                    display: app.primary ? 'inherit' : 'none'
+                  }} className='fa fa-star'/>
+                </td>
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
                 <td style={{'lineHeight': '30px'}}>{this.getAppActivity(app)}</td>
-                <td style={{'lineHeight': '30px', 'min-width': '120px'}}>
+                <td style={{'lineHeight': '30px', 'minWidth': '120px'}}>
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
                     e.preventDefault();
-                  }}>
+                  }} data-tip="Connect or re-connect this application ...">
                     <i className="fa fa-plug" style={{
                       display: app.connected ? 'none' : 'inherit'
                     }}/>
@@ -195,12 +214,25 @@ export class AppSettings extends React.Component {
                   <button className="btn btn-xs btn-danger" onClick={e => {
                     this.removeApplication(app);
                     e.preventDefault();
-                  }}><i className="fa fa-remove"/></button>
+                  }} data-tip="Delete this application ...">
+                    <i className="fa fa-remove"/>
+                  </button>
                   &nbsp;&nbsp;
                   <button className="btn btn-xs btn-warning" onClick={e => {
                     this.updateApplication(app);
                     e.preventDefault();
-                  }}><i className="fa fa-edit"/></button>
+                  }} data-tip="Edit and update information of this application ...">
+                    <i className="fa fa-edit"/>
+                  </button>
+                  &nbsp;&nbsp;
+                  <button className='btn btn-xs btn-success' style={{
+                    display: app.primary ? 'none' : 'inherit'
+                  }} onClick={e => {
+                    this.starApplication(app);
+                    e.preventDefault();
+                  }} data-tip="Make this application my primary application ...">
+                    <i className='fa fa-star'/>
+                  </button>
                 </td>
               </tr>
             )}
@@ -250,7 +282,7 @@ export class AppSettings extends React.Component {
                   display: this.state.currentApp.type === '' ? 'none' : 'inherit'
                 }}>
                   <label className="control-label" htmlFor="url">Download App</label>
-                  <QRCode value={'/downloads/android/' + this.state.currentApp.type + '.apk'}/>
+                  <QRCode value={this.state.base + '/downloads/android/' + this.state.currentApp.type + '.apk'}/>
                 </div>
                 <div className="form-group">
                   <label className="control-label" htmlFor="description">Description</label>
@@ -296,6 +328,7 @@ export class AppSettings extends React.Component {
             </div>
           </div>
         </Modal>
+        <ReactTooltip />
       </div>
     );
   }
@@ -307,6 +340,7 @@ AppSettings.propTypes = {
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
+    primary: PropTypes.bool.isRequired,
     connected: PropTypes.bool.isRequired,
     connectedOn: PropTypes.any.isRequired,
     connectCode: PropTypes.string.isRequired,
@@ -315,6 +349,7 @@ AppSettings.propTypes = {
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     loadAppSettings: PropTypes.func.isRequired,
+    starApp: PropTypes.func.isRequired,
     removeApp: PropTypes.func.isRequired,
     commitChange: PropTypes.func.isRequired
   })
@@ -330,7 +365,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({loadAppSettings, removeApp, commitChange}, dispatch),
+    actions: bindActionCreators({loadAppSettings, starApp, removeApp, commitChange}, dispatch),
     dispatch
   };
 };

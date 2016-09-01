@@ -1,3 +1,21 @@
+html, body {
+  height: 100%;
+}
+
+#app {
+  height: 100%;
+}
+
+.stretchedToMargin {
+  display: block;
+  position:absolute;
+  height:auto;
+  bottom:0;
+  top:0;
+  left:0;
+  right:0;
+}
+
 .header {
   padding: 10px 20px;
   border-bottom: 1px solid #eee;
@@ -19,6 +37,14 @@
 .contentView {
   padding: 20px;
   margin-top: 73px;
+
+  display: block;
+  position:absolute;
+  height:auto;
+  bottom:0;
+  top:0;
+  left:0;
+  right:0;
 }
 
 .logout {

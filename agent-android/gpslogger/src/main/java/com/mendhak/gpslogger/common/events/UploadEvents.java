@@ -1,8 +1,6 @@
 package com.mendhak.gpslogger.common.events;
 
 
-import java.util.ArrayList;
-
 public class UploadEvents {
 
     // baseeventclass
@@ -65,23 +63,5 @@ public class UploadEvents {
         }
     }
 
-    public static class AutoEmail extends BaseUploadEvent  {}
-
-
-    public static class CustomUrl extends BaseUploadEvent {}
-
-    public static class Dropbox extends BaseUploadEvent {}
-
-    public static class Ftp extends BaseUploadEvent {
-        public ArrayList<String> ftpMessages;
-    }
-
-    public static class GDocs extends BaseUploadEvent {}
-
     public static class OpenGTS extends BaseUploadEvent {}
-
-    public static class OpenStreetMap extends BaseUploadEvent {}
-
-    public static class OwnCloud extends BaseUploadEvent {}
-
 }

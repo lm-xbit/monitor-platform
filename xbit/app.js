@@ -58,7 +58,7 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'downloads')));
+app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 if(process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, 'public')));
 }
@@ -102,9 +102,10 @@ app.use(session ( {
   resave : true,
   name: 'SID',
   saveUninitialized: false,
+  rolling: true,
   store  : new mongoStore({ mongooseConnection: mongoose.connection }),
   cookie : {
-    maxAge: 30 * 60 * 1000  // 30 minutes, in milliseconds
+    maxAge: 60 * 60 * 1000  // 60 minutes, in milliseconds
   }
 }));
 
@@ -115,9 +116,11 @@ app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found - ' + req.method + ' ' + req.url);
-  err.status = 404;
-  next(err);
+  // var err = new Error('Not Found - ' + req.method + ' ' + req.url);
+  // err.status = 404;
+  // next(err);
+  console.error("Got unexpected request: " + req.method + " " + req.url, req);
+  res.status(401).send("Forbidden");
 });
 
 app.use(function(err, req, res, next) {

@@ -21,7 +21,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,18 +34,12 @@ import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
-import com.mendhak.gpslogger.loggers.FileLogger;
-import com.mendhak.gpslogger.loggers.FileLoggerFactory;
-import com.mendhak.gpslogger.loggers.Files;
-import com.mendhak.gpslogger.senders.FileSenderFactory;
 import org.slf4j.Logger;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
 
 
 public class GpsDetailedViewFragment extends GenericViewFragment {
@@ -141,27 +134,7 @@ public class GpsDetailedViewFragment extends GenericViewFragment {
             TextView txtDistance = (TextView) rootView.findViewById(R.id.detailedview_distance_text);
             TextView txtAutoEmail = (TextView) rootView.findViewById(R.id.detailedview_autosend_text);
 
-            List<FileLogger> loggers = FileLoggerFactory.getFileLoggers(getActivity().getApplicationContext());
-
-            if (loggers.size() > 0) {
-
-                ListIterator<FileLogger> li = loggers.listIterator();
-                String logTo = li.next().getName();
-                while (li.hasNext()) {
-                    logTo += ", " + li.next().getName();
-                }
-
-                if (preferenceHelper.shouldLogToNmea()) {
-                    logTo += ", NMEA";
-                }
-
-                txtLoggingTo.setText(logTo);
-
-            } else {
-
-                txtLoggingTo.setText(R.string.summary_loggingto_screen);
-
-            }
+            txtLoggingTo.setText(R.string.summary_loggingto_screen);
 
             if (preferenceHelper.getMinimumLoggingInterval() > 0) {
                 String descriptiveTime = Strings.getDescriptiveDurationString(preferenceHelper.getMinimumLoggingInterval(),
@@ -170,7 +143,6 @@ public class GpsDetailedViewFragment extends GenericViewFragment {
                 txtFrequency.setText(descriptiveTime);
             } else {
                 txtFrequency.setText(R.string.summary_freq_max);
-
             }
 
 
@@ -192,44 +164,7 @@ public class GpsDetailedViewFragment extends GenericViewFragment {
 
             TextView txtTargets = (TextView) rootView.findViewById(R.id.detailedview_autosendtargets_text);
 
-            if(preferenceHelper.isAutoSendEnabled()){
-                StringBuilder sb = new StringBuilder();
-                if (FileSenderFactory.getEmailSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.autoemail_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getFtpSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.autoftp_setup_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getGoogleDriveSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.gdocs_setup_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getOsmSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.osm_setup_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getDropBoxSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.dropbox_setup_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getOpenGTSSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.opengts_setup_title)).append("\n");
-                }
-
-                if (FileSenderFactory.getOwnCloudSender().isAutoSendAvailable()) {
-                    sb.append(getString(R.string.owncloud_setup_title)).append("\n");
-                }
-
-                txtTargets.setText(sb.toString());
-            }
-            else {
-                txtTargets.setText("");
-            }
-
-
-
+            txtTargets.setText("");
         } catch (Exception ex) {
             LOG.error("showPreferencesAndMessages " + ex.getMessage(), ex);
         }
@@ -238,17 +173,7 @@ public class GpsDetailedViewFragment extends GenericViewFragment {
     }
 
     public void showCurrentFileName(String newFileName) {
-        if (newFileName == null || newFileName.length() <= 0) {
-            return;
-        }
-
-        TextView txtFilename = (TextView) rootView.findViewById(R.id.detailedview_file_text);
-        txtFilename.setText(Session.getCurrentFileName() + "\n (" + preferenceHelper.getGpsLoggerFolder() + ")");
-
-        Files.setFileExplorerLink(txtFilename,
-                Html.fromHtml(Session.getCurrentFileName() + "<br /> (" + "<font color='blue'><u>" + preferenceHelper.getGpsLoggerFolder() + "</u></font>" + ")"),
-                preferenceHelper.getGpsLoggerFolder(),
-                getActivity().getApplicationContext());
+        return;
     }
 
 

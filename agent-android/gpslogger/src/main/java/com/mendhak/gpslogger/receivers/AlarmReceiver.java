@@ -15,7 +15,7 @@
 *    along with GPSLogger for Android.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.mendhak.gpslogger.senders;
+package com.mendhak.gpslogger.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

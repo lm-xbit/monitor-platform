@@ -8,7 +8,7 @@ const NavLink = activeComponent('li');
 console.log('Style: ' + style.headerItem, style);
 const App = (props) => {
   return (
-    <div>
+    <div style={{height: '100%'}}>
       <div className={style.header}>
         <div className={style.headerItem}>
           <img src={require('resources/assets/images/logo.png')} alt="" height="36px"/>

@@ -1,19 +1,27 @@
 package com.mendhak.gpslogger.common;
 
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.preference.PreferenceManager;
 import com.mendhak.gpslogger.R;
 import com.mendhak.gpslogger.common.slf4j.Logs;
-import com.mendhak.gpslogger.loggers.Files;
 import org.slf4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 public class PreferenceHelper {
 
@@ -43,7 +51,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingUseSSL(boolean ssl) {
-        prefs.edit().putBoolean(PreferenceNames.MTRACKING_REPORT_INTERVAL, ssl).apply();
+        prefs.edit().putBoolean(PreferenceNames.MTRACKING_USE_SSL, ssl).apply();
     }
 
     @ProfilePreference(name = PreferenceNames.MTRACKING_ENDPOINT)
@@ -52,7 +60,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingEndpoint(String endpoint) {
-        prefs.edit().putString(PreferenceNames.MTRACKING_REPORT_INTERVAL, endpoint).apply();
+        prefs.edit().putString(PreferenceNames.MTRACKING_ENDPOINT, endpoint).apply();
     }
 
     @ProfilePreference(name = PreferenceNames.MTRACKING_REPORT_INTERVAL)
@@ -70,7 +78,7 @@ public class PreferenceHelper {
     }
 
     public void setMobileTrackingAppKey(String appKey) {
-        prefs.edit().putString(PreferenceNames.MTRACKING_REPORT_INTERVAL, appKey).apply();
+        prefs.edit().putString(PreferenceNames.MTRACKING_APP_KEY, appKey).apply();
     }
 
     /**
@@ -280,17 +288,6 @@ public class PreferenceHelper {
     public String getFtpDirectory() {
         return prefs.getString(PreferenceNames.FTP_DIRECTORY, "GPSLogger");
     }
-
-
-    /**
-     * GPS Logger folder path on phone.  Falls back to {@link Files#storageFolder(Context)} if nothing specified.
-     */
-    @ProfilePreference(name = PreferenceNames.GPSLOGGER_FOLDER)
-    public String getGpsLoggerFolder() {
-        return prefs.getString(PreferenceNames.GPSLOGGER_FOLDER, Files.storageFolder(AppSettings.getInstance().getApplicationContext())
-                .getAbsolutePath());
-    }
-
 
     /**
      * Sets GPS Logger folder path

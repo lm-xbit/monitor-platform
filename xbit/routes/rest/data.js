@@ -4,6 +4,7 @@ var router = express.Router();
 var logger = bunyan.createLogger({name: "data"});
 var ESClient = require("lib/esclient");
 var passport = require('passport');
+var User = require('models/user');
 
 // fix me: debugging mode
 // logger.level("debug");
@@ -63,6 +64,8 @@ router.get("/:key", function (req, res) {
     }
     var deviceKey = req.params.key;
     logger.debug("Get the data of device %s", deviceKey);
+
+
     // TODO Device Verification
     // if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
     //     return res.json({
@@ -73,9 +76,57 @@ router.get("/:key", function (req, res) {
 
     var from = req.param('from');
     var to = req.param('to');
+    var aggs = req.param('aggs');
+
+    if (!aggs) {
+        //default is 3 minues
+        aggs = 3;
+    }
+
+    if (deviceKey == "test") {
+        //Just for test purpose
+        var result = [];
+        var now = new Date().getTime();
+        if (!to) {
+            to = now;
+        }
+
+        var count = 10;
+
+        if (from) {
+            count = (to - from)/aggs/60/1000;
+            if (count <= 0) {
+                count = 1;
+            }
+        }
+        else {
+            from = now - count*aggs*60*1000;
+        }
+
+
+        for (var i = 0; i < count; i++) {
+            var location = {};
+            var doc = {};
+            location.latitude = 30.64790065 + i*0.1;
+            location.longitude = 104.02691083 + i*0.2;
+            location.altitude = 500;
+            location.accuracy = 50;
+            doc.timestamp = now - i * aggs*60*1000;
+            doc.location = location;
+            result.push(doc);
+        }
+        return res.json(
+          {
+              status: 200,
+              message: "OK",
+              data: result,
+          }
+        );
+    }
 
     //Aggregation
     if (from && to) {
+
         ESClient.search(
           {
               index: 'xbit',
@@ -95,7 +146,7 @@ router.get("/:key", function (req, res) {
                       "result": {
                           "date_histogram": {
                               "field": "@timestamp",
-                              "interval": "3m",
+                              "interval": aggs + "m",
                               "min_doc_count": 1
                           },
                           "aggs": {
@@ -136,14 +187,16 @@ router.get("/:key", function (req, res) {
               }
           },
           function (error, response) {
+              var result = [];
               if (error) {
-                  logger.error(error);
+                  logger.error("Fail to get the aggregation data - " + error);
                   return res.json(
                     {
-                        status: 502,
-                        message: "Fail to get the result - " + error
+                        status: 200,
+                        message: "OK",
+                        data: result,
                     }
-                  )
+                  );
               }
               else {
                   /**
@@ -203,7 +256,6 @@ router.get("/:key", function (req, res) {
           },
                    */
                   logger.debug("Get the response - " + JSON.stringify(response));
-                  var result = [];
                   if (response.hits.total > 0) {
                       var array = response.aggregations.result.buckets;
                       for (var i = 0; i < array.length; i++) {
@@ -347,17 +399,20 @@ router.post("/:key", function(req, res) {
 
         var app = undefined;
         for(var idx = 0; idx < user.userKeys.length; idx ++) {
-            if(user.userKeys[idx] === deviceKey) {
+            console.log("Try checking APP", deviceKey, idx, user.userKeys[idx]);
+            if(user.userKeys[idx].key === deviceKey) {
                 app = user.userKeys[idx];
                 break;
             }
         }
 
         if(!app || app.key !== deviceKey) {
+            console.log("App invalid", deviceKey, app);
             return res.status(403).send("APP invalid");
         }
 
         if(!app.connected) {
+            console.log("App not connected", deviceKey, app);
             return res.status(401).send("APP not connected");
         }
 

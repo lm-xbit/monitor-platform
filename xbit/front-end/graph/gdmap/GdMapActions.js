@@ -2,8 +2,14 @@ import $ from 'jquery';
 import converter from 'coordtransform';
 
 var offset = 1;
-export const updateLocation = (map, hot) => {
-  $.getJSON('/rest/data/mobile-tracking', '', function (json) {
+export const updateLocation = (map, hot, app) => {
+  if (!app) {
+    console.log('Application not ready. Display nothing ...');
+    return;
+  }
+
+  // TODO: mobile-tracking is for testing purpose
+  $.getJSON('/rest/data/' + app.key, '', function (json) {
     // long, lat
     var pos = null;
 
@@ -79,3 +85,17 @@ export const loadGdMap = (doneFunction) => {
   });
 };
 
+export const loadApps = () => {
+  return function (dispatch) {
+    $.get('/rest/settings/apps').always(function (data) {
+      if (!data || data.status !== 200) {
+        alert('Cannot load applications - ' + data ? data.message : 'Unknown error');
+      } else {
+        dispatch({
+          type: 'POPULATE_APP_SETTINGS',
+          data: data.apps
+        });
+      }
+    });
+  };
+};

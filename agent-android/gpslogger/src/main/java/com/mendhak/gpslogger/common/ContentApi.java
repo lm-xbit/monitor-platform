@@ -27,9 +27,6 @@ public class ContentApi extends ContentProvider {
         String result;
 
         switch(queryType){
-            case "gpslogger_folder":
-                result = preferenceHelper.getGpsLoggerFolder();
-                break;
             default:
                 result = "NULL";
                 break;
