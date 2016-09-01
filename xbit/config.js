@@ -3,7 +3,7 @@ exports = module.exports = {
     port: 8080,
     dns: "www.xbit.ga",
     address: "127.0.0.1",
-    sesAWSId: "AKIAJ3ZGSYLLIF5UWGEA",
-    sesAWSKey: "hZH1OkKJTPaES2V6HHCoi8CO1tOwrzAkpeAdAvq0",
+    sesAWSId: "AKIAI55FRY4FPS6XUMKQ",
+    sesAWSKey: "AvTtzctL5slJxFbPPou1ZWMR34JCJvrE8V29uQ",
     sesRegion: "us-west-2"
 };

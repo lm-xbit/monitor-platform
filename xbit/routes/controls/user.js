@@ -4,6 +4,7 @@ var crypto = require('crypto');
 var User = require('models/user');
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
+var configs = require('config');
 
 exports.getForgot = (req, res) => {
   if (req.isAuthenticated()) {
@@ -38,9 +39,9 @@ exports.postForgot = (req, res, next) => {
     },
     function(token, user, done) {
       const transporter = nodemailer.createTransport(ses({
-        accessKeyId: 'AKIAJ3ZGSYLLIF5UWGEA',
-        secretAccessKey: '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',
-        region: 'us-west-2'
+        accessKeyId: configs.sesAWSId,
+        secretAccessKey: configs.sesAWSKey,
+        region: configs.region
       }));
       const mailOptions = {
         to: user.email,
