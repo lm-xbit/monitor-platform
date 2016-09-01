@@ -2,16 +2,9 @@ package com.mendhak.gpslogger.ui.components;
 
 
 import android.content.Context;
-import android.graphics.Typeface;
-import android.text.Html;
-import android.text.method.LinkMovementMethod;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.TextView;
-import com.mendhak.gpslogger.R;
-import com.ms.square.android.expandabletextview.ExpandableTextView;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,16 +42,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
 
         final String childText = (String) getChild(groupPosition, childPosition);
 
-        LayoutInflater infalInflater = (LayoutInflater) this._context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        convertView = infalInflater.inflate(R.layout.activity_faq_list_item, null);
-
-        // sample code snippet to set the text content on the ExpandableTextView
-        final ExpandableTextView expTv1 = (ExpandableTextView) convertView.findViewById(R.id.expand_text_view);
-        expTv1.setText(Html.fromHtml(childText));
-        TextView tv = (TextView)expTv1.findViewById(R.id.expandable_text);
-        tv.setMovementMethod(LinkMovementMethod.getInstance());
-
         return convertView;
     }
 
@@ -86,16 +69,6 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
-        String headerTitle = (String) getGroup(groupPosition);
-        LayoutInflater infalInflater = (LayoutInflater) this._context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        convertView = infalInflater.inflate(R.layout.activity_faq_list_group, null);
-
-        TextView lblListHeader = (TextView) convertView
-                .findViewById(R.id.lblListHeader);
-        lblListHeader.setTypeface(null, Typeface.BOLD);
-        lblListHeader.setText(headerTitle);
-
         return convertView;
     }
 

@@ -22,49 +22,30 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.menu.ActionMenuItemView;
-import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
-import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SpinnerAdapter;
-import android.widget.Toast;
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.amulyakhare.textdrawable.TextDrawable;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
-import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.events.CommandEvents;
-import com.mendhak.gpslogger.common.events.ProfileEvents;
-import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.events.UploadEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
@@ -75,21 +56,14 @@ import com.mendhak.gpslogger.ui.fragments.display.GenericViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsBigViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsDetailedViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
-import com.mikepenz.materialdrawer.AccountHeader;
-import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
-import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -101,7 +75,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     private static final Logger LOG = Logs.of(GpsMainActivity.class);
 
     Drawer materialDrawer;
-    AccountHeader drawerHeader;
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
 
     @Override
@@ -120,10 +93,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         startAndBindService();
         registerEventBus();
 
-        if (preferenceHelper.shouldStartLoggingOnAppLaunch()) {
-            LOG.debug("Start logging on app launch");
-            EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
-        }
+        EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
     }
 
     @Override
@@ -132,7 +102,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         //Save the drawer's selected values to bundle
         //useful if activity recreated due to rotation
         outState = materialDrawer.saveInstanceState(outState);
-        outState = drawerHeader.saveInstanceState(outState);
 
         super.onSaveInstanceState(outState);
     }
@@ -159,13 +128,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     protected void onResume() {
         super.onResume();
         startAndBindService();
-
-        if (Session.hasDescription()) {
-            setAnnotationReady();
-        }
-
-        populateProfilesList();
-        enableDisableMenuItems();
     }
 
     @Override
@@ -302,7 +264,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                     .spinner_dropdown_item);
             getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
             getSupportActionBar().setListNavigationCallbacks(spinnerAdapter, this);
-            getSupportActionBar().setSelectedNavigationItem(getUserSelectedNavigationItem());
+            getSupportActionBar().setSelectedNavigationItem(0);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 Window window = getWindow();
@@ -331,209 +293,32 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
             }
         };
 
-
-        drawerHeader = new AccountHeaderBuilder().withActivity(this).withCompactStyle(true).withAccountHeader(R.layout.smaller_header)
-                .withSavedInstance(savedInstanceState).withProfileImagesVisible(false).withHeaderBackground(new ColorDrawable(getResources()
-                        .getColor(R.color.accentColor))).withOnAccountHeaderListener(new AccountHeader.OnAccountHeaderListener() {
-
-            @Override
-            public boolean onProfileChanged(View view, IProfile profile, boolean currentProfile) {
-
-                //Add new profile
-                if (profile.getIdentifier() == 101) {
-                    new MaterialDialog.Builder(GpsMainActivity.this).title(getString(R.string.profile_create_new)).inputType(InputType
-                            .TYPE_CLASS_TEXT).negativeText(R.string.cancel).input("", "", false, new MaterialDialog.InputCallback() {
-                        @Override
-                        public void onInput(@NonNull MaterialDialog materialDialog, CharSequence charSequence) {
-                            String profileName = charSequence.toString().trim();
-                            if (!Strings.isNullOrEmpty(profileName)) {
-                                final String[] ReservedChars = {"|", "\\", "?", "*", "<", "\"", ":", ">", ".", "/", "'", ";"};
-
-                                for (String c : ReservedChars) {
-                                    profileName = profileName.replace(c, "");
-                                }
-
-                                EventBus.getDefault().post(new ProfileEvents.CreateNewProfile(profileName));
-                            }
-                        }
-                    }).show();
-                    return true;
-                }
-
-                //Clicked on profile name
-                String newProfileName = profile.getName().getText();
-                EventBus.getDefault().post(new ProfileEvents.SwitchToProfile(newProfileName));
-
-                refreshProfileIcon(profile.getName().getText());
-                return true;
-            }
-        }).withOnAccountHeaderItemLongClickListener(new AccountHeader.OnAccountHeaderItemLongClickListener() {
-            @Override
-            public boolean onProfileLongClick(View view, final IProfile iProfile, boolean b) {
-                if (iProfile.getIdentifier() > 150) {
-
-                    if (preferenceHelper.getCurrentProfileName().equals(iProfile.getName().getText())) {
-                        Dialogs.alert(getString(R.string.sorry), getString(R.string.profile_switch_before_delete), GpsMainActivity.this);
-                    } else {
-                        new MaterialDialog.Builder(GpsMainActivity.this).title(getString(R.string.profile_delete)).content(iProfile.getName()
-                                .getText()).positiveText(R.string.ok).negativeText(R.string.cancel).onPositive(new MaterialDialog
-                                .SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
-                                EventBus.getDefault().post(new ProfileEvents.DeleteProfile(iProfile.getName().getText()));
-                            }
-                        }).show();
-                    }
-                }
-                return false;
-            }
-        }).build();
-
-
-        populateProfilesList();
-
-
         materialDrawer = new DrawerBuilder().withActivity(this).withSavedInstance(savedInstanceState).withToolbar(getToolbar())
-                .withActionBarDrawerToggle(drawerToggle).withDrawerGravity(Gravity.LEFT).withAccountHeader(drawerHeader).withSelectedItem(-1).build();
+                .withActionBarDrawerToggle(drawerToggle)
+                .withDrawerGravity(Gravity.LEFT)
+                .withSelectedItem(-1).build();
 
 
         materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_general_title, R.string.pref_general_summary, R.drawable.settings, 1000));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_logging_title, R.string.pref_logging_summary, R.drawable
-                .loggingsettings, 1001));
         materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_performance_title, R.string.pref_performance_summary, R.drawable
-                .performance, 1002));
+                .performance, 1001));
         materialDrawer.addItem(new DividerDrawerItem());
-
-        materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_autosend_title, R.string.pref_autosend_summary, R.drawable.autosend,
-                1003));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.gdocs_setup_title, R.drawable.googledrive, 1004));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.dropbox_setup_title, R.drawable.dropbox, 1005));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.autoemail_title, R.drawable.email, 1006));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.autoftp_setup_title, R.drawable.ftp, 1007));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.opengts_setup_title, R.drawable.opengts, 1008));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.osm_setup_title, R.drawable.openstreetmap, 1009));
-        materialDrawer.addItem(GpsLoggerDrawerItem.newSecondary(R.string.owncloud_setup_title, R.drawable.owncloud, 1010));
-        materialDrawer.addItem(new DividerDrawerItem());
-
-        materialDrawer.addStickyFooterItem(GpsLoggerDrawerItem.newSecondary(R.string.menu_faq, R.drawable.helpfaq, 1011));
-        materialDrawer.addStickyFooterItem(GpsLoggerDrawerItem.newSecondary(R.string.menu_exit, R.drawable.exit, 1012));
 
 
         materialDrawer.setOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
             @Override
             public boolean onItemClick(View view, int i, IDrawerItem iDrawerItem) {
-
                 switch (iDrawerItem.getIdentifier()) {
                     case 1000:
                         launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GENERAL);
                         break;
                     case 1001:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.LOGGING);
-                        break;
-                    case 1002:
                         launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
                         break;
-                    case 1003:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.UPLOAD);
-                        break;
-                    case 1004:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GDOCS);
-                        break;
-                    case 1005:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.DROPBOX);
-                        break;
-                    case 1006:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.EMAIL);
-                        break;
-                    case 1007:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.FTP);
-                        break;
-                    case 1008:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OPENGTS);
-                        break;
-                    case 1009:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OSM);
-                        break;
-                    case 1010:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.OWNCLOUD);
-                        break;
-                    case 1011:
-                        Intent faqtivity = new Intent(getApplicationContext(), Faqtivity.class);
-                        startActivity(faqtivity);
-                        break;
-                    case 1012:
-                        EventBus.getDefault().post(new CommandEvents.RequestStartStop(false));
-                        finish();
-                        break;
-
                 }
                 return false;
             }
         });
-
-
-        ImageButton helpButton = (ImageButton) findViewById(R.id.imgHelp);
-        helpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent faqtivity = new Intent(getApplicationContext(), Faqtivity.class);
-                startActivity(faqtivity);
-            }
-        });
-
-    }
-
-    private void refreshProfileIcon(String profileName) {
-
-        ImageView imgLetter = (ImageView) drawerHeader.getView().findViewById(R.id.profiletextletter);
-        TextDrawable drawLetter = TextDrawable.builder().beginConfig().bold().textColor(getResources().getColor(R.color.golden)).useFont(Typeface
-                .SANS_SERIF).endConfig().buildRound(profileName.substring(0, 1).toUpperCase(), getResources().getColor(R.color.primaryColorLight));
-
-        imgLetter.setImageDrawable(drawLetter);
-    }
-
-    private void populateProfilesList() {
-
-        LOG.debug("Current profile:" + preferenceHelper.getCurrentProfileName());
-
-        drawerHeader.clear();
-
-        drawerHeader.addProfiles(new ProfileDrawerItem().withName(getString(R.string.profile_default)).withIdentifier(100).withTag
-                ("PROFILE_DEFAULT").withTextColorRes(R.color.primaryColorText), new ProfileSettingDrawerItem().withIcon(android.R.drawable
-                .ic_menu_add).withIdentifier(101).withName(getString(R.string.profile_add_new)).withTag("PROFILE_ADD").withTextColorRes(R.color
-                .primaryColorText), new ProfileSettingDrawerItem());
-
-
-        File gpsLoggerDir = Files.storageFolder(this);
-        File[] propertyFiles = gpsLoggerDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String fileName) {
-                return fileName.endsWith(".properties") && !fileName.equalsIgnoreCase(getString(R.string.profile_default) + ".properties");
-            }
-        });
-
-        for (File propertyFile : propertyFiles) {
-
-            String name = propertyFile.getName();
-            int pos = name.lastIndexOf(".");
-            if (pos > 0) {
-                name = name.substring(0, pos);
-            }
-
-            ProfileDrawerItem pdi = new ProfileDrawerItem().withName(name).withTextColorRes(R.color.primaryColorText);
-
-            drawerHeader.addProfile(pdi, 1);
-
-            if (name.equals(preferenceHelper.getCurrentProfileName())) {
-                pdi.withSetSelected(true);
-                drawerHeader.setActiveProfile(pdi);
-            }
-
-        }
-
-        refreshProfileIcon(preferenceHelper.getCurrentProfileName());
-
-
     }
 
     public void toggleDrawer() {
@@ -590,101 +375,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-        Toolbar toolbarBottom = (Toolbar) findViewById(R.id.toolbarBottom);
-
-        if (toolbarBottom.getMenu().size() > 0) {
-            return true;
-        }
-
-        toolbarBottom.inflateMenu(R.menu.gps_main);
-        setupEvenlyDistributedToolbar();
-        toolbarBottom.setOnMenuItemClickListener(this);
-
-        enableDisableMenuItems();
         return true;
-    }
-
-    public void setupEvenlyDistributedToolbar() {
-        //http://stackoverflow.com/questions/26489079/evenly-spaced-menu-items-on-toolbar
-
-        // Use Display metrics to get Screen Dimensions
-        Display display = getWindowManager().getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-
-        // Toolbar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarBottom);
-
-        // Add 10 spacing on either side of the toolbar
-        toolbar.setContentInsetsAbsolute(10, 10);
-
-        // Get the ChildCount of your Toolbar, this should only be 1
-        int childCount = toolbar.getChildCount();
-        // Get the Screen Width in pixels
-        int screenWidth = metrics.widthPixels;
-
-        // Create the Toolbar Params based on the screenWidth
-        Toolbar.LayoutParams toolbarParams = new Toolbar.LayoutParams(screenWidth, Toolbar.LayoutParams.WRAP_CONTENT);
-
-        // Loop through the child Items
-        for (int i = 0; i < childCount; i++) {
-            // Get the item at the current index
-            View childView = toolbar.getChildAt(i);
-            // If its a ViewGroup
-            if (childView instanceof ViewGroup) {
-                // Set its layout params
-                childView.setLayoutParams(toolbarParams);
-                // Get the child count of this view group, and compute the item widths based on this count & screen size
-                int innerChildCount = ((ViewGroup) childView).getChildCount();
-                int itemWidth = (screenWidth / innerChildCount);
-                // Create layout params for the ActionMenuView
-                ActionMenuView.LayoutParams params = new ActionMenuView.LayoutParams(itemWidth, Toolbar.LayoutParams.WRAP_CONTENT);
-                // Loop through the children
-                for (int j = 0; j < innerChildCount; j++) {
-                    View grandChild = ((ViewGroup) childView).getChildAt(j);
-                    if (grandChild instanceof ActionMenuItemView) {
-                        // set the layout parameters on each View
-                        grandChild.setLayoutParams(params);
-                    }
-                }
-            }
-        }
-    }
-
-    private void enableDisableMenuItems() {
-
-        onWaitingForLocation(Session.isWaitingForLocation());
-        setBulbStatus(Session.isStarted());
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarBottom);
-        MenuItem mnuAnnotate = toolbar.getMenu().findItem(R.id.mnuAnnotate);
-        MenuItem mnuOnePoint = toolbar.getMenu().findItem(R.id.mnuOnePoint);
-        MenuItem mnuAutoSendNow = toolbar.getMenu().findItem(R.id.mnuAutoSendNow);
-
-        if (mnuOnePoint != null) {
-            mnuOnePoint.setEnabled(!Session.isStarted());
-            mnuOnePoint.setIcon((Session.isStarted() ? R.drawable.singlepoint_disabled : R.drawable.singlepoint));
-        }
-
-        if (mnuAutoSendNow != null) {
-            mnuAutoSendNow.setEnabled(Session.isStarted());
-        }
-
-        if (mnuAnnotate != null) {
-
-            if (!preferenceHelper.shouldLogToGpx() && !preferenceHelper.shouldLogToKml() && !preferenceHelper.shouldLogToCustomUrl()) {
-                mnuAnnotate.setIcon(R.drawable.annotate2_disabled);
-                mnuAnnotate.setEnabled(false);
-            } else {
-                if (Session.isAnnotationMarked()) {
-                    mnuAnnotate.setIcon(R.drawable.annotate2_active);
-                } else {
-                    mnuAnnotate.setIcon(R.drawable.annotate2);
-                }
-            }
-
-        }
     }
 
     @Override
@@ -697,56 +388,9 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         LOG.debug("Menu Item: " + String.valueOf(item.getTitle()));
 
         switch (id) {
-            case R.id.mnuAnnotate:
-                annotate();
-                return true;
-            case R.id.mnuOnePoint:
-                logSinglePoint();
-                return true;
-            default:
-                return true;
+        default:
+            return true;
         }
-    }
-
-    private void logSinglePoint() {
-        EventBus.getDefault().post(new CommandEvents.LogOnce());
-        enableDisableMenuItems();
-    }
-
-    /**
-     * Annotates GPX and KML files, TXT files are ignored. The user is prompted for the content of the <name> tag. If a valid description is given,
-     * the logging service starts in single point mode.
-     */
-    private void annotate() {
-
-        if (!preferenceHelper.shouldLogToGpx() && !preferenceHelper.shouldLogToKml() && !preferenceHelper.shouldLogToCustomUrl()) {
-            Toast.makeText(getApplicationContext(), getString(R.string.annotation_requires_logging), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        new MaterialDialog.Builder(this).title("Server IP/DNS").inputType(InputType.TYPE_CLASS_TEXT).title("Sever Port").inputType(InputType
-                .TYPE_CLASS_NUMBER).show();
-
-        /*
-        new MaterialDialog.Builder(this)
-                .title(R.string.add_description)
-                .inputType(InputType.TYPE_CLASS_TEXT)
-                .negativeText(R.string.cancel)
-                .input(getString(R.string.letters_numbers), "", new MaterialDialog.InputCallback() {
-                    @Override
-                    public void onInput(MaterialDialog materialDialog, CharSequence input) {
-                        LOG.info("Annotation entered : " + input.toString());
-                        EventBus.getDefault().postSticky(new CommandEvents.Annotate(input.toString()));
-                    }
-                })
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
-                        materialDialog.dismiss();
-                    }
-                })
-                .show();
-        */
     }
 
     /**
@@ -804,26 +448,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
             }
         }
         */
-    }
-
-    private void setBulbStatus(boolean started) {
-        ImageView bulb = (ImageView) findViewById(R.id.notification_bulb);
-        bulb.setImageResource(started ? R.drawable.circle_green : R.drawable.circle_none);
-    }
-
-    public void setAnnotationReady() {
-        Session.setAnnotationMarked(true);
-        enableDisableMenuItems();
-    }
-
-    public void setAnnotationDone() {
-        Session.setAnnotationMarked(false);
-        enableDisableMenuItems();
-    }
-
-    public void onWaitingForLocation(boolean inProgress) {
-        ProgressBar fixBar = (ProgressBar) findViewById(R.id.progressBarGpsFix);
-        fixBar.setVisibility(inProgress ? View.VISIBLE : View.INVISIBLE);
     }
 
 
@@ -898,80 +522,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.Ftp upload) {
-        LOG.debug("FTP Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.autoftp_setup_title) + "-" + getString(R.string.upload_failure));
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.OwnCloud upload) {
-        LOG.debug("OwnCloud Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.owncloud_setup_title) + "-" + getString(R.string.upload_failure));
-
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ServiceEvents.WaitingForLocation waitingForLocation) {
-        onWaitingForLocation(waitingForLocation.waiting);
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ServiceEvents.AnnotationStatus annotationStatus) {
-        if (annotationStatus.annotationWritten) {
-            setAnnotationDone();
-        } else {
-            setAnnotationReady();
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ServiceEvents.LoggingStatus loggingStatus) {
-        enableDisableMenuItems();
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ProfileEvents.CreateNewProfile createProfileEvent) {
-
-        LOG.debug("Creating profile: " + createProfileEvent.newProfileName);
-
-        try {
-            File f = new File(Files.storageFolder(GpsMainActivity.this), createProfileEvent.newProfileName + ".properties");
-            f.createNewFile();
-
-            populateProfilesList();
-
-        } catch (IOException e) {
-            LOG.error("Could not create properties file for new profile ", e);
-        }
-
-    }
-
-    @EventBusHook
-    public void onEventMainThread(ProfileEvents.DeleteProfile deleteProfileEvent) {
-        LOG.debug("Deleting profile: " + deleteProfileEvent.profileName);
-        File f = new File(Files.storageFolder(GpsMainActivity.this), deleteProfileEvent.profileName + ".properties");
-        f.delete();
-
-        populateProfilesList();
-    }
 //
 //    @EventBusHook
 //    public void onEventMainThread(StartCollectGpsDataEvents startCollectGpsDataEvents) {
