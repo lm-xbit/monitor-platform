@@ -140,6 +140,8 @@
     <string name="pref_performance_title">Performance</string>
     <string name="pref_performance_summary">Timings, filters and listeners</string>
 
+    <string name="pref_connect_app_title">Connect</string>
+    <string name="pref_connect_app_summary">Connect to a XBIT Application</string>
 
     <string name="time_before_logging_title">Time before logging</string>
     <string name="time_before_logging_summary">Use 0 for maximum frequency, but slower is better for battery life.

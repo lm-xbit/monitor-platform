@@ -46,6 +46,7 @@ import com.mendhak.gpslogger.common.events.UploadEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
 import com.mendhak.gpslogger.loggers.Files;
+import com.mendhak.gpslogger.qr.CaptureActivity;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
 import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
@@ -297,18 +298,23 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_performance_title, R.string.pref_performance_summary, R.drawable
                 .performance, 1001));
         materialDrawer.addItem(new DividerDrawerItem());
+        materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_connect_app_title, R.string.pref_connect_app_summary, R.drawable
+                .qrcode, 1002));
 
 
         materialDrawer.setOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
             @Override
             public boolean onItemClick(View view, int i, IDrawerItem iDrawerItem) {
                 switch (iDrawerItem.getIdentifier()) {
-                    case 1000:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GENERAL);
-                        break;
-                    case 1001:
-                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
-                        break;
+                case 1000:
+                    launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GENERAL);
+                    break;
+                case 1001:
+                    launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
+                    break;
+                case 1002:
+                    CaptureActivity.launch(getApplicationContext());
+                    break;
                 }
                 return false;
             }
@@ -328,6 +334,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         // transaction.replace(R.id.container, GpsDetailedViewFragment.newInstance());
         transaction.replace(R.id.container, GpsSimpleViewFragment.newInstance());
+        // transaction.replace(R.id.container, GpsBigViewFragment.newInstance());
         transaction.commitAllowingStateLoss();
     }
 

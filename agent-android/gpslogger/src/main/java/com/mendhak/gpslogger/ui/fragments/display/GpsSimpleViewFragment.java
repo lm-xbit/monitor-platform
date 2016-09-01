@@ -85,7 +85,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         }
 
         setImageTooltips();
-        showPreferencesSummary();
 
         actionButton = (ActionProcessButton) rootView.findViewById(R.id.btnActionProcess);
         actionButton.setMode(ActionProcessButton.Mode.ENDLESS);
@@ -117,47 +116,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         actionButton.setText(R.string.btn_stop_logging);
         actionButton.setBackgroundColor(ContextCompat.getColor(context, R.color.accentColorComplementary));
         actionButton.setAlpha(0.8f);
-    }
-
-    private void showPreferencesSummary() {
-        ImageView imgGpx = (ImageView) rootView.findViewById(R.id.simpleview_imgGpx);
-        ImageView imgKml = (ImageView) rootView.findViewById(R.id.simpleview_imgKml);
-        ImageView imgCsv = (ImageView) rootView.findViewById(R.id.simpleview_imgCsv);
-        ImageView imgNmea = (ImageView) rootView.findViewById(R.id.simpleview_imgNmea);
-        ImageView imgLink = (ImageView) rootView.findViewById(R.id.simpleview_imgLink);
-
-        if (preferenceHelper.shouldLogToGpx()) {
-
-            imgGpx.setVisibility(View.VISIBLE);
-        } else {
-            imgGpx.setVisibility(View.GONE);
-        }
-
-        if (preferenceHelper.shouldLogToKml()) {
-
-            imgKml.setVisibility(View.VISIBLE);
-        } else {
-            imgKml.setVisibility(View.GONE);
-        }
-
-        if (preferenceHelper.shouldLogToNmea()) {
-            imgNmea.setVisibility(View.VISIBLE);
-        } else {
-            imgNmea.setVisibility(View.GONE);
-        }
-
-        if (preferenceHelper.shouldLogToPlainText()) {
-
-            imgCsv.setVisibility(View.VISIBLE);
-        } else {
-            imgCsv.setVisibility(View.GONE);
-        }
-
-        if (preferenceHelper.shouldLogToCustomUrl()) {
-            imgLink.setVisibility(View.VISIBLE);
-        } else {
-            imgLink.setVisibility(View.GONE);
-        }
     }
 
     private enum IconColorIndicator {
@@ -220,9 +178,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         ImageView imgPoints = (ImageView) rootView.findViewById(R.id.simpleview_points);
         imgPoints.setOnClickListener(this);
 
-        ImageView imgLink = (ImageView) rootView.findViewById(R.id.simpleview_imgLink);
-        imgLink.setOnClickListener(this);
-
         ImageView imgQR = (ImageView) rootView.findViewById(R.id.qr_scan);
         imgQR.setOnClickListener(this);
 
@@ -237,8 +192,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     @Override
     public void onResume() {
-        showPreferencesSummary();
-
         if (Session.isStarted()) {
             setActionButtonStop();
         } else {
@@ -273,7 +226,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     public void onEventMainThread(ServiceEvents.LoggingStatus loggingStatus) {
 
         if (loggingStatus.loggingStarted) {
-            showPreferencesSummary();
             clearLocationDisplay();
             setActionButtonStop();
         } else {
@@ -283,8 +235,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     }
 
     public void displayLocationInfo(Location locationInfo) {
-        showPreferencesSummary();
-
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(3);
 
@@ -483,10 +433,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
             case R.id.simpleview_points:
                 toast = getToast(R.string.txt_number_of_points);
-                break;
-
-            case R.id.simpleview_imgLink:
-                toast = getToast(preferenceHelper.getCustomLoggingUrl());
                 break;
 
             case R.id.qr_scan:
