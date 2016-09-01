@@ -66,7 +66,9 @@ input::-webkit-input-placeholder {
     margin-top: 5px;
 }
 
-.login-register{
+.login-option-link{
     font-size: 11px;
     text-align: center;
+    float: right;
+    margin-left: 10px;
 }

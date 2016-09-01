@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forgot password</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/assets/styles/bootstrap.css">
+
+    <!-- Website CSS style -->
+    <link rel="stylesheet" type="text/css" href="/assets/styles/main.css">
+
+    <!-- Website Font style -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+
+    <!-- Google Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
+<body>
+    <div class="container">
+        <div class="row main">
+            <div class="panel-heading">
+                <div class="panel-title text-center">
+                    <h1 class="title">Forgot Password</h1>
+                </div>
+            </div>
+            <div class="main-login main-center">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label for="email" class="cols-sm-2 control-label">Email Address</label>
+                        <div class="cols-sm-10">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-users fa" aria-hidden="true"></i></span>
+                                <input type="email" class="form-control" name="email" id="email">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group ">
+                        <button type="button" class="btn btn-primary btn-lg btn-block btn-reset">Reset Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.btn-reset').on('click', function () {
+            var email = $('#email').val().trim();
+            if (email) {
+                $.ajax({
+                    url: '/forgot',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({email: email}),
+                    success: function () {
+                        alert('Email sent successfully!');
+                    },
+                    error: function (err) {
+                        alertError(err);
+                    }
+                });
+            } else {
+                alert('Please input user name and password.');
+            }
+        });
+    });
+
+    function alertError(err) {
+        if (typeof err === 'string') {
+            alert(err)
+        } else if (err && err.errmsg) {
+            alert(err.errmsg);
+        } else {
+            alert('Unknown error.');
+        }
+    }
+</script>
+</html>
+

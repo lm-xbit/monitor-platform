@@ -84,7 +84,10 @@ var UserSchema = new Schema(
     updateOn: {type: Number, default: Date.now()},
 
     // userKeys: [ {type: UserKeySchema, required: false} ]
-    userKeys: [ UserKeySchema ]
+    userKeys: [ UserKeySchema ],
+
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
   },
   { // options
     autoIndex: true,

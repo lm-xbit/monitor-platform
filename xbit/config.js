@@ -1,7 +1,3 @@
-/**
- * Created on 8/26/16.
- */
-
 exports = module.exports = {
     ssl: false,
     port: 8080,

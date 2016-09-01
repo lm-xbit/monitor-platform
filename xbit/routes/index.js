@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var userControl = require('./controls/user');
 
 var passport = require('passport');
 
@@ -44,6 +45,11 @@ router.get('/logout', function(req, res, next) {
     res.redirect('/');
   });
 });
+
+router.get('/forgot', userControl.getForgot);
+router.post('/forgot', userControl.postForgot);
+router.get('/reset/:token', userControl.getReset);
+router.post('/reset/:token', userControl.postReset);
 
 //////
 router.use("/api", require("./api"));
