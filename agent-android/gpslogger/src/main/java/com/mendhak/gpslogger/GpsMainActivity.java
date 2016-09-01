@@ -13,7 +13,6 @@
 package com.mendhak.gpslogger;
 
 
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -29,7 +28,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -40,8 +38,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.SpinnerAdapter;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
@@ -52,10 +48,7 @@ import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
 import com.mendhak.gpslogger.loggers.Files;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
-import com.mendhak.gpslogger.ui.fragments.display.GenericViewFragment;
-import com.mendhak.gpslogger.ui.fragments.display.GpsBigViewFragment;
 import com.mendhak.gpslogger.ui.fragments.display.GpsDetailedViewFragment;
-import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
@@ -67,7 +60,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener, ActionBar.OnNavigationListener {
+public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
     private static boolean userInvokedUpload;
     private static Intent serviceIntent;
@@ -258,13 +251,14 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
             }
 
-
+            /*
             //Deprecated in Lollipop but required if targeting 4.x
             SpinnerAdapter spinnerAdapter = ArrayAdapter.createFromResource(getApplicationContext(), R.array.gps_main_views, R.layout
                     .spinner_dropdown_item);
             getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
             getSupportActionBar().setListNavigationCallbacks(spinnerAdapter, this);
             getSupportActionBar().setSelectedNavigationItem(0);
+            */
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 Window window = getWindow();
@@ -330,48 +324,11 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
-    private int getUserSelectedNavigationItem() {
-        return preferenceHelper.getUserSelectedNavigationItem();
-    }
-
     private void loadDefaultFragmentView() {
-        int currentSelectedPosition = getUserSelectedNavigationItem();
-        loadFragmentView(currentSelectedPosition);
-    }
-
-    private void loadFragmentView(int position) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-
-        switch (position) {
-            default:
-            case 0:
-                transaction.replace(R.id.container, GpsSimpleViewFragment.newInstance());
-                break;
-            case 1:
-                transaction.replace(R.id.container, GpsDetailedViewFragment.newInstance());
-                break;
-            case 2:
-                transaction.replace(R.id.container, GpsBigViewFragment.newInstance());
-                break;
-        }
+        transaction.replace(R.id.container, GpsDetailedViewFragment.newInstance());
         transaction.commitAllowingStateLoss();
     }
-
-    private GenericViewFragment getCurrentFragment() {
-        Fragment currentFragment = getFragmentManager().findFragmentById(R.id.container);
-        if (currentFragment instanceof GenericViewFragment) {
-            return ((GenericViewFragment) currentFragment);
-        }
-        return null;
-    }
-
-    @Override
-    public boolean onNavigationItemSelected(int position, long itemId) {
-        preferenceHelper.setUserSelectedNavigationItem(position);
-        loadFragmentView(position);
-        return true;
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -459,62 +416,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         if (!upload.success) {
             LOG.error(getString(R.string.opengts_setup_title) + "-" + getString(R.string.upload_failure));
 
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.AutoEmail upload) {
-        LOG.debug("Auto Email Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.autoemail_title) + "-" + getString(R.string.upload_failure));
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.OpenStreetMap upload) {
-        LOG.debug("OSM Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.osm_setup_title) + "-" + getString(R.string.upload_failure));
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.Dropbox upload) {
-        LOG.debug("Dropbox Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.dropbox_setup_title) + "-" + getString(R.string.upload_failure));
-            if (userInvokedUpload) {
-                Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
-                userInvokedUpload = false;
-            }
-        }
-    }
-
-    @EventBusHook
-    public void onEventMainThread(UploadEvents.GDocs upload) {
-        LOG.debug("GDocs Event completed, success: " + upload.success);
-        Dialogs.hideProgress();
-
-        if (!upload.success) {
-            LOG.error(getString(R.string.gdocs_setup_title) + "-" + getString(R.string.upload_failure));
             if (userInvokedUpload) {
                 Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
                 userInvokedUpload = false;
