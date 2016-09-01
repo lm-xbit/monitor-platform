@@ -22,26 +22,15 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.LocationManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.IBinder;
+import android.os.*;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.*;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
-import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.events.UploadEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
@@ -86,8 +75,6 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         loadDefaultFragmentView();
         startAndBindService();
         registerEventBus();
-
-        EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
     }
 
     @Override
@@ -313,7 +300,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                     launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
                     break;
                 case 1002:
-                    CaptureActivity.launch(getApplicationContext());
+                    CaptureActivity.launch(GpsMainActivity.this);
                     break;
                 }
                 return false;
@@ -431,15 +418,4 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
-//
-//    @EventBusHook
-//    public void onEventMainThread(StartCollectGpsDataEvents startCollectGpsDataEvents) {
-//        startCollectGpsDataService();
-//        EventBus.getDefault().removeStickyEvent(StartCollectGpsDataEvents.class);
-//    }
-//
-//    @AskPermission({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE})
-//    private void startCollectGpsDataService() {
-//        EventBus.getDefault().post(new CommandEvents.RequestStartStop(true));
-//    }
 }

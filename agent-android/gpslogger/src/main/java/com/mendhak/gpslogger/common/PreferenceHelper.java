@@ -1063,5 +1063,15 @@ public class PreferenceHelper {
 
     }
 
+    public void putString(String key, String value) {
+        prefs.edit().putString(key, value).apply();
+    }
 
+    public String getString(String key) {
+        return getString(key, "");
+    }
+
+    public String getString(String key, String defaultValue) {
+        return prefs.getString(key, defaultValue);
+    }
 }
