@@ -74,9 +74,10 @@ router.get("/:key", function (req, res) {
 
     var from = req.param('from');
     var to = req.param('to');
+    var aggs = req.param('aggs');
 
     //Aggregation
-    if (from && to) {
+    if (from && to && aggs) {
         ESClient.search(
           {
               index: 'xbit',
@@ -96,7 +97,7 @@ router.get("/:key", function (req, res) {
                       "result": {
                           "date_histogram": {
                               "field": "@timestamp",
-                              "interval": "3m",
+                              "interval": aggs + "m",
                               "min_doc_count": 1
                           },
                           "aggs": {
