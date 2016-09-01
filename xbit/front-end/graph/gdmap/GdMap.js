@@ -65,7 +65,7 @@ export class GdMap extends React.Component {
   }
 
   render () {
-    if(!this.state.app) {
+    if (!this.state.app) {
       var primary = null;
       this.props.apps.forEach(
         app => {

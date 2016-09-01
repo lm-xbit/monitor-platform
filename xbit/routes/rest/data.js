@@ -143,14 +143,16 @@ router.get("/:key", function (req, res) {
               }
           },
           function (error, response) {
+              var result = [];
               if (error) {
-                  logger.error(error);
+                  logger.error("Fail to get the aggregation data - " + error);
                   return res.json(
                     {
-                        status: 502,
-                        message: "Fail to get the result - " + error
+                        status: 200,
+                        message: "OK",
+                        data: result,
                     }
-                  )
+                  );
               }
               else {
                   /**
@@ -210,7 +212,6 @@ router.get("/:key", function (req, res) {
           },
                    */
                   logger.debug("Get the response - " + JSON.stringify(response));
-                  var result = [];
                   if (response.hits.total > 0) {
                       var array = response.aggregations.result.buckets;
                       for (var i = 0; i < array.length; i++) {
