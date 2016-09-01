@@ -64,6 +64,8 @@ router.get("/:key", function (req, res) {
     }
     var deviceKey = req.params.key;
     logger.debug("Get the data of device %s", deviceKey);
+
+
     // TODO Device Verification
     // if(deviceKey !== "test" && deviceKey !== "mobile-tracking") {
     //     return res.json({
@@ -76,13 +78,55 @@ router.get("/:key", function (req, res) {
     var to = req.param('to');
     var aggs = req.param('aggs');
 
+    if (!aggs) {
+        //default is 3 minues
+        aggs = 3;
+    }
+
+    if (deviceKey == "test") {
+        //Just for test purpose
+        var result = [];
+        var now = new Date().getTime();
+        if (!to) {
+            to = now;
+        }
+
+        var count = 10;
+
+        if (from) {
+            count = (to - from)/aggs/60/1000;
+            if (count <= 0) {
+                count = 1;
+            }
+        }
+        else {
+            from = now - count*aggs*60*1000;
+        }
+
+
+        for (var i = 0; i < count; i++) {
+            var location = {};
+            var doc = {};
+            location.latitude = 30.64790065 + i*0.1;
+            location.longitude = 104.02691083 + i*0.2;
+            location.altitude = 500;
+            location.accuracy = 50;
+            doc.timestamp = now - i * aggs*60*1000;
+            doc.location = location;
+            result.push(doc);
+        }
+        return res.json(
+          {
+              status: 200,
+              message: "OK",
+              data: result,
+          }
+        );
+    }
+
     //Aggregation
     if (from && to) {
 
-        if (!aggs) {
-            //default is 3 minues
-            aggs = 3;
-        }
         ESClient.search(
           {
               index: 'xbit',
