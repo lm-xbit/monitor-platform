@@ -48,7 +48,7 @@ import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
 import com.mendhak.gpslogger.loggers.Files;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
-import com.mendhak.gpslogger.ui.fragments.display.GpsDetailedViewFragment;
+import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
@@ -326,7 +326,8 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
 
     private void loadDefaultFragmentView() {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.container, GpsDetailedViewFragment.newInstance());
+        // transaction.replace(R.id.container, GpsDetailedViewFragment.newInstance());
+        transaction.replace(R.id.container, GpsSimpleViewFragment.newInstance());
         transaction.commitAllowingStateLoss();
     }
 
