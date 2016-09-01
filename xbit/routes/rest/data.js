@@ -77,7 +77,12 @@ router.get("/:key", function (req, res) {
     var aggs = req.param('aggs');
 
     //Aggregation
-    if (from && to && aggs) {
+    if (from && to) {
+
+        if (!aggs) {
+            //default is 3 minues
+            aggs = 3;
+        }
         ESClient.search(
           {
               index: 'xbit',
