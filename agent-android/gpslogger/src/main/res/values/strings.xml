@@ -483,4 +483,6 @@
     <string name="qr_re_scanning">restart_scanning</string>
     <string name="qr_scan_result">the result of scanning</string>
 
+    <string name="start_connect">the result of scanning</string>
+
 </resources>
