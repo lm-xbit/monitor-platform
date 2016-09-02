@@ -4,7 +4,7 @@ import React, {PropTypes} from 'react';
 import {loadAppSettings, starApp, removeApp, commitChange} from './AppSettingsActions';
 import Modal from 'react-modal';
 import QRCode from 'qrcode.react';
-import ReactTooltip from 'react-tooltip'
+import ReactTooltip from 'react-tooltip';
 import $ from 'jquery';
 
 export class AppSettings extends React.Component {
@@ -192,7 +192,8 @@ export class AppSettings extends React.Component {
                   <i style={{
                     color: 'green',
                     display: app.primary ? 'inherit' : 'none'
-                  }} className='fa fa-star'/>
+                  }} className='fa fa-star'
+                  />
                 </td>
                 <td style={{'lineHeight': '30px'}}>{app.name}</td>
                 <td style={{'lineHeight': '30px'}}>{app.type}</td>
@@ -202,7 +203,8 @@ export class AppSettings extends React.Component {
                   <button className="btn btn-xs btn-success" onClick={e => {
                     this.connectApplication(app);
                     e.preventDefault();
-                  }} data-tip="Connect or re-connect this application ...">
+                  }} data-tip="Connect or re-connect this application ..."
+                  >
                     <i className="fa fa-plug" style={{
                       display: app.connected ? 'none' : 'inherit'
                     }}/>
@@ -214,14 +216,16 @@ export class AppSettings extends React.Component {
                   <button className="btn btn-xs btn-danger" onClick={e => {
                     this.removeApplication(app);
                     e.preventDefault();
-                  }} data-tip="Delete this application ...">
+                  }} data-tip="Delete this application ..."
+                  >
                     <i className="fa fa-remove"/>
                   </button>
                   &nbsp;&nbsp;
                   <button className="btn btn-xs btn-warning" onClick={e => {
                     this.updateApplication(app);
                     e.preventDefault();
-                  }} data-tip="Edit and update information of this application ...">
+                  }} data-tip="Edit and update information of this application ..."
+                  >
                     <i className="fa fa-edit"/>
                   </button>
                   &nbsp;&nbsp;
@@ -230,7 +234,8 @@ export class AppSettings extends React.Component {
                   }} onClick={e => {
                     this.starApplication(app);
                     e.preventDefault();
-                  }} data-tip="Make this application my primary application ...">
+                  }} data-tip="Make this application my primary application ..."
+                  >
                     <i className='fa fa-star'/>
                   </button>
                 </td>
