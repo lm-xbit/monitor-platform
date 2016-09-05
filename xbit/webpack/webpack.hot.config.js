@@ -9,7 +9,9 @@ console.log("Base dir is - " + __dirname);
 
 
 config.entry = {
-    index: [__dirname + '/../front-end/index.js', 'webpack-hot-middleware/client?reload=true']
+    index: [__dirname + '/../front-end/index.js', 'webpack-hot-middleware/client?reload=true'],
+    login: [__dirname + '/../front-end/login.js', 'webpack-hot-middleware/client?reload=true'],
+    signup: [__dirname + '/../front-end/signup.js', 'webpack-hot-middleware/client?reload=true']
 };
 
 // https://github.com/webpack/webpack/issues/2393
@@ -44,6 +46,10 @@ config.module.loaders = config.module.loaders.concat(
     },
     {
         test: /\.css$/, loader: 'style-loader!css-loader'
+    },
+    {
+        // inline base64 URLs for <=8k images, direct URLs for the rest
+        test: /\.(png|woff|woff2|eot|ttf|svg)(\?[a-z0-9=\.]+)?$/, loader: 'url-loader?limit=8192'
     }
 );
 

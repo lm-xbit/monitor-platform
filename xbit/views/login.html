@@ -4,13 +4,6 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/assets/styles/bootstrap.css">
-
-    <!-- Website CSS style -->
-    <link rel="stylesheet" type="text/css" href="/assets/styles/main.css">
-
-    <!-- Website Font style -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
 
     <!-- Google Fonts -->
     <link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
@@ -64,75 +57,7 @@
     </div>
 </div>
 
+<script type="text/javascript" src="/login.js"></script>
+
 </body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('.login-button').on('click', function () {
-            var email = $('#email').val().trim();
-            var password = $('#password').val().trim();
-
-            if (email && password) {
-                if (!isEmail(email)) {
-                    alert("Invalid email format");
-                }
-                else {
-                    login(email, password);
-                }
-            } else {
-                alertError('Please input user name and password.');
-            }
-        });
-    });
-
-    function isEmail(email) {
-        var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-        return regex.test(email);
-    }
-
-    function login(username, password) {
-        $.ajax({
-            url: '/rest/settings/login',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({username: username, password: password}),
-            success: function (data, textStatus, jqXHR) {
-                redirectQueryUrl();
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                if (jqXHR.status == 401) {
-                    alert("Email or password is wrong")
-                }
-                else {
-                    alert("Login Fail - " + textStatus + "; " + errorThrown)
-                }
-            }
-        });
-    }
-
-    function alertError(err) {
-        if (typeof err === 'string') {
-            alert(err)
-        } else if (err && err.errmsg) {
-            alert(err.errmsg);
-        } else {
-            alert('Unknown error.');
-        }
-    }
-
-    function redirectQueryUrl() {
-        window.location.href = getQueryVariable('url') || '/index';
-    }
-
-    function getQueryVariable(variable) {
-        var query = window.location.search.substring(1);
-        var vars = query.split('&');
-        for (var i = 0; i < vars.length; i++) {
-            var pair = vars[i].split('=');
-            if (decodeURIComponent(pair[0]) == variable) {
-                return decodeURIComponent(pair[1]);
-            }
-        }
-    }
-</script>
 </html>

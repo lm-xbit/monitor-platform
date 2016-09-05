@@ -12,6 +12,10 @@ import {Router, Route, browserHistory, hashHistory, IndexRedirect} from 'react-r
 import {syncHistoryWithStore} from 'react-router-redux';
 import store from './app/store.js';
 
+require('bootstrap/dist/css/bootstrap.css');
+require('font-awesome/css/font-awesome.css');
+require('resources/assets/styles/index.css');
+
 let actuallyHistory = NODE_ENV === 'development' ? hashHistory : hashHistory; // eslint-disable-line
 const history = syncHistoryWithStore(actuallyHistory, store);
 

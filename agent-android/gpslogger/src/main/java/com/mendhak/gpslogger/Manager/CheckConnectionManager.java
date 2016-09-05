@@ -1,6 +1,7 @@
 package com.mendhak.gpslogger.Manager;
 
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.events.CommandEvents;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Created by steven.li on 8/29/16.
  */
 public class CheckConnectionManager {
+    private static final String KEY_CONNECTION_CONFIG = "key_connection_config";
     public static final CheckConnectionManager stance = new CheckConnectionManager();
     private static final Logger LOG = Logs.of(CheckConnectionManager.class);
 
@@ -30,6 +32,9 @@ public class CheckConnectionManager {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     private CheckConnectionManager() {
+    }
+
+    public void init() {
         mPreferenceHelper = PreferenceHelper.getInstance();
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -37,6 +42,13 @@ public class CheckConnectionManager {
         builder.readTimeout(30, TimeUnit.SECONDS);
         builder.writeTimeout(30, TimeUnit.SECONDS);
         this.httpclient = builder.build();
+
+        String configInfo = mPreferenceHelper.getString(KEY_CONNECTION_CONFIG);
+        if (TextUtils.isEmpty(configInfo)) {
+            mConfig = null;
+        } else {
+            mConfig = GsonUtil.fromJson(configInfo, Config.class);
+        }
     }
 
     public void checkConnetion(Config config) {
@@ -98,6 +110,11 @@ public class CheckConnectionManager {
         mPreferenceHelper.setMobileTrackingUseSSL(gate.ssl);
         mPreferenceHelper.setMobileTrackingEndpoint(gate.host + ":" + gate.port);
         mPreferenceHelper.setMobileTrackingReportInterval(app.interval);
+
+        mPreferenceHelper.putString(KEY_CONNECTION_CONFIG, GsonUtil.toJson(mConfig));
     }
 
+    public boolean hasConfig() {
+        return mConfig != null;
+    }
 }
