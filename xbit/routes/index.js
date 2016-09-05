@@ -1,8 +1,6 @@
 var express = require('express');
-var router = express.Router();
-var userControl = require('./controls/user');
-
 var passport = require('passport');
+var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -46,10 +44,8 @@ router.get('/logout', function(req, res, next) {
   });
 });
 
-router.get('/forgot', userControl.getForgot);
-router.post('/forgot', userControl.postForgot);
-router.get('/reset/:token', userControl.getReset);
-router.post('/reset/:token', userControl.postReset);
+router.use('/forgot', require('./controls/forgotPassword'));
+router.use('/reset', require('./controls/resetPassword'));
 
 //////
 router.use("/api", require("./api"));
