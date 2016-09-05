@@ -18,7 +18,10 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
+import android.text.Html;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +34,7 @@ import android.widget.Toast;
 import com.canelmas.let.AskPermission;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
+import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.R;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
@@ -44,6 +48,8 @@ import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class GpsSimpleViewFragment extends GenericViewFragment implements View.OnClickListener {
 
@@ -57,6 +63,18 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     private View mInfoLayout;
 
     private View mScanBtn;
+
+    Handler timerHandler = new Handler();
+    TextView logTextView;
+
+    Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            showLogcatMessages();
+            timerHandler.postDelayed(this, 1500);
+        }
+    };
 
     public GpsSimpleViewFragment() {
 
@@ -95,6 +113,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
         updateView();
 
+        logTextView = (TextView) rootView.findViewById(R.id.logview_txtstatus);
         actionButton = (ActionProcessButton) rootView.findViewById(R.id.btnActionProcess);
         actionButton.setMode(ActionProcessButton.Mode.ENDLESS);
         actionButton.setBackgroundColor(ContextCompat.getColor(context, (R.color.accentColor)));
@@ -118,9 +137,11 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
             mScanBtn.setVisibility(View.GONE);
             mInfoLayout.setVisibility(View.VISIBLE);
             EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+            timerHandler.postDelayed(timerRunnable, 0);
         } else {
             mScanBtn.setVisibility(View.VISIBLE);
             mInfoLayout.setVisibility(View.GONE);
+            timerHandler.removeCallbacks(timerRunnable);
         }
     }
 
@@ -189,15 +210,23 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         mScanBtn.setOnClickListener(this);
     }
 
+    public void onStart() {
+        super.onStart();
+        if (CheckConnectionManager.stance.hasConfig()) {
+            timerHandler.postDelayed(timerRunnable, 0);
+        }
+    }
+
     @Override
     public void onPause() {
         super.onPause();
+        timerHandler.removeCallbacks(timerRunnable);
     }
+
 
     @Override
     public void onResume() {
         updateView();
-
         super.onResume();
     }
 
@@ -435,6 +464,43 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         view.getLocationOnScreen(location);
         toast.setGravity(Gravity.TOP | Gravity.LEFT, location[0], location[1]);
         toast.show();
+    }
+
+    private void showLogcatMessages() {
+        StringBuilder sb = new StringBuilder();
+        Location location = Session.getCurrentLocationInfo();
+
+        // location
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        if (location == null) {
+            sb.append(getFormattedMessage("Found invalid current location!!!", R.color.errorColor, "Current Location info --> "));
+        } else {
+            sb.append(getFormattedMessage("Time:" + sdf.format(new Date(location.getTime())) + ", Latitude:" + location.getLatitude() + ", " +
+                    "Longitude:" + location.getLongitude(), R.color.secondaryColorText, "Current Location info --> "));
+        }
+
+        //report
+        String reportInfo = ReportInfoManager.stance.mMessage;
+        if (TextUtils.isEmpty(reportInfo)) {
+            sb.append(getFormattedMessage("No report!!!", R.color.errorColor, "Last reporting info --> "));
+        } else {
+            if (ReportInfoManager.stance.mCode != 200) {
+                sb.append(getFormattedMessage("Time:" + sdf.format(new Date(ReportInfoManager.stance.mTime)) + ", " + ReportInfoManager.stance
+                        .mMessage, R.color.errorColor, "Last reporting info --> "));
+            } else {
+                sb.append(getFormattedMessage("Time:" + sdf.format(new Date(ReportInfoManager.stance.mTime)) + ", " + ReportInfoManager.stance
+                        .mMessage, R.color.secondaryColorText, "Last reporting info --> "));
+            }
+        }
+
+        logTextView.setText(Html.fromHtml(sb.toString()));
+    }
+
+    private String getFormattedMessage(String message, int colorResourceId, String prefix) {
+        String messageFormat = "%s<font color='#%s'>%s</font><br />";
+        return String.format(messageFormat, prefix, Integer.toHexString(ContextCompat.getColor(getActivity(), colorResourceId)).substring(2),
+                message);
+
     }
 
     @AskPermission({Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest

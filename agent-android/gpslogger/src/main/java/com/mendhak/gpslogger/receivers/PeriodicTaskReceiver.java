@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
 import com.mendhak.gpslogger.GpsLoggingService;
+import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.common.IntentConstants;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
@@ -219,11 +220,15 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
 
         retString = res.body().string();
+        ReportInfoManager.stance.mCode = res.code();
         if (200 != res.code()) {
             LOG.warn("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
 
-            throw new Exception(String.format("Server returns %d: %s", res.code(), res.message()));
+            ReportInfoManager.stance.setMessage(String.format("Reporting is fail! Http code: %s and the message: %s", res.code(), res.message()));
+            throw new Exception(String.format("Reporting is successful, and payload:\n" + retString));
         } else {
+            ReportInfoManager.stance.setMessage(String.format("Reporting is successful, and payload:\n" + retString));
+
             LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
         }
 
