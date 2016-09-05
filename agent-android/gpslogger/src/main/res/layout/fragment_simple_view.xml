@@ -11,6 +11,7 @@
     <ScrollView
         android:id="@+id/info_scrollView"
         android:layout_width="match_parent"
+        android:scrollbars="none"
         android:layout_height="match_parent">
 
         <RelativeLayout
@@ -304,10 +305,16 @@
             </TableLayout>
 
             <TextView
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
                 android:id="@+id/logview_txtstatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/table_layout" />
+                android:layout_below="@id/table_layout"
+                android:fontFamily="monospace"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:paddingBottom="58dp"
+                android:typeface="monospace" />
 
         </RelativeLayout>
     </ScrollView>

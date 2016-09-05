@@ -27,10 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import com.canelmas.let.AskPermission;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
@@ -66,6 +63,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     Handler timerHandler = new Handler();
     TextView logTextView;
+    ScrollView mScrollView;
 
     Runnable timerRunnable = new Runnable() {
 
@@ -114,6 +112,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         updateView();
 
         logTextView = (TextView) rootView.findViewById(R.id.logview_txtstatus);
+        mScrollView = (ScrollView) rootView.findViewById(R.id.info_scrollView);
         actionButton = (ActionProcessButton) rootView.findViewById(R.id.btnActionProcess);
         actionButton.setMode(ActionProcessButton.Mode.ENDLESS);
         actionButton.setBackgroundColor(ContextCompat.getColor(context, (R.color.accentColor)));
@@ -473,11 +472,13 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         // location
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         if (location == null) {
-            sb.append(getFormattedMessage("Found invalid current location!!!", R.color.errorColor, "Current Location info --> "));
+            sb.append(getFormattedMessage("Found invalid current location!!!", R.color.errorColor, "Last Location info --> "));
         } else {
             sb.append(getFormattedMessage("Time:" + sdf.format(new Date(location.getTime())) + ", Latitude:" + location.getLatitude() + ", " +
-                    "Longitude:" + location.getLongitude(), R.color.secondaryColorText, "Current Location info --> "));
+                    "Longitude:" + location.getLongitude(), R.color.secondaryColorText, "Last Location info --> "));
         }
+
+        sb.append("<br />");
 
         //report
         String reportInfo = ReportInfoManager.stance.mMessage;
@@ -494,6 +495,8 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         }
 
         logTextView.setText(Html.fromHtml(sb.toString()));
+
+        mScrollView.fullScroll(View.FOCUS_DOWN);
     }
 
     private String getFormattedMessage(String message, int colorResourceId, String prefix) {
