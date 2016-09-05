@@ -5,6 +5,14 @@ var config = {
     index: [
       'babel-polyfill',
       path.resolve(__dirname, '../front-end/index.js')
+    ],
+    login: [
+      'babel-polyfill',
+      path.resolve(__dirname, '../front-end/login.js')
+    ],
+    signup: [
+      'babel-polyfill',
+      path.resolve(__dirname, '../front-end/signup.js')
     ]
   },
   output: {

@@ -30,14 +30,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.canelmas.let.AskPermission;
 import com.dd.processbutton.iml.ActionProcessButton;
+import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.R;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
+import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.qr.CaptureActivity;
+import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 import java.text.NumberFormat;
@@ -50,6 +53,10 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     private View rootView;
     private ActionProcessButton actionButton;
+
+    private View mInfoLayout;
+
+    private View mScanBtn;
 
     public GpsSimpleViewFragment() {
 
@@ -86,17 +93,17 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
         setImageTooltips();
 
+        updateView();
+
         actionButton = (ActionProcessButton) rootView.findViewById(R.id.btnActionProcess);
         actionButton.setMode(ActionProcessButton.Mode.ENDLESS);
         actionButton.setBackgroundColor(ContextCompat.getColor(context, (R.color.accentColor)));
-
         actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 requestToggleLogging();
             }
         });
-
 
         if (Session.hasValidLocation()) {
             displayLocationInfo(Session.getCurrentLocationInfo());
@@ -106,16 +113,15 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         return rootView;
     }
 
-    private void setActionButtonStart() {
-        actionButton.setText(R.string.btn_start_logging);
-        actionButton.setBackgroundColor(ContextCompat.getColor(context, R.color.accentColor));
-        actionButton.setAlpha(0.8f);
-    }
-
-    private void setActionButtonStop() {
-        actionButton.setText(R.string.btn_stop_logging);
-        actionButton.setBackgroundColor(ContextCompat.getColor(context, R.color.accentColorComplementary));
-        actionButton.setAlpha(0.8f);
+    private void updateView() {
+        if (CheckConnectionManager.stance.hasConfig()) {
+            mScanBtn.setVisibility(View.GONE);
+            mInfoLayout.setVisibility(View.VISIBLE);
+            EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+        } else {
+            mScanBtn.setVisibility(View.VISIBLE);
+            mInfoLayout.setVisibility(View.GONE);
+        }
     }
 
     private enum IconColorIndicator {
@@ -178,34 +184,22 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         ImageView imgPoints = (ImageView) rootView.findViewById(R.id.simpleview_points);
         imgPoints.setOnClickListener(this);
 
-        ImageView imgQR = (ImageView) rootView.findViewById(R.id.qr_scan);
-        imgQR.setOnClickListener(this);
-
-    }
-
-    @Override
-    public void onStart() {
-
-        setActionButtonStop();
-        super.onStart();
-    }
-
-    @Override
-    public void onResume() {
-        if (Session.isStarted()) {
-            setActionButtonStop();
-        } else {
-            setActionButtonStart();
-        }
-        super.onResume();
+        mInfoLayout = rootView.findViewById(R.id.info_scrollView);
+        mScanBtn = rootView.findViewById(R.id.btn_start_connect);
+        mScanBtn.setOnClickListener(this);
     }
 
     @Override
     public void onPause() {
-
         super.onPause();
     }
 
+    @Override
+    public void onResume() {
+        updateView();
+
+        super.onResume();
+    }
 
     @EventBusHook
     public void onEventMainThread(ServiceEvents.LocationUpdate locationUpdate) {
@@ -224,14 +218,13 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     @EventBusHook
     public void onEventMainThread(ServiceEvents.LoggingStatus loggingStatus) {
-
         if (loggingStatus.loggingStarted) {
             clearLocationDisplay();
-            setActionButtonStop();
         } else {
             setSatelliteCount(-1);
-            setActionButtonStart();
         }
+
+        updateView();
     }
 
     public void displayLocationInfo(Location locationInfo) {
@@ -386,16 +379,13 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
         if (!Session.isStarted()) {
             actionButton.setProgress(0);
-            setActionButtonStart();
             return;
         }
 
         if (inProgress) {
             actionButton.setProgress(1);
-            setActionButtonStop();
         } else {
             actionButton.setProgress(0);
-            setActionButtonStop();
         }
     }
 
@@ -435,7 +425,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
                 toast = getToast(R.string.txt_number_of_points);
                 break;
 
-            case R.id.qr_scan:
+            case R.id.btn_start_connect:
                 toCaptureActivity();
                 return;
 

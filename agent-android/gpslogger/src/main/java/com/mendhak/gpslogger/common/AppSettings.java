@@ -25,6 +25,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import com.mendhak.gpslogger.BuildConfig;
 import com.mendhak.gpslogger.GpsLoggingService;
+import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.path.android.jobqueue.JobManager;
 import com.path.android.jobqueue.config.Configuration;
@@ -53,12 +54,8 @@ public class AppSettings extends Application {
         LOG.debug("EventBus configured");
 
         //Configure the Job Queue
-        Configuration config = new Configuration.Builder(getInstance())
-                .networkUtil(new WifiNetworkUtil(getInstance()))
-                .consumerKeepAlive(60)
-                .minConsumerCount(0)
-                .customLogger(jobQueueLogger)
-                .build();
+        Configuration config = new Configuration.Builder(getInstance()).networkUtil(new WifiNetworkUtil(getInstance())).consumerKeepAlive(60)
+                .minConsumerCount(0).customLogger(jobQueueLogger).build();
         jobManager = new JobManager(this, config);
         LOG.debug("Job Queue configured");
 
@@ -76,6 +73,8 @@ public class AppSettings extends Application {
                 loggingService = ((GpsLoggingService.GpsLoggingBinder) service).getService();
             }
         }, Context.BIND_AUTO_CREATE);
+
+        CheckConnectionManager.stance.init();
     }
 
 
@@ -120,7 +119,6 @@ public class AppSettings extends Application {
             LOG.error(String.format(text, args));
         }
     };
-
 
 
 }
