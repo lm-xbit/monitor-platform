@@ -102,5 +102,6 @@
   },
   "author": "",
   "license": "ISC",
+  "main": "app.js",
   "description": ""
 }
