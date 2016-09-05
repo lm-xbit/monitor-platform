@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset password</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Website CSS style -->
+    <link rel="stylesheet" type="text/css" href="/assets/styles/main.css">
+
+    <!-- Website Font style -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+
+    <!-- Google Fonts -->
+    <link href='https://fonts.googleapis.com/css?family=Passion+One' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
+</head>
+<body>
+<div class="container">
+    <div class="row main">
+        <div class="panel-heading">
+            <div class="panel-title text-center">
+                <h1 class="title">Reset password</h1>
+            </div>
+        </div>
+        <div class="main-login main-center">
+            <div class="form-horizontal">
+
+                <div class="form-group">
+                    <label for="password" class="cols-sm-2 control-label">New Password</label>
+                    <input type="password" name="password" id="password" placeholder="New password" autofocus="" required="" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="confirm" class="cols-sm-2 control-label">Confirm Password</label>
+                    <input type="password" name="confirm" id="confirm" placeholder="Confirm password" required="" class="form-control"></div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary btn-lg btn-block btn-reset">Update Password</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.btn-reset').on('click', function () {
+            var password = $('#password').val().trim();
+            var confirmPassword = $('#confirm').val().trim();
+            if (password && confirmPassword && (password == confirmPassword)) {
+                $.ajax({
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({password: password, confirm: confirmPassword}),
+                    success: function () {
+                        window.location.href = '/login';
+                    },
+                    error: function (err) {
+                        alertError(err);
+                    }
+                });
+            } else if(password != confirmPassword) {
+                alert('Confirm password is not the same with password!');
+            } else {
+                alert('Please input password!');
+            }
+        });
+    });
+
+    function alertError(err) {
+        if (typeof err === 'string') {
+            alert(err)
+        } else if (err && err.errmsg) {
+            alert(err.errmsg);
+        } else {
+            alert('Unknown error.');
+        }
+    }
+</script>
+</html>
+

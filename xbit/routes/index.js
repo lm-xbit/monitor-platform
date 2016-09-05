@@ -1,7 +1,6 @@
 var express = require('express');
-var router = express.Router();
-
 var passport = require('passport');
+var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -44,6 +43,9 @@ router.get('/logout', function(req, res, next) {
     res.redirect('/');
   });
 });
+
+router.use('/forgot', require('./controls/forgotPassword'));
+router.use('/reset', require('./controls/resetPassword'));
 
 //////
 router.use("/api", require("./api"));
