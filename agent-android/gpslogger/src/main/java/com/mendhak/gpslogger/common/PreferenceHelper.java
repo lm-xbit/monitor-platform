@@ -407,32 +407,12 @@ public class PreferenceHelper {
         prefs.edit().putBoolean(PreferenceNames.KEEP_GPS_ON_BETWEEN_FIXES, keepFix).apply();
     }
 
-
-    /**
-     * How long to keep retrying for a fix if one with the user-specified accuracy hasn't been found
-     */
-    @ProfilePreference(name = PreferenceNames.LOGGING_RETRY_TIME)
-    public int getLoggingRetryPeriod() {
-        return (Strings.toInt(prefs.getString(PreferenceNames.LOGGING_RETRY_TIME, "60"), 60));
-    }
-
-
-    /**
-     * Sets how long to keep trying for an accurate fix
-     *
-     * @param retryInterval
-     *         in seconds
-     */
-    public void setLoggingRetryPeriod(int retryInterval) {
-        prefs.edit().putString(PreferenceNames.LOGGING_RETRY_TIME, String.valueOf(retryInterval)).apply();
-    }
-
     /**
      * How long to keep retrying for an accurate point before giving up
      */
     @ProfilePreference(name = PreferenceNames.ABSOLUTE_TIMEOUT)
     public int getAbsoluteTimeoutForAcquiringPosition() {
-        return (Strings.toInt(prefs.getString(PreferenceNames.ABSOLUTE_TIMEOUT, "120"), 120));
+        return (Strings.toInt(prefs.getString(PreferenceNames.ABSOLUTE_TIMEOUT, "5"), 5));
     }
 
     /**

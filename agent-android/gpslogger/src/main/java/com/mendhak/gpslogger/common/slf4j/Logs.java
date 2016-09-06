@@ -4,7 +4,6 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.android.LogcatAppender;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class Logs {
             rollingFileAppender.setAppend(true);
             rollingFileAppender.setContext(lc);
 
-
+            /*
             TimeBasedRollingPolicy<ILoggingEvent> rollingPolicy = new TimeBasedRollingPolicy<>();
             rollingPolicy.setMaxHistory(3);
             rollingPolicy.setParent(rollingFileAppender);  // parent and context required!
@@ -42,6 +41,7 @@ public class Logs {
             rollingPolicy.start();
 
             rollingFileAppender.setRollingPolicy(rollingPolicy);
+             */
 
             PatternLayoutEncoder encoder = new PatternLayoutEncoder();
             encoder.setPattern("%d{HH:mm:ss} %-5p %class{0}.%method:%L - %m%n");
@@ -72,11 +72,10 @@ public class Logs {
             root.addAppender(rollingFileAppender);
             root.addAppender(logcatAppender);
             root.addAppender(sessionAppender);
-
         }
         catch(Exception ex){
-              System.out.println("Could not configure logging!");
+            System.out.println("Could not configure logging!");
+            ex.printStackTrace();
         }
-
     }
 }

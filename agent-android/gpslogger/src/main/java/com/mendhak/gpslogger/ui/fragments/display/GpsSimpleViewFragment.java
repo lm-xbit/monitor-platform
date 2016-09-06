@@ -27,7 +27,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 import com.canelmas.let.AskPermission;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
@@ -138,6 +142,25 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
             EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
             timerHandler.postDelayed(timerRunnable, 0);
         } else {
+            /*
+            Config config = new Config();
+            config.code = "ryAZYgnj";
+            config.gate = config.new Gate();
+            config.gate.ssl = false;
+            config.gate.port = 8080;
+            config.gate.host = "54.222.244.228";
+
+            config.app = config.new App();
+            config.app.key = "rkYsF4dq";
+            config.app.type = "mobile-tracking";
+            config.app.interval = 15;
+
+            CheckConnectionManager.stance.checkConnetion(config);
+            mScanBtn.setVisibility(View.GONE);
+            mInfoLayout.setVisibility(View.VISIBLE);
+            EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+            timerHandler.postDelayed(timerRunnable, 0);
+            */
             mScanBtn.setVisibility(View.VISIBLE);
             mInfoLayout.setVisibility(View.GONE);
             timerHandler.removeCallbacks(timerRunnable);
@@ -468,6 +491,8 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     private void showLogcatMessages() {
         StringBuilder sb = new StringBuilder();
         Location location = Session.getCurrentLocationInfo();
+
+        sb.append(Session.getStatus()).append("<br/>");
 
         // location
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");

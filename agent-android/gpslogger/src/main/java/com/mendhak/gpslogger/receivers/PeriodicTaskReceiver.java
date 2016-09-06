@@ -7,15 +7,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
-import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.Manager.ReportInfoManager;
-import com.mendhak.gpslogger.common.IntentConstants;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Sample;
-import okhttp3.*;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -141,14 +143,15 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
+                /*
                 LOG.debug("Try collecting a GPS sample");
                 Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
                 startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
                 context.startService(startServiceIntent);
-
-                LOG.debug("Check reporter timer ...");
+                */
                 long now = System.currentTimeMillis();
                 if ((now - _lastReportEpoch) >= _reportInterval) {
+                    LOG.debug("Time to reporter data ...");
                     _tryReportData();
                     _lastReportEpoch = now;
                 }

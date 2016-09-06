@@ -51,6 +51,8 @@ public class Session {
     private static String currentFormattedFileName;
     private static long userStillSinceTimeStamp;
 
+    private static String status;
+
     public static boolean isSinglePointMode() {
         return isSinglePointMode;
     }
@@ -346,5 +348,13 @@ public class Session {
 
     public static void setUserStillSinceTimeStamp(long lastUserStillTimeStamp) {
         Session.userStillSinceTimeStamp = lastUserStillTimeStamp;
+    }
+
+    public static void setStatus(String s) {
+        status = s;
+    }
+
+    public static String getStatus() {
+        return status;
     }
 }

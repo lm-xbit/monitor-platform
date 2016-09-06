@@ -93,7 +93,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
     public void onStatusChanged(String provider, int status, Bundle extras) {
         if (status == LocationProvider.OUT_OF_SERVICE) {
             LOG.info(provider + " is out of service");
-            loggingService.stopManagerAndResetAlarm();
+            loggingService.finishLocationUpdate(null);
         }
 
         if (status == LocationProvider.AVAILABLE) {
@@ -102,7 +102,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
         if (status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
             LOG.info(provider + " is temporarily unavailable");
-            loggingService.stopManagerAndResetAlarm();
+            loggingService.finishLocationUpdate(null);
         }
     }
 
@@ -115,7 +115,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
             case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
 
-                GpsStatus status = loggingService.gpsLocationManager.getGpsStatus(null);
+                GpsStatus status = loggingService.locationManager.getGpsStatus(null);
 
                 int maxSatellites = status.getMaxSatellites();
 

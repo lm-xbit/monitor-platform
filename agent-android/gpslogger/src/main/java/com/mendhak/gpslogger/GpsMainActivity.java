@@ -64,6 +64,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LOG.info("Creating Application");
         loadPresetProperties();
         loadVersionSpecificProperties();
 
@@ -366,6 +367,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
      * Starts the service and binds the activity to it.
      */
     private void startAndBindService() {
+        LOG.info("Starting GPS Logging Service ...");
         serviceIntent = new Intent(this, GpsLoggingService.class);
         // Start the service in case it isn't already running
         startService(serviceIntent);
