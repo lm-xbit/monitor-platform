@@ -389,6 +389,7 @@ public class GpsLoggingService extends Service {
             passiveLocationListener = new GeneralLocationListener(this, "PASSIVE");
         }
         locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1000, 0, passiveLocationListener);
+        locationManager.addGpsStatusListener(passiveLocationListener);
     }
 
     private void stopPassiveManager() throws SecurityException {
@@ -450,6 +451,7 @@ public class GpsLoggingService extends Service {
         }
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, towerLocationListener);
+        locationManager.addGpsStatusListener(towerLocationListener);
 
         /**
          * Start a timer so we know the location updates has been finished or failed ...
