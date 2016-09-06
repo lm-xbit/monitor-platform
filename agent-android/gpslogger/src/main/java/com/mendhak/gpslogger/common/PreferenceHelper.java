@@ -348,7 +348,7 @@ public class PreferenceHelper {
      */
     @ProfilePreference(name = PreferenceNames.MINIMUM_INTERVAL)
     public int getMinimumLoggingInterval() {
-        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "5"), 5);
+        return Strings.toInt(prefs.getString(PreferenceNames.MINIMUM_INTERVAL, "120"), 120);
     }
 
     /**
@@ -412,7 +412,7 @@ public class PreferenceHelper {
      */
     @ProfilePreference(name = PreferenceNames.ABSOLUTE_TIMEOUT)
     public int getAbsoluteTimeoutForAcquiringPosition() {
-        return (Strings.toInt(prefs.getString(PreferenceNames.ABSOLUTE_TIMEOUT, "5"), 5));
+        return (Strings.toInt(prefs.getString(PreferenceNames.ABSOLUTE_TIMEOUT, "120"), 120));
     }
 
     /**

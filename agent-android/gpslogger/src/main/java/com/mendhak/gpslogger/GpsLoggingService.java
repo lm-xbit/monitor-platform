@@ -64,6 +64,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public class GpsLoggingService extends Service {
+    private static final int TWO_MINUTES = 1000 * 60 * 2;
+
     private static NotificationManager notificationManager;
     private static int NOTIFICATION_ID = 8675309;
     private final IBinder binder = new GpsLoggingBinder();
@@ -94,7 +96,10 @@ public class GpsLoggingService extends Service {
     PeriodicTaskReceiver periodicTaskReceiver = new PeriodicTaskReceiver();
 
     private Handler handler = new Handler();
+
+    private Location gpsLocation = null;
     private Location cellLocation = null;
+    private Location passiveLocation = null;
 
     PendingIntent activityRecognitionPendingIntent;
     GoogleApiClient googleApiClient;
@@ -274,9 +279,12 @@ public class GpsLoggingService extends Service {
 
         showNotification();
         notifyClientStarted();
-        startPassiveManager();
+        requestPassiveLocationUpdate();
         requestLocationUpdate();
         requestActivityRecognitionUpdates();
+
+        // execute now
+        handler.post(collectLocationRunnable);
 
         periodicTaskReceiver.startPeriodicTaskHeartBeat(this);
     }
@@ -309,11 +317,10 @@ public class GpsLoggingService extends Service {
         removeNotification();
         cancelAlarmForNextPoint();
         stopLocationUpdate();
-        stopPassiveManager();
+        stopPassiveLocationUpdate();
         stopActivityRecognitionUpdates();
         notifyClientStopped();
 
-        cellLocation = null;
         periodicTaskReceiver.stopPeriodicTaskHeartBeat(this);
     }
 
@@ -383,16 +390,17 @@ public class GpsLoggingService extends Service {
      * Passive location listener are started / stopped automatically with start / stop of logging service
      * @throws SecurityException
      */
-    private void startPassiveManager() throws SecurityException {
+    private void requestPassiveLocationUpdate() throws SecurityException {
         LOG.info("Starting passive location listener");
         if (passiveLocationListener == null) {
             passiveLocationListener = new GeneralLocationListener(this, "PASSIVE");
         }
-        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1000, 0, passiveLocationListener);
-        locationManager.addGpsStatusListener(passiveLocationListener);
+
+        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 5000, 0, passiveLocationListener);
+        passiveLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
     }
 
-    private void stopPassiveManager() throws SecurityException {
+    private void stopPassiveLocationUpdate() throws SecurityException {
         LOG.debug("Removing locationManager updates");
         locationManager.removeUpdates(passiveLocationListener);
         locationManager.removeGpsStatusListener(passiveLocationListener);
@@ -424,9 +432,7 @@ public class GpsLoggingService extends Service {
             return;
         }
 
-        cellLocation = null;
-
-        Session.setStatus("Start requesting location update ...");
+        Session.setStatus("Start requesting GPS location update ...");
 
         // clear last received cell location
         if(Session.isGpsEnabled()) {
@@ -437,9 +443,11 @@ public class GpsLoggingService extends Service {
             }
 
             // gps satellite based
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, gpsLocationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, TWO_MINUTES, 0, gpsLocationListener);
             locationManager.addGpsStatusListener(gpsLocationListener);
             locationManager.addNmeaListener(gpsLocationListener);
+
+            gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         }
         else {
             Session.setUsingGps(false);
@@ -450,18 +458,18 @@ public class GpsLoggingService extends Service {
             towerLocationListener = new GeneralLocationListener(this, "CELL");
         }
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, towerLocationListener);
-        locationManager.addGpsStatusListener(towerLocationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30000, 0, towerLocationListener);
+        cellLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
         /**
          * Start a timer so we know the location updates has been finished or failed ...
          */
         int timeout = preferenceHelper.getAbsoluteTimeoutForAcquiringPosition();
-        if(timeout <= 0) {
-            timeout = 5;
+        if(timeout <= 30) {
+            timeout = 30;
         }
-        else if(timeout >= 10) {
-            timeout = 10;
+        else if(timeout >= 300) {
+            timeout = 300;
         }
 
         LOG.debug("Start timeout timer of " + timeout + " seconds");
@@ -486,7 +494,6 @@ public class GpsLoggingService extends Service {
         if (towerLocationListener != null) {
             LOG.debug("Removing CELL updates listener");
             locationManager.removeUpdates(towerLocationListener);
-            locationManager.removeGpsStatusListener(towerLocationListener);
             towerLocationListener = null;
         }
 
@@ -500,7 +507,6 @@ public class GpsLoggingService extends Service {
         Session.setWaitingForLocation(false);
         EventBus.getDefault().post(new ServiceEvents.WaitingForLocation(false));
 
-        cellLocation = null;
         requestingLocationUpdate = false;
     }
 
@@ -510,19 +516,71 @@ public class GpsLoggingService extends Service {
                         (preferenceHelper.getMinimumLoggingInterval() * 1000));
     }
 
+    private Runnable collectLocationRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                job();
+            }
+            finally {
+                // do the job again
+                handler.postDelayed(collectLocationRunnable, 5000);
+            }
+        }
+
+        private void job() {
+            String provider = "GPS";
+            Location loc = gpsLocation;
+
+            if(loc == null) {
+                loc = passiveLocation;
+                provider = "PASSIVE";
+            }
+            else if(isBetterLocation(passiveLocation, loc)) {
+                loc = passiveLocation;
+                provider = "PASSIVE";
+            }
+
+            if(loc == null) {
+                loc = cellLocation;
+                provider = "CELL";
+            }
+            else if(isBetterLocation(cellLocation, loc)) {
+                loc = cellLocation;
+                provider = "CELL";
+            }
+
+            if(loc == null) {
+                // No location found
+                Session.setStatus("No valid location in current sampling cycle");
+            }
+            else {
+                Session.setStatus(String.format("Use location from %s provider", provider));
+
+                LOG.info(SessionLogcatAppender.MARKER_LOCATION, String.valueOf(loc.getLatitude()) + "," + String.valueOf(loc.getLongitude()));
+                if (loc.hasAltitude()) {
+                    adjustAltitude(loc);
+                }
+
+                /**
+                 * We may have request both GPS and CELL location, so if GPS is enabled, we shall favor GPS location
+                 */
+                Session.setLatestTimeStamp(System.currentTimeMillis());
+                Session.setCurrentLocationInfo(loc);
+                setDistanceTraveled(loc);
+                showNotification();
+
+                EventBus.getDefault().post(new ServiceEvents.LocationUpdate(loc));
+                periodicTaskReceiver.collectLocationSample(GpsLoggingService.this);
+            }
+        }
+    };
+
     private Runnable timeoutLocationUpdateRunnable = new Runnable() {
         @Override
         public void run() {
-            if(cellLocation == null) {
-                Session.setStatus("Failed last location update");
-                LOG.warn("Absolute timeout reached. Giving current location update request");
-            }
-            else {
-                LOG.info("Absolute timeout reached. Use CELL location update - " + cellLocation);
-                Session.setStatus("Logging CELL location update");
-            }
-
-            finishLocationUpdate(cellLocation);
+            Session.setStatus("GPS location update timedout");
+            finishLocationUpdate();
         }
     };
 
@@ -558,15 +616,6 @@ public class GpsLoggingService extends Service {
     }
 
     /**
-     * Stops location manager, then starts it.
-     */
-    void restartGpsManagers() {
-        LOG.debug("Restarting location managers");
-        stopLocationUpdate();
-        requestLocationUpdate();
-    }
-
-    /**
      * This event is raised when the GeneralLocationListener has a new location. This method in turn updates notification, writes to file, reobtains
      * preferences, notifies main service client and resets location managers.
      *
@@ -583,6 +632,23 @@ public class GpsLoggingService extends Service {
             return;
         }
 
+        String listener = b.getString("LISTENER");
+        if("GPS".equalsIgnoreCase(listener)) {
+            gpsLocation = loc;
+
+            // if it is GPS location, we shall stop the ...
+            finishLocationUpdate();
+
+            Session.setStatus("GPS Location update requested successfully.");
+        }
+        else if("PASSIVE".equalsIgnoreCase(listener)) {
+            passiveLocation = loc;
+        }
+        else if("CELL".equalsIgnoreCase(listener)) {
+            cellLocation = loc;
+        }
+
+        /*
         if (!requestingLocationUpdate) {
             if (b.getBoolean("PASSIVE")) {
                 LOG.debug("Receive passive location update - " + loc);
@@ -621,8 +687,10 @@ public class GpsLoggingService extends Service {
         else {
             LOG.debug(String.format("Receive unknown location change update: %s", loc));
         }
+        */
     }
 
+    /*
     void finishLocationUpdate(Location loc) {
         if(loc != null) {
             LOG.info(SessionLogcatAppender.MARKER_LOCATION, String.valueOf(loc.getLatitude()) + "," + String.valueOf(loc.getLongitude()));
@@ -630,9 +698,9 @@ public class GpsLoggingService extends Service {
                 adjustAltitude(loc);
             }
 
-            /**
-             * We may have request both GPS and CELL location, so if GPS is enabled, we shall favor GPS location
-             */
+            //
+            // We may have request both GPS and CELL location, so if GPS is enabled, we shall favor GPS location
+            //
             Session.setLatestTimeStamp(System.currentTimeMillis());
             Session.setCurrentLocationInfo(loc);
             setDistanceTraveled(loc);
@@ -642,9 +710,35 @@ public class GpsLoggingService extends Service {
             periodicTaskReceiver.collectLocationSample(this);
         }
 
-        /**
-         * Finish the location update by stop timer and start alarm for next request
-         */
+        //
+        // Finish the location update by stop timer and start alarm for next request
+        //
+        if(requestingLocationUpdate) {
+            handler.removeCallbacks(timeoutLocationUpdateRunnable);
+            cellLocation = null;
+
+            stopLocationUpdate();
+            setAlarmForNextPoint();
+
+            requestingLocationUpdate = false;
+        }
+    }
+    */
+
+    /**
+     * Stops location manager, then starts it.
+     */
+    void restartGpsManagers() {
+        LOG.debug("Restarting location managers");
+        finishLocationUpdate();
+
+        requestLocationUpdate();
+    }
+
+    void finishLocationUpdate() {
+        //
+        // Finish the location update by stop timer and start alarm for next request
+        //
         if(requestingLocationUpdate) {
             handler.removeCallbacks(timeoutLocationUpdateRunnable);
             cellLocation = null;
@@ -834,5 +928,66 @@ public class GpsLoggingService extends Service {
     @EventBusHook
     public void onEvent(ProfileEvents.UpdatePeriodicProfile event) {
         periodicTaskReceiver.updateConfigParams();
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // Helpers
+    ////////////////////////////////////////////////////////////////
+    /** Determines whether one Location reading is better than the current Location fix
+      * @param location  The new Location that you want to evaluate
+      * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+      */
+    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (currentBestLocation == null) {
+            // A new location is always better than no location
+            return true;
+        }
+
+        // Check whether the new location fix is newer or older
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
+        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+        boolean isNewer = timeDelta > 0;
+        // If it's been more than two minutes since the current location, use the new location
+        // because the user has likely moved
+        if (isSignificantlyNewer) {
+            return true;
+        // If the new location is more than two minutes older, it must be worse
+        } else if (isSignificantlyOlder) {
+            return false;
+        }
+
+        // Check whether the new location fix is more or less accurate
+        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+        // Check if the old and new location are from the same provider
+        boolean isFromSameProvider = isSameProvider(location.getProvider(), currentBestLocation.getProvider());
+
+        // Determine location quality using a combination of timeliness and accuracy
+        if (isMoreAccurate) {
+            return true;
+        }
+        else if (isNewer && !isLessAccurate) {
+            return true;
+        }
+        else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     *  Checks whether two providers are the same
+     */
+    private boolean isSameProvider(String provider1, String provider2) {
+        if (provider1 == null) {
+          return provider2 == null;
+        }
+
+        return provider1.equals(provider2);
     }
 }

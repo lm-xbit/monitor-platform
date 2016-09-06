@@ -93,7 +93,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
     public void onStatusChanged(String provider, int status, Bundle extras) {
         if (status == LocationProvider.OUT_OF_SERVICE) {
             LOG.info(provider + " is out of service");
-            loggingService.finishLocationUpdate(null);
+            loggingService.finishLocationUpdate();
         }
 
         if (status == LocationProvider.AVAILABLE) {
@@ -102,7 +102,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
         if (status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
             LOG.info(provider + " is temporarily unavailable");
-            loggingService.finishLocationUpdate(null);
+            loggingService.finishLocationUpdate();
         }
     }
 
