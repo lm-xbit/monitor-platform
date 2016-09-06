@@ -40,9 +40,13 @@ public class AppSettings extends Application {
     private static Logger LOG;
     private static GpsLoggingService loggingService;
 
+    public static AppSettings gContext;
+
     @Override
     public void onCreate() {
         super.onCreate();
+
+        gContext = this;
 
         //Configure the slf4j logger
         Logs.configure();

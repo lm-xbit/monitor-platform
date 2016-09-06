@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import com.mendhak.gpslogger.GpsLoggingService;
+import com.mendhak.gpslogger.Manager.CheckConnectionManager;
+import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
+import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 /**
@@ -24,6 +27,11 @@ public class BootAndUpdateReceiver extends BroadcastReceiver {
                LOG.info("Try start service due to action - " + intent.getAction());
                Intent startServiceIntent = new Intent(context.getApplicationContext(), GpsLoggingService.class);
                context.startService(startServiceIntent);
+
+               CheckConnectionManager.stance.init();
+               if (CheckConnectionManager.stance.hasConfig()) {
+                   EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+               }
            }
        }
 }
