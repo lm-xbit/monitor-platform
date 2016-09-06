@@ -20,34 +20,28 @@ package com.mendhak.gpslogger;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import com.mendhak.gpslogger.common.PreferenceHelper;
+import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.common.events.CommandEvents;
-import com.mendhak.gpslogger.common.slf4j.Logs;
+import com.mendhak.gpslogger.utils.LogUtil;
 import de.greenrobot.event.EventBus;
-import org.slf4j.Logger;
 
 
 public class StartupReceiver extends BroadcastReceiver {
 
-    private static final Logger LOG = Logs.of(StartupReceiver.class);
-
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
-            boolean startImmediately = PreferenceHelper.getInstance().shouldStartLoggingOnBootup();
+            Intent serviceIntent = new Intent(context, GpsLoggingService.class);
+            context.startService(serviceIntent);
 
-            LOG.info("Start on bootup - " + String.valueOf(startImmediately));
-
-            if (startImmediately) {
-
+            CheckConnectionManager.stance.init();
+            if (CheckConnectionManager.stance.hasConfig()) {
                 EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
-
-                Intent serviceIntent = new Intent(context, GpsLoggingService.class);
-                context.startService(serviceIntent);
             }
-        } catch (Exception ex) {
-            LOG.error("StartupReceiver", ex);
 
+            LogUtil.d("StartupReceiver", "Starting GpsLoggingService --> " + "intent.getAction():" + intent.getAction());
+        } catch (Exception ex) {
+            LogUtil.e("StartupReceiver", ex);
         }
 
     }

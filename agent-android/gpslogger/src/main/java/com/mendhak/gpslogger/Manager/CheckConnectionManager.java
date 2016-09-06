@@ -28,6 +28,7 @@ public class CheckConnectionManager {
     private OkHttpClient httpclient;
     private Config mConfig;
     private PreferenceHelper mPreferenceHelper;
+    private boolean hasInit = false;
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -35,19 +36,22 @@ public class CheckConnectionManager {
     }
 
     public void init() {
-        mPreferenceHelper = PreferenceHelper.getInstance();
+        if (!hasInit) {
+            hasInit = true;
+            mPreferenceHelper = PreferenceHelper.getInstance();
 
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(30, TimeUnit.SECONDS);
-        builder.readTimeout(30, TimeUnit.SECONDS);
-        builder.writeTimeout(30, TimeUnit.SECONDS);
-        this.httpclient = builder.build();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.connectTimeout(30, TimeUnit.SECONDS);
+            builder.readTimeout(30, TimeUnit.SECONDS);
+            builder.writeTimeout(30, TimeUnit.SECONDS);
+            this.httpclient = builder.build();
 
-        String configInfo = mPreferenceHelper.getString(KEY_CONNECTION_CONFIG);
-        if (TextUtils.isEmpty(configInfo)) {
-            mConfig = null;
-        } else {
-            mConfig = GsonUtil.fromJson(configInfo, Config.class);
+            String configInfo = mPreferenceHelper.getString(KEY_CONNECTION_CONFIG);
+            if (TextUtils.isEmpty(configInfo)) {
+                mConfig = null;
+            } else {
+                mConfig = GsonUtil.fromJson(configInfo, Config.class);
+            }
         }
     }
 
