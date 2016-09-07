@@ -492,7 +492,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         StringBuilder sb = new StringBuilder();
         Location location = Session.getCurrentLocationInfo();
 
-        sb.append(Session.getStatus()).append("<br/>");
+        sb.append(Session.getStatus()).append("<br />").append("<br />");
 
         // location
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
