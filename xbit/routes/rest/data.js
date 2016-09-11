@@ -1,7 +1,7 @@
 var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
-var logger = bunyan.createLogger({name: "data"});
+var logger = require('common/xBitLogger');
 var ESClient = require("lib/esclient");
 var passport = require('passport');
 var User = require('models/user');
@@ -399,7 +399,7 @@ router.post("/:key", function(req, res) {
 
         var app = undefined;
         for(var idx = 0; idx < user.userKeys.length; idx ++) {
-            console.log("Try checking APP", deviceKey, idx, user.userKeys[idx]);
+            logger.info("Try checking APP", deviceKey, idx, user.userKeys[idx]);
             if(user.userKeys[idx].key === deviceKey) {
                 app = user.userKeys[idx];
                 break;
@@ -407,12 +407,12 @@ router.post("/:key", function(req, res) {
         }
 
         if(!app || app.key !== deviceKey) {
-            console.log("App invalid", deviceKey, app);
+            logger.info("App invalid", deviceKey, app);
             return res.status(403).send("APP invalid");
         }
 
         if(!app.connected) {
-            console.log("App not connected", deviceKey, app);
+            logger.info("App not connected", deviceKey, app);
             return res.status(401).send("APP not connected");
         }
 

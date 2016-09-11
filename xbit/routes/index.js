@@ -1,15 +1,16 @@
 var express = require('express');
 var passport = require('passport');
 var router = express.Router();
+var logger = require('common/xBitLogger');
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  console.log("Try rendering landing page ");
+  logger.info("Try rendering landing page ");
   if (!req.user) {
-    console.log("Render login page ....");
+    logger.info("Render login page ....");
     res.render('login');
   } else {
-    console.log("Render index page for user ....", req.user);
+    logger.info("Render index page for user ....", req.user);
     res.render('index');
   }
 });

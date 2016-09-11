@@ -1,7 +1,7 @@
 var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
-var logger = bunyan.createLogger({name: "data"});
+var logger = require('common/xBitLogger');
 var ESClient = require("lib/esclient");
 var passport = require('passport');
 var User = require('models/user');

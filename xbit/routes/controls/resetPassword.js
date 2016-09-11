@@ -3,7 +3,7 @@ var bunyan = require('bunyan');
 var User = require('models/user');
 
 var router = express.Router();
-var logger = bunyan.createLogger({name: "data"});
+var logger = require('common/xBitLogger');
 
 /**
  * Page to type new password

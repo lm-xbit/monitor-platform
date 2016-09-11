@@ -9,5 +9,6 @@ exports = module.exports = {
     address: "127.0.0.1",
     sesAWSId: "xxx",
     sesAWSKey: "xxxxxxx",
-    sesRegion: "us-west-2"
+    sesRegion: "us-west-2",
+    logFilePath: "xbitLog"
 };
