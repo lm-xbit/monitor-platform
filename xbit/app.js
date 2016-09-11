@@ -3,7 +3,7 @@ require('app-module-path').addPath(__dirname);
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
+var morganLogger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
@@ -15,23 +15,25 @@ var routes = require('routes/index');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
+var logger = require('common/xBitLogger');
+
 // passport config
 var User = require("./models/user");
 //passport.use(User.createStrategy());
 passport.use(new LocalStrategy(function(username, password, cb) {
   var auth = User.authenticate();
 
-  console.log("Try authenticate user " + username + " with password " + password);
+  logger.info("Try authenticate user " + username + " with password " + password);
   auth(username, password, function(err, data) {
     if(err) {
-      console.log("Failed to login due to " + err.message, err);
+      logger.warn("Failed to login due to " + err.message, err);
     }
     else {
       if (data) {
-        console.log("User login failed!")
+        logger.warn("User login failed!")
       }
       else {
-        console.log("User logged in successfully", data);
+        logger.info("User logged in successfully", data);
       }
     }
 
@@ -52,7 +54,7 @@ app.set('view engine', 'html');
 
 // uncomment after placing your favicon in /public
 app.use(favicon(__dirname + '/front-end/resources/favicon.ico'));
-app.use(logger('dev'));
+app.use(morganLogger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
@@ -119,12 +121,12 @@ app.use(function(req, res, next) {
   // var err = new Error('Not Found - ' + req.method + ' ' + req.url);
   // err.status = 404;
   // next(err);
-  console.error("Got unexpected request: " + req.method + " " + req.url, req);
+  logger.error("Got unexpected request: " + req.method + " " + req.url, req);
   res.status(401).send("Forbidden");
 });
 
 app.use(function(err, req, res, next) {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).send('Something broke!');
 });
 

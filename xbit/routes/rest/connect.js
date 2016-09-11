@@ -1,11 +1,12 @@
 var bunyan = require('bunyan');
 var express = require('express');
 var router = express.Router();
-var logger = require('common/xBitLogger');
 var ESClient = require("lib/esclient");
 var passport = require('passport');
 var User = require('models/user');
 
+var xBitLogger = require('common/xBitLogger');
+var logger = xBitLogger.child({category: 'connect'});
 // fix me: debugging mode
 logger.level("debug");
 

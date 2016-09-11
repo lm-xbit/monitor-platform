@@ -4,7 +4,9 @@ var express = require('express');
 var passport = require('passport');
 var User = require('models/user');
 var shortID = require("shortid");
-var logger = require('common/xBitLogger');
+
+var xBitLogger = require('common/xBitLogger');
+var logger = xBitLogger.child({category: 'setting'});
 
 var Resp = require('resp');
 var StatusCodes = require('status');
