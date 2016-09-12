@@ -2,7 +2,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
 import {refreshLocation, loadApps} from './DataActions';
-require('react-datetime');
+
 
 export class DataPage extends React.Component {
   constructor (props) {
