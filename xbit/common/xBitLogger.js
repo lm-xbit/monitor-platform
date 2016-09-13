@@ -9,4 +9,8 @@ var logger = bunyan.createLogger({
     streams
 });
 
-module.exports = logger;
+module.exports = {
+    createLogger (options = {}) {
+        return logger.child({module: options.module || 'default'});
+    }
+};

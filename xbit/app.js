@@ -15,7 +15,8 @@ var routes = require('routes/index');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
-var logger = require('common/xBitLogger');
+var xBitLogger = require('common/xBitLogger');
+var logger = xBitLogger.createLogger();
 
 // passport config
 var User = require("./models/user");

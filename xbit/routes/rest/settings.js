@@ -6,7 +6,7 @@ var User = require('models/user');
 var shortID = require("shortid");
 
 var xBitLogger = require('common/xBitLogger');
-var logger = xBitLogger.child({category: 'setting'});
+var logger = xBitLogger.createLogger({module: 'setting'});
 
 var Resp = require('resp');
 var StatusCodes = require('status');

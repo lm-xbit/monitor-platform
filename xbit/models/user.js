@@ -5,7 +5,7 @@ var moment = require('moment');
 var Schema = mongoose.Schema;
 
 var xBitLogger = require('common/xBitLogger');
-var logger = xBitLogger.child({category: 'user'});
+var logger = xBitLogger.createLogger({module: 'user'});
 
 function dateFormat(time) {
   var date = new Date();

@@ -6,7 +6,7 @@ var passport = require('passport');
 var User = require('models/user');
 
 var xBitLogger = require('common/xBitLogger');
-var logger = xBitLogger.child({category: 'data'});
+var logger = xBitLogger.createLogger({module: 'data'});
 
 // fix me: debugging mode
 // logger.level("debug");
