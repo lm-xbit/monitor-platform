@@ -9,7 +9,7 @@
     "static": "http-server ./dist -p 8080",
     "build": "cp -r ./front-end/resources/ ./public && npm run compile",
     "eslint": "eslint --ext .js,.jsx front-end/** --ignore-path ./front-end/.eslintignore --fix",
-    "start": "node ./bin/www",
+    "start": "node ./bin/www | node_modules/bunyan/bin/bunyan",
     "debug": "node --debug ./bin/www"
   },
   "devDependencies": {

@@ -8,7 +8,8 @@ var ses = require('nodemailer-ses-transport');
 var configs = require('config');
 
 var router = express.Router();
-var logger = bunyan.createLogger({name: "data"});
+var xbitLogger = require('common/xBitLogger');
+logger = xbitLogger.createLogger();
 
 /**
  * Page to input email to send reset password token

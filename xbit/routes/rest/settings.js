@@ -4,7 +4,9 @@ var express = require('express');
 var passport = require('passport');
 var User = require('models/user');
 var shortID = require("shortid");
-var logger = bunyan.createLogger({name: "settings"});
+
+var xBitLogger = require('common/xBitLogger');
+var logger = xBitLogger.createLogger({module: 'setting'});
 
 var Resp = require('resp');
 var StatusCodes = require('status');

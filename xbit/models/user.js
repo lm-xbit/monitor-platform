@@ -4,6 +4,9 @@ var moment = require('moment');
 
 var Schema = mongoose.Schema;
 
+var xBitLogger = require('common/xBitLogger');
+var logger = xBitLogger.createLogger({module: 'user'});
+
 function dateFormat(time) {
   var date = new Date();
   date.setTime(time);
@@ -119,7 +122,7 @@ UserKeySchema.set('toJSON', {
 });
 
 UserSchema.pre('save', function(next) {
-  console.info("Try to save the user");
+  logger.info("Try to save the user");
   var now = Date.now();
   this.updateOn = now;
 
