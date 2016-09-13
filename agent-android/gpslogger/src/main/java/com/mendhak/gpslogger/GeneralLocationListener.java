@@ -66,7 +66,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
                 b.putInt("SATELLITES_FIX", satellitesUsedInFix);
 
                 loc.setExtras(b);
-                loggingService.onLocationChanged(loc);
+                // loggingService.onLocationChanged(loc);
 
                 this.latestHdop = "";
                 this.latestPdop = "";
@@ -81,19 +81,19 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
     public void onProviderDisabled(String provider) {
         LOG.info("Provider disabled: " + provider);
-        loggingService.restartGpsManagers();
+        loggingService.restartLogging();
     }
 
     public void onProviderEnabled(String provider) {
 
         LOG.info("Provider enabled: " + provider);
-        loggingService.restartGpsManagers();
+        loggingService.restartLogging();
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras) {
         if (status == LocationProvider.OUT_OF_SERVICE) {
             LOG.info(provider + " is out of service");
-            loggingService.finishLocationUpdate();
+            // loggingService.finishGPSLocationUpdate();
         }
 
         if (status == LocationProvider.AVAILABLE) {
@@ -102,7 +102,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
 
         if (status == LocationProvider.TEMPORARILY_UNAVAILABLE) {
             LOG.info(provider + " is temporarily unavailable");
-            loggingService.finishLocationUpdate();
+            // loggingService.finishGPSLocationUpdate();
         }
     }
 

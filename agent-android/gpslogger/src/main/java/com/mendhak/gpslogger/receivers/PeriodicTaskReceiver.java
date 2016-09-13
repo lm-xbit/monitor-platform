@@ -39,23 +39,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private OkHttpClient httpclient;
 
-    static {
-        /*
-        if(LOG instanceof ch.qos.logback.classic.Logger){
-            ((ch.qos.logback.classic.Logger)LOG).setLevel(Level.ALL);
-        }
-        else {
-            LOG.warn("Logger cannot change loglevel to ALL");
-        }
-        */
-    }
-
     /**
      * We can gather sample at 5 seconds minimum, we try to cache at most 1 minutes data (so it is 12 slots) We report either the cache is full or we
      * have reached the report interval
      */
-    private final static int _SAMPLING_INTERVAL = 5 * 1000;
-    private final static int _REPORTING_INTERVAL = 60 * 1000;
     private final static int _SLOT_NUM = 60;
     private final List<Sample> _samples = new ArrayList<Sample>(_SLOT_NUM);
 
@@ -143,12 +130,6 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
-                /*
-                LOG.debug("Try collecting a GPS sample");
-                Intent startServiceIntent = new Intent(context, GpsLoggingService.class);
-                startServiceIntent.putExtra(IntentConstants.SAMPLE_LOCATION, true);
-                context.startService(startServiceIntent);
-                */
                 long now = System.currentTimeMillis();
                 if ((now - _lastReportEpoch) >= _reportInterval) {
                     LOG.debug("Time to reporter data ...");

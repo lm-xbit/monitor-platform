@@ -3,21 +3,19 @@ package com.mendhak.gpslogger.common;
 public class IntentConstants {
     public final static String IMMEDIATE_STOP = "immediatestop";
     public final static String IMMEDIATE_START =  "immediatestart";
-    public static final String AUTOSEND_NOW = "emailAlarm";
-    public static final String GET_NEXT_POINT = "getnextpoint";
-    public static final String SET_DESCRIPTION = "setnextpointdescription";
-    public static final String PREFER_CELLTOWER = "setprefercelltower";
-    public static final String TIME_BEFORE_LOGGING = "settimebeforelogging";
-    public static final String DISTANCE_BEFORE_LOGGING = "setdistancebeforelogging";
-    public static final String GPS_ON_BETWEEN_FIX = "setkeepbetweenfix";
-    public static final String RETRY_TIME = "setretrytime";
-    public static final String ABSOLUTE_TIMEOUT = "setabsolutetimeout";
-    public static final String LOG_ONCE = "logonce";
-    public static final String SWITCH_PROFILE = "switchprofile";
-
 
     /**
-     * Sample GPS location
+     * Try get next GPS point if GPS is available
      */
-    public static final String SAMPLE_LOCATION = "sampleLocation";
+    public static final String GET_NEXT_GPS_POINT = "next-gps-point";
+
+    /**
+     * Try get next network position if network is available
+     */
+    public static final String GET_NEXT_NETWORK_POINT = "next-network-point";
+
+    public static final String SET_DESCRIPTION = "setnextpointdescription";
+
+    public static final String GPS_LOCATION_UPDATE_TIMEOUT = "gps-location-update-timeout";
+    public static final String NETWORK_LOCATION_UPDATE_TIMEOUT = "network-location-update-timeout";
 }

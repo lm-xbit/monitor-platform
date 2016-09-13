@@ -29,12 +29,23 @@ public class ServiceEvents {
     /**
      * Whether the logging service is still waiting for a location fix
      */
-    public static class WaitingForLocation {
+    public static class WaitingForGPSLocation {
         public boolean waiting;
-        public WaitingForLocation(boolean waiting) {
+        public WaitingForGPSLocation(boolean waiting) {
             this.waiting = waiting;
         }
     }
+
+    /**
+     * Whether the logging service is still waiting for a location fix
+     */
+    public static class WaitingForNetworkLocation {
+        public boolean waiting;
+        public WaitingForNetworkLocation(boolean waiting) {
+            this.waiting = waiting;
+        }
+    }
+
 
     /**
      * Indicates that GPS/Network location services have temporarily gone away

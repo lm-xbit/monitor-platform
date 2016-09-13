@@ -102,18 +102,12 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         rootView = inflater.inflate(R.layout.fragment_simple_view, container, false);
 
 
         if (getActivity() != null) {
             this.context = getActivity().getApplicationContext();
-
         }
-
-        setImageTooltips();
-
-        updateView();
 
         logTextView = (TextView) rootView.findViewById(R.id.logview_txtstatus);
         mScrollView = (ScrollView) rootView.findViewById(R.id.info_scrollView);
@@ -127,6 +121,10 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
             }
         });
 
+        setImageTooltips();
+
+        updateView();
+
         if (Session.hasValidLocation()) {
             displayLocationInfo(Session.getCurrentLocationInfo());
         }
@@ -136,7 +134,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     }
 
     private void updateView() {
-        if (CheckConnectionManager.stance.hasConfig()) {
+        if (!CheckConnectionManager.stance.hasConfig()) {
             mScanBtn.setVisibility(View.GONE);
             mInfoLayout.setVisibility(View.VISIBLE);
             EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
@@ -263,7 +261,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     }
 
     @EventBusHook
-    public void onEventMainThread(ServiceEvents.WaitingForLocation waitingForLocation) {
+    public void onEventMainThread(ServiceEvents.WaitingForGPSLocation waitingForLocation) {
         onWaitingForLocation(waitingForLocation.waiting);
     }
 

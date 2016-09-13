@@ -46,7 +46,7 @@ public class Session {
     private static String description = "";
     private static boolean isSinglePointMode = false;
     private static int retryTimeout = 0;
-    private static boolean waitingForLocation;
+    private static boolean waitingForGPSLocation;
     private static boolean annotationMarked;
     private static String currentFormattedFileName;
     private static long userStillSinceTimeStamp;
@@ -318,12 +318,12 @@ public class Session {
         description = newDescription;
     }
 
-    public static void setWaitingForLocation(boolean waitingForLocation) {
-        Session.waitingForLocation = waitingForLocation;
+    public static void setWaitingForGPSLocation(boolean waitingForLocation) {
+        Session.waitingForGPSLocation = waitingForLocation;
     }
 
-    public static boolean isWaitingForLocation() {
-        return waitingForLocation;
+    public static boolean isWaitingForGPSLocation() {
+        return waitingForGPSLocation;
     }
 
     public static boolean isAnnotationMarked() {
