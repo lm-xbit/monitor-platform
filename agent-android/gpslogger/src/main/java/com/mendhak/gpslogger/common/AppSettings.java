@@ -27,6 +27,7 @@ import com.mendhak.gpslogger.BuildConfig;
 import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.common.slf4j.Logs;
+import com.mendhak.gpslogger.utils.CrashHandler;
 import com.path.android.jobqueue.JobManager;
 import com.path.android.jobqueue.config.Configuration;
 import com.path.android.jobqueue.log.CustomLogger;
@@ -47,6 +48,10 @@ public class AppSettings extends Application {
         super.onCreate();
 
         gContext = this;
+
+        // 记录崩溃异常
+        CrashHandler crashHandler = new CrashHandler(gContext);
+        Thread.setDefaultUncaughtExceptionHandler(crashHandler);
 
         //Configure the slf4j logger
         Logs.configure();
