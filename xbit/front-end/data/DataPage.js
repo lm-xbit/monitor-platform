@@ -3,6 +3,7 @@ import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
 import {refreshLocation, loadApps} from './DataActions';
 
+
 export class DataPage extends React.Component {
   constructor (props) {
     super(props);
@@ -18,7 +19,21 @@ export class DataPage extends React.Component {
     console.log('will mount');
     // this.props.actions.refreshLocation(this.state.app);
     this.props.actions.loadApps();
+    var primary = null;
+    this.props.apps.forEach(
+      app => {
+        if (app.primary) {
+          primary = app;
+        }
+      }
+    );
 
+    if (!primary && this.props.apps.length > 0) {
+      primary = this.props.apps[0];
+    }
+
+    this.state.app = primary;
+    this.props.actions.refreshLocation(this.state.app);
   };
 
   handleAppChange (event) {
@@ -53,14 +68,15 @@ export class DataPage extends React.Component {
     this.state.app = primary;
     return (
       <div>
-        <select className="form-control" style={{width: '200px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
+        <select className="form-control" style={{display: 'inline-block', float: 'left', width: '200px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
           {
             this.props.apps.map(
               app => <option value={app.key}>{app.name}</option>
             )
           }
         </select>
-        <button type="button" className="btn btn-primary" onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
+        <button type="button" className="btn btn-primary" style={{display: 'inline-block', float: 'left'}}
+  onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
         <table className="table table-striped">
           <thead>
             <tr>
@@ -108,7 +124,6 @@ DataPage.propTypes = {
 
   })
 };
-
 
 const mapStateToProps = (state) => {
   return {

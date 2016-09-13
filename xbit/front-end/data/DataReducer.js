@@ -18,7 +18,6 @@ const apps = (state = [], action) => {
   }
 };
 
-
 export default combineReducers({
   apps, locations
 });
