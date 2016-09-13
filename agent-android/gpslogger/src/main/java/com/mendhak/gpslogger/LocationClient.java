@@ -19,12 +19,10 @@
 
 package com.mendhak.gpslogger;
 
-import android.Manifest;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import com.canelmas.let.AskPermission;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import org.slf4j.Logger;
@@ -70,7 +68,6 @@ class LocationClient implements LocationListener {
         this.loggingService = loggingService;
     }
 
-    @AskPermission({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     public void start() throws SecurityException {
         if(!requestingLocationUpdate) {
             requestLocationUpdate();
