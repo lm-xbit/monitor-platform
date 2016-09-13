@@ -13,6 +13,7 @@
 package com.mendhak.gpslogger;
 
 
+import android.Manifest;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,11 +24,14 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.LocationManager;
 import android.os.*;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.*;
+import android.widget.Toast;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
@@ -52,6 +56,7 @@ import java.util.Set;
 
 public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
+    private static final int REQUEST_CODE_ASK_PERMISSIONS = 18;
     private static boolean userInvokedUpload;
     private static Intent serviceIntent;
     private ActionBarDrawerToggle drawerToggle;
@@ -73,9 +78,9 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         setUpToolbar();
         setUpNavigationDrawer(savedInstanceState);
 
-        loadDefaultFragmentView();
-        startAndBindService();
         registerEventBus();
+
+        reqPermissions();
     }
 
     @Override
@@ -98,6 +103,25 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         } catch (Throwable t) {
             //this may crash if registration did not go through. just be safe
         }
+    }
+
+    private void reqPermissions() {
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+                return;
+            }
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
+
+        showMainPage();
+    }
+
+    private void showMainPage() {
+        loadDefaultFragmentView();
+        startAndBindService();
     }
 
     @Override
@@ -277,9 +301,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         };
 
         materialDrawer = new DrawerBuilder().withActivity(this).withSavedInstance(savedInstanceState).withToolbar(getToolbar())
-                .withActionBarDrawerToggle(drawerToggle)
-                .withDrawerGravity(Gravity.LEFT)
-                .withSelectedItem(-1).build();
+                .withActionBarDrawerToggle(drawerToggle).withDrawerGravity(Gravity.LEFT).withSelectedItem(-1).build();
 
 
         materialDrawer.addItem(GpsLoggerDrawerItem.newPrimary(R.string.pref_general_title, R.string.pref_general_summary, R.drawable.settings, 1000));
@@ -294,15 +316,15 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
             @Override
             public boolean onItemClick(View view, int i, IDrawerItem iDrawerItem) {
                 switch (iDrawerItem.getIdentifier()) {
-                case 1000:
-                    launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GENERAL);
-                    break;
-                case 1001:
-                    launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
-                    break;
-                case 1002:
-                    CaptureActivity.launch(GpsMainActivity.this);
-                    break;
+                    case 1000:
+                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.GENERAL);
+                        break;
+                    case 1001:
+                        launchPreferenceScreen(MainPreferenceActivity.PREFERENCE_FRAGMENTS.PERFORMANCE);
+                        break;
+                    case 1002:
+                        CaptureActivity.launch(GpsMainActivity.this);
+                        break;
                 }
                 return false;
             }
@@ -341,8 +363,8 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         LOG.debug("Menu Item: " + String.valueOf(item.getTitle()));
 
         switch (id) {
-        default:
-            return true;
+            default:
+                return true;
         }
     }
 
@@ -417,6 +439,23 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                 Dialogs.error(getString(R.string.sorry), getString(R.string.upload_failure), upload.message, upload.throwable, this);
                 userInvokedUpload = false;
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    showMainPage();
+                } else {
+                    // Permission Denied
+                    Toast.makeText(GpsMainActivity.this, "ACCESS_FINE_LOCATION Denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
