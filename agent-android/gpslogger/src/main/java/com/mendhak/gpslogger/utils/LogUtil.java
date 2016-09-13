@@ -1,6 +1,6 @@
 package com.mendhak.gpslogger.utils;
 
-import android.support.v4.BuildConfig;
+import com.mendhak.gpslogger.BuildConfig;
 import android.util.Log;
 import com.mendhak.gpslogger.common.AppSettings;
 
