@@ -134,7 +134,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
     }
 
     private void updateView() {
-        if (!CheckConnectionManager.stance.hasConfig()) {
+        if (CheckConnectionManager.stance.hasConfig()) {
             mScanBtn.setVisibility(View.GONE);
             mInfoLayout.setVisibility(View.VISIBLE);
             EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
