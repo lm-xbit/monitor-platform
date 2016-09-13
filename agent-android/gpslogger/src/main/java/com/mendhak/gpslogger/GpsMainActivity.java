@@ -14,6 +14,7 @@ package com.mendhak.gpslogger;
 
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,8 +25,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.LocationManager;
 import android.os.*;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -51,12 +50,11 @@ import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
-    private static final int REQUEST_CODE_ASK_PERMISSIONS = 18;
+    private static final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 98;
     private static boolean userInvokedUpload;
     private static Intent serviceIntent;
     private ActionBarDrawerToggle drawerToggle;
@@ -105,18 +103,37 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private void reqPermissions() {
-        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+        List<String> permissionsNeeded = new ArrayList();
+        final List<String> permissionsList = new ArrayList();
+        if (!addPermission(permissionsList, Manifest.permission.ACCESS_FINE_LOCATION)) permissionsNeeded.add("GPS");
+        if (!addPermission(permissionsList, Manifest.permission.CAMERA)) permissionsNeeded.add("CAMERA");
+        if (!addPermission(permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE)) permissionsNeeded.add("Write STORAGE");
+
+        if (permissionsList.size() > 0) {
+            if (permissionsNeeded.size() > 0) {
+                for (int i = 1; i < permissionsNeeded.size(); i++) {
+                    requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+                }
                 return;
             }
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
             return;
         }
 
         showMainPage();
+    }
+
+    private boolean addPermission(List<String> permissionsList, String permission) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsList.add(permission);
+                // Check for Rationale Option
+                if (!shouldShowRequestPermissionRationale(permission)) return false;
+            }
+        }
+        return true;
     }
 
     private void showMainPage() {
@@ -445,15 +462,27 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission Granted
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS: {
+                Map<String, Integer> perms = new HashMap<String, Integer>();
+                // Initial
+                perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.CAMERA, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && perms.get(Manifest.permission
+                        .CAMERA) == PackageManager.PERMISSION_GRANTED && perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager
+                        .PERMISSION_GRANTED) {
+                    // All Permissions Granted
                     showMainPage();
                 } else {
                     // Permission Denied
-                    Toast.makeText(GpsMainActivity.this, "ACCESS_FINE_LOCATION Denied", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Some Permission is Denied", Toast.LENGTH_SHORT).show();
                 }
-                break;
+            }
+            break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
