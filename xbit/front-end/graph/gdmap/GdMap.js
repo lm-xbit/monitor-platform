@@ -7,6 +7,8 @@ export class GdMap extends React.Component {
     super(props);
 
     this.state = {
+      timer: null,
+
       map: null,
 
       hot: {
@@ -42,11 +44,18 @@ export class GdMap extends React.Component {
         map.addControl(scale);
       });
 
-      setInterval(function () {
+      self.state.timer = setInterval(function () {
         updateLocation(map, self.state.hot, self.state.app);
       }, 3000); }
     );
   };
+
+  componentWillUnmount () {
+    if(this.state.timer !== null) {
+      clearInterval(this.state.timer);
+      this.state.timer = null;
+    }
+  }
 
   handleAppChange (event) {
     var key = event.target.value;
