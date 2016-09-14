@@ -12,7 +12,6 @@
 
 package com.mendhak.gpslogger.ui.fragments.display;
 
-import android.Manifest;
 import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
@@ -27,12 +26,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.Toast;
-import com.canelmas.let.AskPermission;
+import android.widget.*;
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.Manager.ReportInfoManager;
@@ -471,7 +465,7 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
         StringBuilder sb = new StringBuilder();
         Location location = Session.getCurrentLocationInfo();
 
-        sb.append(Session.getStatus()).append("<br />").append("<br />");
+        sb.append(Session.getStatusText()).append("<br />");
 
         // location
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -510,8 +504,6 @@ public class GpsSimpleViewFragment extends GenericViewFragment implements View.O
 
     }
 
-    @AskPermission({Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest
-            .permission.WRITE_EXTERNAL_STORAGE})
     private void toCaptureActivity() {
         CaptureActivity.launch(getActivity());
     }

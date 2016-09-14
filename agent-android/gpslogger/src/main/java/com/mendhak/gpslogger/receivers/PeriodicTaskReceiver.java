@@ -180,9 +180,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
             return new Sample(curTime);
         } else {
+            /*
             LOG.debug(String.format("Has valid current location for sample - %d: (lat=%.2f, lng=%.2f, alt=%.2f, acc=%.2f)", curTime, location
-                    .getLatitude(), location.getLongitude(), location.getAccuracy(), location.getAccuracy()));
-
+                    .getLatitude(), location.getLongitude(), location.getAltitude(), location.getAccuracy()));
+            */
             return new Sample(curTime, location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getSpeed(), location
                     .getBearing(), location.getAccuracy());
         }
@@ -224,7 +225,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         } else {
             ReportInfoManager.stance.setMessage(String.format("Reporting is successful, and payload:\n" + retString));
 
-            LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
+            // LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
         }
 
         // LOG.info("Receive response - " + retString);
@@ -356,7 +357,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         protected Void doInBackground(JSONObject... samples) {
             try {
-                LOG.debug("Try reporting back " + samples.length + " samples to server ...");
+                // LOG.debug("Try reporting back " + samples.length + " samples to server ...");
                 for (JSONObject data : samples) {
                     _reportGpsData(data);
                 }

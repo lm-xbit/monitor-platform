@@ -29,8 +29,8 @@ import com.mendhak.gpslogger.common.slf4j.Logs;
 import org.slf4j.Logger;
 
 /**
- * A location client request data from given location provider on given interval
- * Once it received a value it will be saved to GpsLoggingService for further processing
+ * A location client request data from given location provider on given interval Once it received a value it will be saved to GpsLoggingService for
+ * further processing
  *
  * The provider could be a passive provider, a network provider or a GPS provider
  */
@@ -74,14 +74,14 @@ class LocationClient implements LocationListener {
     }
 
     public void start() throws SecurityException {
-        if(!requestingLocationUpdate) {
+        if (!requestingLocationUpdate) {
             requestLocationUpdate();
             requestingLocationUpdate = true;
         }
     }
 
     public void stop() {
-        if(requestingLocationUpdate) {
+        if (requestingLocationUpdate) {
             stopLocationUpdate();
             requestingLocationUpdate = false;
         }
@@ -115,8 +115,9 @@ class LocationClient implements LocationListener {
      * This event is raised when the GeneralLocationListener has a new location. This method in turn updates notification, writes to file, reobtains
      * preferences, notifies main service client and resets location managers.
      *
-     * If this is a passive location, we simply record it (unless we are requesting updates)
-     * otherwise, we need to favor the location updates in following order: GPS location > Cell location > Passive Location
+     * If this is a passive location, we simply record it (unless we are requesting updates) otherwise, we need to favor the location updates in
+     * following order: GPS location > Cell location > Passive Location
+     *
      * @param loc
      *         Location object
      */
@@ -149,6 +150,8 @@ class LocationClient implements LocationListener {
             // update the first location here
             loggingService.onLocationChanged(this, currentLocation);
         }
+
+        Session.setCurrentLocationInfo(currentLocation);
 
         LOG.debug("Start timeout timer for GPS of " + interval + " milli seconds");
 

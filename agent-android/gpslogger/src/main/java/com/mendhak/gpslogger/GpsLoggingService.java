@@ -251,6 +251,36 @@ public class GpsLoggingService extends Service {
     private void handleIntent(Intent intent) {
         ActivityRecognitionResult arr = ActivityRecognitionResult.extractResult(intent);
         if (arr != null) {
+            String detectedActivity = "";
+            switch(arr.getMostProbableActivity().getType()) {
+            case DetectedActivity.IN_VEHICLE:
+                detectedActivity = getString(R.string.activity_in_vehicle);
+                break;
+            case DetectedActivity.STILL:
+                detectedActivity = getString(R.string.activity_still);
+                break;
+            case DetectedActivity.ON_BICYCLE:
+                detectedActivity = getString(R.string.activity_on_bicycle);
+                break;
+            case DetectedActivity.ON_FOOT:
+                detectedActivity = getString(R.string.activity_on_foot);
+                break;
+            case DetectedActivity.RUNNING:
+                detectedActivity = getString(R.string.activity_running);
+                break;
+            case DetectedActivity.TILTING:
+                detectedActivity = getString(R.string.activity_tilting);
+                break;
+            case DetectedActivity.WALKING:
+                detectedActivity = getString(R.string.activity_walking);
+                break;
+            // case DetectedActivity.UNKNOWN:
+            default:
+                detectedActivity = getString(R.string.activity_unknown);
+                break;
+            }
+
+            Session.setActivity(detectedActivity, arr.getMostProbableActivity().getConfidence());
             EventBus.getDefault().post(new ServiceEvents.ActivityRecognitionEvent(arr));
             return;
         }

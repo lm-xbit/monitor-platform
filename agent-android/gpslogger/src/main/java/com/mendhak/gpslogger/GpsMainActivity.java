@@ -66,7 +66,7 @@ import java.util.Set;
 
 public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
-    private static final int REQUEST_CODE_ASK_PERMISSIONS = 18;
+    private static final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 98;
     private static boolean userInvokedUpload;
     private static Intent serviceIntent;
     private ActionBarDrawerToggle drawerToggle;
@@ -146,8 +146,9 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
 
         requestingPermission = true;
 
+
         // main page will be shown in callback ...
-        ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_PERMISSIONS);
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
     }
 
     @Override
@@ -471,7 +472,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE_ASK_PERMISSIONS:
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
                 requestingPermission = false;
 
                 if(grantResults == null || grantResults.length == 0) {
@@ -483,7 +484,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
                     if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                         allGranted = false;
                         // Permission Denied
-                        Toast.makeText(GpsMainActivity.this, "ACCESS_FINE_LOCATION Denied", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GpsMainActivity.this, "Not all permission are granted. Cannot start application", Toast.LENGTH_SHORT).show();
                         break;
                     }
                 }
