@@ -27,9 +27,9 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -76,8 +76,6 @@ import java.text.NumberFormat;
  *    c. for passive provider, we always receive it and save the best result for choosing
  */
 public class GpsLoggingService extends Service {
-    private static final int TWO_MINUTES = 1000 * 60 * 2;
-
     private static NotificationManager notificationManager;
     private static int NOTIFICATION_ID = 8675309;
     private final IBinder binder = new GpsLoggingBinder();
@@ -96,15 +94,13 @@ public class GpsLoggingService extends Service {
 
     private LocationClient gpsLocationClient;
     private LocationClient nwLocationClient;
-    private LocationClient passiveLocationClient;
 
     /**
      * Periodic task to report data ...
      */
-    PeriodicTaskReceiver periodicTaskReceiver = new PeriodicTaskReceiver();
+    PeriodicTaskReceiver periodicTaskReceiver = new PeriodicTaskReceiver(this);
 
-    private Handler handler = new Handler();
-
+    private GeneralLocationListener generalListener;
     private Location gpsLocation = null;
     private Location cellLocation = null;
     private Location passiveLocation = null;
@@ -132,7 +128,8 @@ public class GpsLoggingService extends Service {
      * Start current available location clients
      */
     private void startLocationClients() {
-        if(!checkTowerAndGpsStatus()) {
+        if(!checkLocationProviderStatus()) {
+            Session.setStatus("No location provider available!");
             setLocationServiceUnavailable();
             return;
         }
@@ -141,24 +138,19 @@ public class GpsLoggingService extends Service {
             gpsLocationClient = new LocationClient(LocationManager.GPS_PROVIDER, 2 * 60 * 1000, 200, locationManager, this);
         }
 
+        LOG.info("Try starting GPS location client, GPS enabled? " + Session.isGpsEnabled());
         if(Session.isGpsEnabled()) {
-            LOG.info("Start GPS location client ...");
             gpsLocationClient.start();
-        }
-        else {
-            LOG.info("GPS location client is not available");
         }
 
         if(nwLocationClient == null) {
             nwLocationClient = new LocationClient(LocationManager.NETWORK_PROVIDER, 30 * 1000, 20, locationManager, this);
         }
 
+
+        LOG.info("Try starting NETWORK location client, NETWORK enabled? " + Session.isTowerEnabled());
         if(Session.isTowerEnabled()) {
-            LOG.info("Start NETWORK location client ...");
             nwLocationClient.start();
-        }
-        else {
-            LOG.info("Network location client is not available");
         }
     }
 
@@ -313,12 +305,24 @@ public class GpsLoggingService extends Service {
 
         startLocationClients();
 
-        if(passiveLocationClient == null) {
-            passiveLocationClient = new LocationClient(LocationManager.PASSIVE_PROVIDER, 5 * 1000, 1, locationManager, this);
-        }
-        passiveLocationClient.start();
-
         periodicTaskReceiver.startPeriodicTaskHeartBeat(this);
+
+        if(generalListener == null) {
+            generalListener = new GeneralLocationListener(this, "");
+        }
+
+        /**
+         * The general listener listens for passive updates as well as for GPS status changing ...
+         */
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, generalListener);
+            passiveLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            locationManager.addGpsStatusListener(generalListener);
+            locationManager.addNmeaListener(generalListener);
+        }
+        catch(SecurityException se) {
+            LOG.error("No GPS and NMEA message available");
+        }
     }
 
     /**
@@ -345,8 +349,15 @@ public class GpsLoggingService extends Service {
 
         stopLocationClients();
 
-        if(passiveLocationClient != null) {
-            passiveLocationClient.stop();
+        if(generalListener != null) {
+            try {
+                locationManager.removeUpdates(generalListener);
+                locationManager.removeGpsStatusListener(generalListener);
+                locationManager.removeNmeaListener(generalListener);
+            }
+            catch(SecurityException se) {
+                // ignore
+            }
         }
 
         Session.setCurrentLocationInfo(null);
@@ -421,6 +432,7 @@ public class GpsLoggingService extends Service {
         notificationManager.notify(NOTIFICATION_ID, nfc.build());
     }
 
+    /*
     private Runnable collectLocationRunnable = new Runnable() {
         @Override
         public void run() {
@@ -467,9 +479,9 @@ public class GpsLoggingService extends Service {
                     adjustAltitude(loc);
                 }
 
-                /**
-                 * We may have request both GPS and CELL location, so if GPS is enabled, we shall favor GPS location
-                 */
+                //
+                // We may have request both GPS and CELL location, so if GPS is enabled, we shall favor GPS location
+                //
                 Session.setLatestTimeStamp(System.currentTimeMillis());
                 Session.setCurrentLocationInfo(loc);
                 setDistanceTraveled(loc);
@@ -479,14 +491,15 @@ public class GpsLoggingService extends Service {
                 periodicTaskReceiver.collectLocationSample(GpsLoggingService.this);
             }
         }
-    };
+    }
+    */
 
     /**
      * Check if user has enabled / disabled the location services.
      *
      * Return true if any of the location service has been enabled, false otherwise
      */
-    private boolean checkTowerAndGpsStatus() {
+    private boolean checkLocationProviderStatus() {
         boolean towerEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         Session.setTowerEnabled(towerEnabled);
 
@@ -521,17 +534,57 @@ public class GpsLoggingService extends Service {
      * @param loc
      *         Location object
      */
-    void onLocationChanged(String provider, Location loc) {
-        if("GPS".equalsIgnoreCase(provider)) {
-            gpsLocation = loc;
-            Session.setStatus("GPS Location update requested successfully.");
-        }
-        else if("PASSIVE".equalsIgnoreCase(provider)) {
+    void onLocationChanged(LocationClient client, Location loc) {
+        if(client == null) {
+            // this is passive ...
             passiveLocation = loc;
+            Session.setStatus("Passive provider got a location - " + loc);
         }
-        else if("CELL".equalsIgnoreCase(provider)) {
-            cellLocation = loc;
+        else {
+            String provider = client.getProvider();
+
+            if ("GPS".equalsIgnoreCase(provider)) {
+                gpsLocation = loc;
+                Session.setStatus("GPS provider got a location - " + loc);
+            }
+            else if ("CELL".equalsIgnoreCase(provider)) {
+                cellLocation = loc;
+                Session.setStatus("Network provider got a location - " + loc);
+            }
         }
+
+        if(GPSUtil.isBetterLocation(loc, Session.getCurrentLocationInfo())) {
+            adjustAltitude(loc);
+
+            Session.setLatestTimeStamp(System.currentTimeMillis());
+            Session.setCurrentLocationInfo(loc);
+
+            setDistanceTraveled(loc);
+            showNotification();
+
+            EventBus.getDefault().post(new ServiceEvents.LocationUpdate(loc));
+        }
+    }
+
+    void onStatusChanged(LocationClient client, int status, Bundle extra) {
+        if(status == LocationProvider.AVAILABLE) {
+            Session.setStatus("Provider " + client.getProvider() + " is available");
+            // client.start();
+        }
+        else {
+            Session.setStatus("Provider " + client.getProvider() + " is unavailable");
+            // client.stop();
+        }
+    }
+
+    void onProviderEnabled(LocationClient client) {
+        Session.setStatus("Provider " + client.getProvider() + " is enabled");
+        // client.start();
+    }
+
+    void onProviderDisabled(LocationClient client) {
+        Session.setStatus("Provider " + client.getProvider() + " is disabled");
+        // client.stop();
     }
 
     /**

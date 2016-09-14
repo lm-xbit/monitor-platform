@@ -189,6 +189,10 @@ public class Session {
         return numLegs;
     }
 
+    public static void setNumLegs(int legs) {
+        numLegs = legs;
+    }
+
     public static void setTotalTravelled(double totalTravelled) {
         if (totalTravelled == 0) {
             Session.numLegs = 0;

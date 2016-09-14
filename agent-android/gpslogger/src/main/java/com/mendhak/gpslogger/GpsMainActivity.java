@@ -23,14 +23,23 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.LocationManager;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.*;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
@@ -43,6 +52,7 @@ import com.mendhak.gpslogger.qr.CaptureActivity;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
 import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
+import com.mendhak.gpslogger.utils.PermissionUtil;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
@@ -61,6 +71,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     private static Intent serviceIntent;
     private ActionBarDrawerToggle drawerToggle;
     private static final Logger LOG = Logs.of(GpsMainActivity.class);
+    private boolean requestingPermission = false;
 
     Drawer materialDrawer;
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
@@ -79,8 +90,9 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         setUpNavigationDrawer(savedInstanceState);
 
         registerEventBus();
+        loadDefaultFragmentView();
 
-        reqPermissions();
+        protectedStartAndBindService();
     }
 
     @Override
@@ -105,35 +117,49 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
-    private void reqPermissions() {
-        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
-        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+    private void protectedStartAndBindService() {
+        String[] permissions = {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+
+        if(PermissionUtil.hasPermissions(this, permissions)) {
+            startAndBindService();
+            return;
+        }
+
+        /*
             if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
                 return;
             }
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+        */
+
+        if(requestingPermission) {
+            // do nothing
             return;
         }
 
-        showMainPage();
-    }
+        requestingPermission = true;
 
-    private void showMainPage() {
-        loadDefaultFragmentView();
-        startAndBindService();
+        // main page will be shown in callback ...
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_PERMISSIONS);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        startAndBindService();
+        protectedStartAndBindService();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        startAndBindService();
+        protectedStartAndBindService();
     }
 
     @Override
@@ -446,13 +472,27 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CODE_ASK_PERMISSIONS:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission Granted
-                    showMainPage();
-                } else {
-                    // Permission Denied
-                    Toast.makeText(GpsMainActivity.this, "ACCESS_FINE_LOCATION Denied", Toast.LENGTH_SHORT).show();
+                requestingPermission = false;
+
+                if(grantResults == null || grantResults.length == 0) {
+                    break;
                 }
+
+                boolean allGranted = true;
+                for(int result : grantResults) {
+                    if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                        allGranted = false;
+                        // Permission Denied
+                        Toast.makeText(GpsMainActivity.this, "ACCESS_FINE_LOCATION Denied", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
+
+                if(allGranted) {
+                    // Permission Granted
+                    startAndBindService();
+                }
+
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);

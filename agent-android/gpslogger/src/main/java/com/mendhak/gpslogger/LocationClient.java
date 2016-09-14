@@ -22,6 +22,7 @@ package com.mendhak.gpslogger;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.slf4j.Logs;
@@ -68,6 +69,10 @@ class LocationClient implements LocationListener {
         this.loggingService = loggingService;
     }
 
+    public String getProvider() {
+        return this.provider;
+    }
+
     public void start() throws SecurityException {
         if(!requestingLocationUpdate) {
             requestLocationUpdate();
@@ -84,14 +89,26 @@ class LocationClient implements LocationListener {
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
+        if(status != LocationProvider.AVAILABLE) {
+            LOG.info("Location provider " + this.provider + " (" + provider + ") is available");
+        }
+        else {
+            LOG.warn("Location provider " + this.provider + " (" + provider + ") is not available: " + status);
+        }
+
+        loggingService.onStatusChanged(this, status, extras);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
+        LOG.info("Location provider " + this.provider + " (" + provider + ") is enabled");
+        loggingService.onProviderEnabled(this);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
+        LOG.warn("Location provider " + this.provider + " (" + provider + ") is disabled");
+        loggingService.onProviderDisabled(this);
     }
 
     /**
@@ -105,7 +122,7 @@ class LocationClient implements LocationListener {
      */
     @Override
     public void onLocationChanged(Location loc) {
-        loggingService.onLocationChanged(provider, loc);
+        loggingService.onLocationChanged(this, loc);
     }
 
     /**
@@ -123,12 +140,14 @@ class LocationClient implements LocationListener {
         Session.setStatus("Start requesting location update for " + provider);
 
         // gps satellite based
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, distance, this);
+        locationManager.requestLocationUpdates(provider, interval, distance, this);
 
-        Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location currentLocation = locationManager.getLastKnownLocation(provider);
+
+        LOG.info("Get last known location for provider " + provider + ": " + currentLocation);
         if(currentLocation != null) {
             // update the first location here
-            loggingService.onLocationChanged(provider, currentLocation);
+            loggingService.onLocationChanged(this, currentLocation);
         }
 
         LOG.debug("Start timeout timer for GPS of " + interval + " milli seconds");
