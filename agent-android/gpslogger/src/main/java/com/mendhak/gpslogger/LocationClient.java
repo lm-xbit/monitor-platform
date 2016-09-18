@@ -22,6 +22,7 @@ package com.mendhak.gpslogger;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.slf4j.Logs;
@@ -42,11 +43,11 @@ class LocationClient implements LocationListener {
 
     //
     // interval in milliseconds to receive the update
-    private final int interval;
+    private int interval = 0;
 
     //
     // distance in meters to receive update
-    private final int distance;
+    private int distance = 0;
 
     //
     // logging service
@@ -60,19 +61,38 @@ class LocationClient implements LocationListener {
     // If we have tried to request location update from GPS or CELL provider
     private boolean requestingLocationUpdate = false;
 
-    public LocationClient(String provider, int interval, int distance, LocationManager locationManager, GpsLoggingService loggingService) {
+    public LocationClient(String provider, LocationManager locationManager, GpsLoggingService loggingService) {
         this.provider = provider;
-        this.interval = interval;
-        this.distance = distance;
         this.locationManager = locationManager;
         this.loggingService = loggingService;
     }
 
-    public void start() throws SecurityException {
-        if (!requestingLocationUpdate) {
-            requestLocationUpdate();
-            requestingLocationUpdate = true;
+    public String getProvider() {
+        return this.provider;
+    }
+
+    /**
+     *
+     * @param interval
+     * @param distance
+     * @throws SecurityException
+     */
+    public void start(int interval, int distance) throws SecurityException {
+        if(this.interval == interval && this.distance == distance) {
+            return;
         }
+
+        this.interval = interval;
+        this.distance = distance;
+
+        if(requestingLocationUpdate) {
+            // already started. Stop first
+            stopLocationUpdate();
+        }
+
+
+        requestLocationUpdate();
+        requestingLocationUpdate = true;
     }
 
     public void stop() {
@@ -84,14 +104,26 @@ class LocationClient implements LocationListener {
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
+        if(status != LocationProvider.AVAILABLE) {
+            LOG.info("Location provider " + this.provider + " (" + provider + ") is available");
+        }
+        else {
+            LOG.warn("Location provider " + this.provider + " (" + provider + ") is not available: " + status);
+        }
+
+        loggingService.onStatusChanged(this, status, extras);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
+        LOG.info("Location provider " + this.provider + " (" + provider + ") is enabled");
+        loggingService.onProviderEnabled(this);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
+        LOG.warn("Location provider " + this.provider + " (" + provider + ") is disabled");
+        loggingService.onProviderDisabled(this);
     }
 
     /**
@@ -106,7 +138,7 @@ class LocationClient implements LocationListener {
      */
     @Override
     public void onLocationChanged(Location loc) {
-        loggingService.onLocationChanged(provider, loc);
+        loggingService.onLocationChanged(this, loc);
     }
 
     /**
@@ -121,15 +153,17 @@ class LocationClient implements LocationListener {
             return;
         }
 
-        Session.setStatus("Start requesting location update for " + provider);
+        // Session.setStatus("Start requesting location update for " + provider);
 
         // gps satellite based
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, distance, this);
+        locationManager.requestLocationUpdates(provider, interval, distance, this);
 
-        Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        if (currentLocation != null) {
+        Location currentLocation = locationManager.getLastKnownLocation(provider);
+
+        LOG.info("Get last known location for provider " + provider + ": " + currentLocation);
+        if(currentLocation != null) {
             // update the first location here
-            loggingService.onLocationChanged(provider, currentLocation);
+            loggingService.onLocationChanged(this, currentLocation);
         }
 
         Session.setCurrentLocationInfo(currentLocation);

@@ -14,7 +14,6 @@ package com.mendhak.gpslogger;
 
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,12 +23,23 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.LocationManager;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.*;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 import com.mendhak.gpslogger.common.EventBusHook;
 import com.mendhak.gpslogger.common.PreferenceHelper;
@@ -42,6 +52,7 @@ import com.mendhak.gpslogger.qr.CaptureActivity;
 import com.mendhak.gpslogger.ui.Dialogs;
 import com.mendhak.gpslogger.ui.components.GpsLoggerDrawerItem;
 import com.mendhak.gpslogger.ui.fragments.display.GpsSimpleViewFragment;
+import com.mendhak.gpslogger.utils.PermissionUtil;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 import com.mikepenz.materialdrawer.model.DividerDrawerItem;
@@ -50,7 +61,8 @@ import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenuItemClickListener {
 
@@ -59,6 +71,7 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     private static Intent serviceIntent;
     private ActionBarDrawerToggle drawerToggle;
     private static final Logger LOG = Logs.of(GpsMainActivity.class);
+    private boolean requestingPermission = false;
 
     Drawer materialDrawer;
     private PreferenceHelper preferenceHelper = PreferenceHelper.getInstance();
@@ -77,8 +90,9 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         setUpNavigationDrawer(savedInstanceState);
 
         registerEventBus();
+        loadDefaultFragmentView();
 
-        reqPermissions();
+        protectedStartAndBindService();
     }
 
     @Override
@@ -103,54 +117,50 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private void reqPermissions() {
-        List<String> permissionsNeeded = new ArrayList();
-        final List<String> permissionsList = new ArrayList();
-        if (!addPermission(permissionsList, Manifest.permission.ACCESS_FINE_LOCATION)) permissionsNeeded.add("GPS");
-        if (!addPermission(permissionsList, Manifest.permission.CAMERA)) permissionsNeeded.add("CAMERA");
-        if (!addPermission(permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE)) permissionsNeeded.add("Write STORAGE");
+    private void protectedStartAndBindService() {
+        String[] permissions = {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
 
-        if (permissionsList.size() > 0) {
-            if (permissionsNeeded.size() > 0) {
-                for (int i = 1; i < permissionsNeeded.size(); i++) {
-                    requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
-                }
-                return;
-            }
-            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+        if(PermissionUtil.hasPermissions(this, permissions)) {
+            startAndBindService();
             return;
         }
 
-        showMainPage();
-    }
-
-    private boolean addPermission(List<String> permissionsList, String permission) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsList.add(permission);
-                // Check for Rationale Option
-                if (!shouldShowRequestPermissionRationale(permission)) return false;
+        /*
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+                return;
             }
-        }
-        return true;
-    }
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_ASK_PERMISSIONS);
+        */
 
-    private void showMainPage() {
-        loadDefaultFragmentView();
-        startAndBindService();
+        if(requestingPermission) {
+            // do nothing
+            return;
+        }
+
+        requestingPermission = true;
+
+
+        // main page will be shown in callback ...
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        startAndBindService();
+        protectedStartAndBindService();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        startAndBindService();
+        protectedStartAndBindService();
     }
 
     @Override
@@ -462,27 +472,29 @@ public class GpsMainActivity extends AppCompatActivity implements Toolbar.OnMenu
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS: {
-                Map<String, Integer> perms = new HashMap<String, Integer>();
-                // Initial
-                perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
-                perms.put(Manifest.permission.CAMERA, PackageManager.PERMISSION_GRANTED);
-                perms.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
-                // Fill with results
-                for (int i = 0; i < permissions.length; i++)
-                    perms.put(permissions[i], grantResults[i]);
-                // Check for ACCESS_FINE_LOCATION
-                if (perms.get(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && perms.get(Manifest.permission
-                        .CAMERA) == PackageManager.PERMISSION_GRANTED && perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager
-                        .PERMISSION_GRANTED) {
-                    // All Permissions Granted
-                    showMainPage();
-                } else {
-                    // Permission Denied
-                    Toast.makeText(this, "Some Permission is Denied", Toast.LENGTH_SHORT).show();
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
+                requestingPermission = false;
+
+                if(grantResults == null || grantResults.length == 0) {
+                    break;
                 }
-            }
-            break;
+
+                boolean allGranted = true;
+                for(int result : grantResults) {
+                    if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                        allGranted = false;
+                        // Permission Denied
+                        Toast.makeText(GpsMainActivity.this, "Not all permission are granted. Cannot start application", Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
+
+                if(allGranted) {
+                    // Permission Granted
+                    startAndBindService();
+                }
+
+                break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }

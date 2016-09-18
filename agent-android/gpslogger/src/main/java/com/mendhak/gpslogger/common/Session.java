@@ -52,6 +52,8 @@ public class Session {
     private static long userStillSinceTimeStamp;
 
     private static String status;
+    private static String activity;
+    private static int confidence;
 
     public static boolean isSinglePointMode() {
         return isSinglePointMode;
@@ -187,6 +189,10 @@ public class Session {
 
     public static int getNumLegs() {
         return numLegs;
+    }
+
+    public static void setNumLegs(int legs) {
+        numLegs = legs;
     }
 
     public static void setTotalTravelled(double totalTravelled) {
@@ -356,5 +362,14 @@ public class Session {
 
     public static String getStatus() {
         return status;
+    }
+
+    public static void setActivity(String a, int c) {
+        activity = a;
+        confidence = c;
+    }
+
+    public static String getStatusText() {
+        return "Currently " + activity + " (" + confidence + "%): " + status;
     }
 }

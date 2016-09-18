@@ -48,6 +48,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
      * Event raised when a new fix is received.
      */
     public void onLocationChanged(Location loc) {
+        loggingService.onLocationChanged(null, loc);
 
         try {
             if (loc != null) {
@@ -85,7 +86,6 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
     }
 
     public void onProviderEnabled(String provider) {
-
         LOG.info("Provider enabled: " + provider);
         loggingService.restartLogging();
     }

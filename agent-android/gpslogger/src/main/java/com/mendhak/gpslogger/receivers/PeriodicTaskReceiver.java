@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
+import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
@@ -51,6 +52,11 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private String _appKey;
     private long _reportInterval;
     private long _lastReportEpoch = System.currentTimeMillis();
+    private GpsLoggingService _logginService;
+
+    public PeriodicTaskReceiver(GpsLoggingService logginService) {
+        _logginService = logginService;
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -69,6 +75,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     public void collectLocationSample(Context context) {
         Sample sample = _gatherSample(System.currentTimeMillis());
         _samples.add(sample);
+
+        // # of points not reported
+        Session.setNumLegs(_samples.size());
 
         if (_samples.size() >= (_SLOT_NUM * 2)) {
             LOG.warn("Too many samples have been gathered. Force reporting back to server ...");
@@ -130,6 +139,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
+                collectLocationSample(_logginService);
+
                 long now = System.currentTimeMillis();
                 if ((now - _lastReportEpoch) >= _reportInterval) {
                     LOG.debug("Time to reporter data ...");
@@ -169,9 +180,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
             return new Sample(curTime);
         } else {
+            /*
             LOG.debug(String.format("Has valid current location for sample - %d: (lat=%.2f, lng=%.2f, alt=%.2f, acc=%.2f)", curTime, location
-                    .getLatitude(), location.getLongitude(), location.getAccuracy(), location.getAccuracy()));
-
+                    .getLatitude(), location.getLongitude(), location.getAltitude(), location.getAccuracy()));
+            */
             return new Sample(curTime, location.getLatitude(), location.getLongitude(), location.getAltitude(), location.getSpeed(), location
                     .getBearing(), location.getAccuracy());
         }
@@ -213,7 +225,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         } else {
             ReportInfoManager.stance.setMessage(String.format("Reporting is successful, and payload:\n" + retString));
 
-            LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
+            // LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
         }
 
         // LOG.info("Receive response - " + retString);
@@ -345,7 +357,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         protected Void doInBackground(JSONObject... samples) {
             try {
-                LOG.debug("Try reporting back " + samples.length + " samples to server ...");
+                // LOG.debug("Try reporting back " + samples.length + " samples to server ...");
                 for (JSONObject data : samples) {
                     _reportGpsData(data);
                 }

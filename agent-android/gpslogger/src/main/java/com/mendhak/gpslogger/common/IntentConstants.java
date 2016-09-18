@@ -3,6 +3,7 @@ package com.mendhak.gpslogger.common;
 public class IntentConstants {
     public final static String IMMEDIATE_STOP = "immediatestop";
     public final static String IMMEDIATE_START =  "immediatestart";
+    public final static String GET_NEXT_POINT = "getnextpoint";
 
     /**
      * Try get next GPS point if GPS is available

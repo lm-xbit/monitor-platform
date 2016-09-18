@@ -45,6 +45,13 @@ export class AppSettings extends React.Component {
     this.props.actions.loadAppSettings();
   }
 
+  componentWillUnmount () {
+    if(this.state.connectTimer != null) {
+      clearInterval(this.state.connectTimer);
+      this.state.connectTimer = null;
+    }
+  }
+
   handleInputChange (name) {
     var self = this;
     return function (event) {
