@@ -238,8 +238,7 @@ public class GpsLoggingService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         handleIntent(intent);
 
-        // return START_REDELIVER_INTENT;
-        return START_STICKY;
+         return START_REDELIVER_INTENT;
     }
 
     @Override
