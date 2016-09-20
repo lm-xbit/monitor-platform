@@ -69,7 +69,7 @@ export class DataPage extends React.Component {
     return (
       <div>
         <div>
-        <label style={{'margin-right':'10px',display: 'inline-block', float: 'left', 'padding-top':'10px'}}>Select Application</label>
+        <label style={{'margin-right':'10px',display: 'inline-block', float: 'left', 'padding-top':'5px'}}>Select Application</label>
         <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
           {
             this.props.apps.map(
@@ -77,7 +77,9 @@ export class DataPage extends React.Component {
             )
           }
         </select>
-        <div style={{display: 'inline-block', float: 'left'}}>
+        <button type="button" className="btn btn-primary" style={{display: 'inline-block', float:'right', 'margin-left':'20px'}}
+  onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
+        <div style={{display: 'inline-block', float: 'right'}}>
           <label style={{'margin-right':'10px', 'margin-left':'20px'}}>FROM</label>
           <DateField
             dateFormat="YYYY-MM-DD HH:mm:ss"
@@ -111,8 +113,7 @@ export class DataPage extends React.Component {
           />
       </DateField>
     </div>
-      <button type="button" className="btn btn-primary" style={{display: 'inline-block', float:'right', 'margin-left':'20px'}}
-onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
+
       </div>
         <table className="table table-striped">
           <thead>
@@ -153,7 +154,7 @@ DataPage.propTypes = {
     name: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
-    primary: PropTypes.bool.isRequired
+    primary: PropTypes.bool.isRequired,
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
     refreshLocation: PropTypes.func.isRequired,
