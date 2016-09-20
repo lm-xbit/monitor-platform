@@ -46,7 +46,7 @@ export class AppSettings extends React.Component {
   }
 
   componentWillUnmount () {
-    if(this.state.connectTimer != null) {
+    if (this.state.connectTimer != null) {
       clearInterval(this.state.connectTimer);
       this.state.connectTimer = null;
     }

@@ -1,13 +1,29 @@
 import $ from 'jquery';
 
-export const refreshLocation = (app) => {
-  if (!app) {
-    console.log('Application not ready. Display nothing ...');
-    return;
-  }
-  console.log('will refresh');
+export const refreshLocation = (app, timeRange) => {
   return function (dispatch) {
-    $.getJSON('/rest/data/' + app.key, '', function (json) {
+    if (!app) {
+      console.log('Application not ready. Display nothing ...');
+      return;
+    }
+
+    var url = '/rest/data/' + app.key;
+
+    // if we have valid timeRange, let's pass that info
+    if (timeRange && timeRange.from && timeRange.to) {
+      url += '?from=';
+      url += timeRange.from;
+      url += '&to=';
+      url += timeRange.to;
+    }
+
+    console.log('Refresh data with url - ' + url);
+    $.getJSON(url, '', function (json) {
+      if (!json || !json.data) {
+        console.log('No data retrieved. Displaying nothing ...');
+        return;
+      }
+
       dispatch(locationGot(json.data));
     });
   };
@@ -23,6 +39,7 @@ export const locationGot = (resp) => {
       accuracy: location.location.accuracy
     };
   });
+
   return {
     type: 'DISPLAY_LOCATION',
     locations

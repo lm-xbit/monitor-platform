@@ -59,6 +59,14 @@ var indexData = function(timestamp, key, metrics) {
     });
 };
 
+/**
+ * /rest/data/<key>?from=xxx&to=xxx&aggs=xxx
+ *
+ * for queries:
+ *    from: from time in milliseconds
+ *    to:   to time in milliseconds
+ *    aggs: aggregation interval in minutes? shall be seconds?
+ */
 router.get("/:key", function (req, res) {
     if (!req.user) {
         res.render("login");
@@ -75,10 +83,9 @@ router.get("/:key", function (req, res) {
     //         message: "Unknown device"
     //     });
     // }
-
-    var from = req.param('from');
-    var to = req.param('to');
-    var aggs = req.param('aggs');
+    var from = req.query.from;
+    var to = req.query.to;
+    var aggs = req.query.aggs;
 
     if (!aggs) {
         //default is 3 minues
@@ -104,7 +111,6 @@ router.get("/:key", function (req, res) {
         else {
             from = now - count*aggs*60*1000;
         }
-
 
         for (var i = 0; i < count; i++) {
             var location = {};

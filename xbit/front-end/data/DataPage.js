@@ -2,7 +2,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
 import {refreshLocation, loadApps} from './DataActions';
-import { TransitionView, Calendar, DateField, DatePicker } from 'react-date-picker';
+import {TransitionView, Calendar, DateField, DatePicker} from 'react-date-picker';
 import 'react-date-picker/index.css';
 
 export class DataPage extends React.Component {
@@ -10,15 +10,20 @@ export class DataPage extends React.Component {
     super(props);
 
     this.state = {
-      app: null
+      app: null,
+      timeRange: {
+        from: null,
+        to: null
+      }
     };
 
     this.handleAppChange = this.handleAppChange.bind(this);
+    this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
   }
 
   componentWillMount () {
     console.log('will mount');
-    // this.props.actions.refreshLocation(this.state.app);
+
     this.props.actions.loadApps();
     var primary = null;
     this.props.apps.forEach(
@@ -48,9 +53,25 @@ export class DataPage extends React.Component {
     });
 
     this.state.app = selected;
-    // this.forceUpdate();
-    this.props.actions.refreshLocation(this.state.app);
+
+    this.props.actions.refreshLocation(this.state.app, this.state.timeRange);
   }
+
+  handleTimeRangeChange (type) {
+    var self = this;
+    return function (timeStr, time) {
+      var timeMillis = time.dateMoment.valueOf();
+      if (timeMillis === self.state.timeRange[type]) {
+        // not changed
+        return;
+      }
+
+      self.state.timeRange[type] = timeMillis;
+
+      self.props.actions.refreshLocation(self.state.app, self.state.timeRange);
+    };
+  }
+
   render () {
     // let input;
     var primary = null;
@@ -69,72 +90,76 @@ export class DataPage extends React.Component {
     return (
       <div>
         <div>
-        <label style={{'margin-right':'10px',display: 'inline-block', float: 'left', 'padding-top':'5px'}}>Select Application</label>
-        <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
-          {
-            this.props.apps.map(
-              app => <option value={app.key}>{app.name}</option>
-            )
-          }
-        </select>
-        <button type="button" className="btn btn-primary" style={{display: 'inline-block', float:'right', 'margin-left':'20px'}}
-  onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
-        <div style={{display: 'inline-block', float: 'right'}}>
-          <label style={{'margin-right':'10px', 'margin-left':'20px'}}>FROM</label>
-          <DateField
-            dateFormat="YYYY-MM-DD HH:mm:ss"
-            forceValidDate={true}
-            defaultValue={1474353243714}
-          >
-          <DatePicker
-            navigation={true}
-            locale="en"
-            forceValidDate={true}
-            highlightWeekends={true}
-            highlightToday={true}
-            weekNumbers={true}
-            weekStartDay={0}
-            />
-        </DateField>
-        <label style={{'margin-right':'10px', 'margin-left':'10px'}}>TO</label>
-        <DateField
-          dateFormat="YYYY-MM-DD HH:mm:ss"
-          forceValidDate={true}
-          defaultValue={1474353243714}
-        >
-        <DatePicker
-          navigation={true}
-          locale="en"
-          forceValidDate={true}
-          highlightWeekends={true}
-          highlightToday={true}
-          weekNumbers={true}
-          weekStartDay={0}
-          />
-      </DateField>
-    </div>
+          <label style={{marginRight: '10px', display: 'inline-block', float: 'left', paddingTop: '5px'}}>Select Application</label>
+          <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app"
+                  name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
+            {
+              this.props.apps.map(
+                app => <option value={app.key}>{app.name}</option>
+              )
+            }
+          </select>
+          <button type="button" className="btn btn-primary"
+                  style={{display: 'inline-block', float: 'right', marginLeft: '20px'}}
+                  onClick={() => this.props.actions.refreshLocation(this.state.app)}
+          >立即刷新
+          </button>
+          <div style={{display: 'inline-block', float: 'right'}}>
+            <label style={{marginRight: '10px', marginLeft: '20px'}}>FROM</label>
+            <DateField
+              dateFormat="YYYY-MM-DD HH:mm:ss"
+              forceValidDate={true}
+              defaultValue={1474353243714}
+              onChange={this.handleTimeRangeChange('from')}
+            >
+              <DatePicker
+                navigation={true}
+                locale="en"
+                forceValidDate={true}
+                highlightWeekends={true}
+                highlightToday={true}
+                weekNumbers={true}
+                weekStartDay={0}
+              />
+            </DateField>
+            <label style={{marginRight: '10px', marginLeft: '10px'}}>TO</label>
+            <DateField
+              dateFormat="YYYY-MM-DD HH:mm:ss"
+              forceValidDate={true}
+              defaultValue={1474353243714}
+              onChange={this.handleTimeRangeChange('to')}
+            >
+              <DatePicker
+                navigation={true}
+                locale="en"
+                forceValidDate={true}
+                highlightWeekends={true}
+                highlightToday={true}
+                weekNumbers={true}
+                weekStartDay={0}
+              />
+            </DateField>
+          </div>
 
-      </div>
+        </div>
         <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>时间</th>
-              <th>经度</th>
-              <th>纬度</th>
-              <th>高度（米）</th>
-              <th>精度（米）</th>
-            </tr>
-          </thead>
+          <thead> <tr>
+            <th>时间</th>
+            <th>经度</th>
+            <th>纬度</th>
+            <th>高度（米）</th>
+            <th>精度（米）</th>
+          </tr> </thead>
           <tbody>
-            {this.props.locations.map(app =>
-              <tr style={{height: '30px'}}>
-                <td style={{'line-height': '30px'}}>{new Date(app.timestamp).toString()}</td>
-                <td style={{'line-height': '30px'}}>{app.longitude}</td>
-                <td style={{'line-height': '30px'}}>{app.latitude}</td>
-                <td style={{'line-height': '30px'}}>{app.altitude}</td>
-                <td style={{'line-height': '30px'}}>{app.accuracy}</td>
-              </tr>
-            )}
+          {this.props.locations.map(app =>
+            <tr style={{height: '30px'}}>
+              <td style={{lineHeight: '30px'}}>{new Date(app.timestamp).toString()}</td>
+              <td style={{lineHeight: '30px'}}>{app.longitude}</td>
+              <td style={{lineHeight: '30px'}}>{app.latitude}</td>
+              <td style={{lineHeight: '30px'}}>{app.altitude}</td>
+              <td style={{lineHeight: '30px'}}>{app.accuracy}</td>
+            </tr>
+          )}
           </tbody>
         </table>
       </div>

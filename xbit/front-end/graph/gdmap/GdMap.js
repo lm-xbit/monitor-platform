@@ -51,7 +51,7 @@ export class GdMap extends React.Component {
   };
 
   componentWillUnmount () {
-    if(this.state.timer !== null) {
+    if (this.state.timer !== null) {
       clearInterval(this.state.timer);
       this.state.timer = null;
     }
