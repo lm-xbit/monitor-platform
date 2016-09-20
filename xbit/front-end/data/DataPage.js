@@ -2,7 +2,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import React, {PropTypes} from 'react';
 import {refreshLocation, loadApps} from './DataActions';
-
+import { TransitionView, Calendar, DateField, DatePicker } from 'react-date-picker';
+import 'react-date-picker/index.css';
 
 export class DataPage extends React.Component {
   constructor (props) {
@@ -65,18 +66,54 @@ export class DataPage extends React.Component {
       primary = this.props.apps[0];
     }
 
-    this.state.app = primary;
     return (
       <div>
-        <select className="form-control" style={{display: 'inline-block', float: 'left', width: '200px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
+        <div>
+        <label style={{'margin-right':'10px',display: 'inline-block', float: 'left', 'padding-top':'10px'}}>Select Application</label>
+        <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app" name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
           {
             this.props.apps.map(
               app => <option value={app.key}>{app.name}</option>
             )
           }
         </select>
-        <button type="button" className="btn btn-primary" style={{display: 'inline-block', float: 'left'}}
-  onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
+        <div style={{display: 'inline-block', float: 'left'}}>
+          <label style={{'margin-right':'10px', 'margin-left':'20px'}}>FROM</label>
+          <DateField
+            dateFormat="YYYY-MM-DD HH:mm:ss"
+            forceValidDate={true}
+            defaultValue={1474353243714}
+          >
+          <DatePicker
+            navigation={true}
+            locale="en"
+            forceValidDate={true}
+            highlightWeekends={true}
+            highlightToday={true}
+            weekNumbers={true}
+            weekStartDay={0}
+            />
+        </DateField>
+        <label style={{'margin-right':'10px', 'margin-left':'10px'}}>TO</label>
+        <DateField
+          dateFormat="YYYY-MM-DD HH:mm:ss"
+          forceValidDate={true}
+          defaultValue={1474353243714}
+        >
+        <DatePicker
+          navigation={true}
+          locale="en"
+          forceValidDate={true}
+          highlightWeekends={true}
+          highlightToday={true}
+          weekNumbers={true}
+          weekStartDay={0}
+          />
+      </DateField>
+    </div>
+      <button type="button" className="btn btn-primary" style={{display: 'inline-block', float:'right', 'margin-left':'20px'}}
+onClick={() => this.props.actions.refreshLocation(this.state.app)}>立即刷新</button>
+      </div>
         <table className="table table-striped">
           <thead>
             <tr>
