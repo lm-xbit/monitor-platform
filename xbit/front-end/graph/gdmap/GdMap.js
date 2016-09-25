@@ -1,7 +1,10 @@
 import React, {PropTypes} from 'react';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {updateLocation, loadGdMap, loadApps} from './GdMapActions';
+import {updateLocation, loadGdMap, loadApps, replayOnMap} from './GdMapActions';
+import {TransitionView, Calendar, DateField, DatePicker} from 'react-date-picker';
+import 'react-date-picker/index.css';
+
 export class GdMap extends React.Component {
   constructor (props) {
     super(props);
@@ -93,6 +96,48 @@ export class GdMap extends React.Component {
 
     return (
       <div style={{height: '100%'}}>
+
+        <button type="button" className="btn btn-primary"
+                style={{display: 'inline-block', float: 'right', marginLeft: '20px'}}
+                onClick={() => this.props.actions.replayOnMap(this.state.map, this.state.hot)}
+        >回放行程
+        </button>
+
+        <div style={{display: 'inline-block', float: 'right'}}>
+          <label style={{marginRight: '10px', marginLeft: '20px'}}>FROM</label>
+          <DateField
+            dateFormat="YYYY-MM-DD HH:mm:ss"
+            forceValidDate={true}
+            defaultValue={(new Date()).valueOf() - 86400000}
+          >
+            <DatePicker
+              navigation={true}
+              locale="en"
+              forceValidDate={true}
+              highlightWeekends={true}
+              highlightToday={true}
+              weekNumbers={true}
+              weekStartDay={0}
+            />
+          </DateField>
+          <label style={{marginRight: '10px', marginLeft: '10px'}}>TO</label>
+          <DateField
+            dateFormat="YYYY-MM-DD HH:mm:ss"
+            forceValidDate={true}
+            defaultValue={(new Date()).valueOf()}
+          >
+            <DatePicker
+              navigation={true}
+              locale="en"
+              forceValidDate={true}
+              highlightWeekends={true}
+              highlightToday={true}
+              weekNumbers={true}
+              weekStartDay={0}
+            />
+          </DateField>
+        </div>
+
         <div style={{height: '50px'}}>
           <form className="form-inline">
             <div className="form-group" style={{marginBottom: '10px'}}>
@@ -122,7 +167,8 @@ GdMap.propTypes = {
     primary: PropTypes.bool.isRequired
   }).isRequired).isRequired,
   actions: React.PropTypes.shape({
-    loadApps: PropTypes.func.isRequired
+    loadApps: PropTypes.func.isRequired,
+    replayOnMap: PropTypes.func.isRequired
   })
 };
 
@@ -136,7 +182,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    actions: bindActionCreators({loadApps}, dispatch),
+    actions: bindActionCreators({loadApps, replayOnMap}, dispatch),
     dispatch
   };
 };

@@ -75,6 +75,45 @@ export const updateLocation = (map, hot, app) => {
   });
 };
 
+export const replayOnMap = (map, hot) => {
+  return function (dispatch) {
+    $.getJSON('/rest/data/' + app.key, '', function (json)  {
+      if (json.data && json.data.length > 0) {
+        var lineArr = new Array();
+        var converted;
+        $.each(json.data, function(n, value) {
+            converted = converter.wgs84togcj02(value.location.longitude, value.location.latitude);
+            lineArr.push(new AMap.LngLat(converted[0], converted[1]));
+            console.log("test" + converted[0] + "," + converted[1]);
+        });
+
+        var polyline = new AMap.Polyline({
+          path:lineArr,
+          strokeColor:"#3366FF",
+          strokeOpacity:1,
+          strokeWeight:5,
+          strokeStyle:"solid",
+          strokeDasharray:[10,5]
+        });
+        polyline.setMap(map);
+        if (!hot.marker) {
+          hot.marker = new window.AMap.Marker({
+            map: map,
+            position: converted
+          });
+
+          // for the first time, let's focus the center ...
+          map.setCenter(converted);
+        }
+        else {
+            map.setCenter(lineArr[0]);
+            hot.marker.moveAlong(lineArr, 80);
+        }
+      }
+    });
+  }
+}
+
 export const loadGdMap = (doneFunction) => {
   $.ajax({
     url: 'http://webapi.amap.com/maps?v=1.3&key=8c8f82d662831ead0c468d335f0b3733',
