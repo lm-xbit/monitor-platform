@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 
-mongoose.connect("mongodb://127.0.0.1/xbit_user");
+var eshost = process.env.MONGOHOST || "127.0.0.1";
+mongoose.connect("mongodb://" + eshost + "/xbit_user");
 mongoose.Promise = global.Promise;
 
 exports = module.exports = mongoose;
