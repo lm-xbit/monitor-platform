@@ -3,15 +3,18 @@ import activeComponent from 'react-router-active-component';
 import 'common/style/index.scss';
 import style from './App.scss';
 
-const NavLink = activeComponent('li');
+const logoSource = 'assets/images/logo.png'; // require('resources/assets/images/logo.png');
+console.log('Logo source: ' + logoSource);
 
+const NavLink = activeComponent('li');
 console.log('Style: ' + style.headerItem, style);
+
 const App = (props) => {
   return (
     <div style={{height: '100%'}}>
       <div className={style.header}>
         <div className={style.headerItem}>
-          <img src={require('resources/assets/images/logo.png')} alt="" height="36px"/>
+          <img src={logoSource} alt="" height="36px"/>
         </div>
         <div className={style.headerItem}>
           <div>

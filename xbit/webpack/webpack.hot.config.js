@@ -32,10 +32,10 @@ config.devServer = {
 
 config.module.loaders = config.module.loaders.concat(
     {
-        test: /\.png|gif/, loader: 'url-loader'
+        test: /\.png|gif/, loader: 'url-loader?limit=8192'
     },
     {
-        test: /\.jpg/, loader: 'url-loader'
+        test: /\.jpg/, loader: 'url-loader?limit=8192'
     },
     {
         // test: /\.scss$/, loader: 'style-loader!css-loader!sass-loader'
