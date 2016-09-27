@@ -5,7 +5,6 @@ import App from './app/App';
 import GraphPage from './graph/GraphPage';
 import SettingPage from './setting/SettingPage';
 import DataPage from './data/DataPage';
-import DemoPage from './demo/DemoPage';
 
 import {Provider} from 'react-redux';
 import {Router, Route, browserHistory, hashHistory, IndexRedirect} from 'react-router'; // eslint-disable-line
@@ -34,9 +33,6 @@ const Xbit = (props) => (  // eslint-disable-line
         />
         <Route path="/setting"
           component={SettingPage}
-        />
-        <Route path="/demo"
-          component={DemoPage}
         />
       </Route>
     </Router>

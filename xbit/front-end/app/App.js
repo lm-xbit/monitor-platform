@@ -26,7 +26,6 @@ const App = (props) => {
                 Data
               </NavLink>
               <NavLink to="/setting" activeClassName="active">Setting</NavLink>
-              <NavLink to="/demo" activeClassName="active">Demo</NavLink>
             </ul>
           </div>
         </div>
