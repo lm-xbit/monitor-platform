@@ -3,7 +3,7 @@ import activeComponent from 'react-router-active-component';
 import 'common/style/index.scss';
 import style from './App.scss';
 
-const logoSource = 'assets/images/logo.png'; // require('resources/assets/images/logo.png');
+const logoSource = '/assets/images/logo.png'; // require('resources/assets/images/logo.png');
 console.log('Logo source: ' + logoSource);
 
 const NavLink = activeComponent('li');
