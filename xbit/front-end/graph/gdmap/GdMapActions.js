@@ -75,27 +75,45 @@ export const updateLocation = (map, hot, app) => {
   });
 };
 
-export const replayOnMap = (map, hot) => {
+export const replayOnMap = (map, hot, app, timeRange) => {
   return function (dispatch) {
-    $.getJSON('/rest/data/' + app.key, '', function (json)  {
+    let url = '/rest/data/' + app.key;
+
+    // add time range
+    url += '?from=';
+    url += timeRange['from'];
+    url += '&to=';
+    url += timeRange['to'];
+
+    $.getJSON(url, '', function (json) {
       if (json.data && json.data.length > 0) {
-        var lineArr = new Array();
+        hot.pause = 1;
+        var lineArr = [];
         var converted;
-        $.each(json.data, function(n, value) {
+        $.each(json.data, function (n, value) {
+          if (value.location.longitude && value.location.latitude) {
             converted = converter.wgs84togcj02(value.location.longitude, value.location.latitude);
-            lineArr.push(new AMap.LngLat(converted[0], converted[1]));
-            console.log("test" + converted[0] + "," + converted[1]);
+            lineArr.push(new window.AMap.LngLat(converted[0], converted[1]));
+            console.log(converted[0] + 'to:' + converted[1]);
+          }
         });
 
-        var polyline = new AMap.Polyline({
-          path:lineArr,
-          strokeColor:"#3366FF",
-          strokeOpacity:1,
-          strokeWeight:5,
-          strokeStyle:"solid",
-          strokeDasharray:[10,5]
-        });
-        polyline.setMap(map);
+        if (timeRange.polyline) {
+          timeRange.polyline.setPath(lineArr);
+          timeRange.polyline.setMap(map);
+        } else {
+          var polyline = new window.AMap.Polyline({
+            path: lineArr,
+            strokeColor: '#3366FF',
+            strokeOpacity: 1,
+            strokeWeight: 5,
+            strokeStyle: 'solid',
+            strokeDasharray: [10, 5]
+          });
+          polyline.setMap(map);
+          timeRange.polyline = polyline;
+        }
+
         if (!hot.marker) {
           hot.marker = new window.AMap.Marker({
             map: map,
@@ -104,15 +122,14 @@ export const replayOnMap = (map, hot) => {
 
           // for the first time, let's focus the center ...
           map.setCenter(converted);
-        }
-        else {
-            map.setCenter(lineArr[0]);
-            hot.marker.moveAlong(lineArr, 80);
+        } else {
+          map.setCenter(lineArr[0]);
+          hot.marker.moveAlong(lineArr, 80);
         }
       }
     });
-  }
-}
+  };
+};
 
 export const loadGdMap = (doneFunction) => {
   $.ajax({
