@@ -139,16 +139,30 @@ router.get("/:key", function (req, res) {
           {
               index: 'xbit',
               type: 'geoData',
-              q: "key:" + deviceKey,
+              // q: "key:" + deviceKey,
               body: {
                   size: 0,
                   query: {
+                      "bool": {
+                          "must": [{
+                              "query_string": {
+                                  "query": "key:" + deviceKey
+                              }
+                          }, {
+                              "range": {
+                                  "@timestamp": {"gte": from, "lte": to}
+                                  // "@timestamp": {"gte": 1474970663765}
+                              }
+                          }]
+                      }
+                      /*
                       range: {
                           "@timestamp": {
                               gte: from,
                               lte: to
                           }
                       }
+                      */
                   },
                   aggs: {
                       "result": {
