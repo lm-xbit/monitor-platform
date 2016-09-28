@@ -139,7 +139,7 @@ router.get("/:key", function (req, res) {
           {
               index: 'xbit',
               type: 'geoData',
-              //q: "key:" + deviceKey,
+              q: "key:" + deviceKey,
               body: {
                   size: 0,
                   query: {
