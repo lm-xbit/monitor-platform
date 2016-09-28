@@ -14,16 +14,25 @@ export class GdMap extends React.Component {
 
       map: null,
 
+      timeRange: {
+        'from': new Date().valueOf() - 86400000,
+        'to': new Date().valueOf(),
+        'polyline': null
+      },
+
       hot: {
         marker: null,
         range: null,
-        circle: null
+        circle: null,
+        // 0:  pause=false, 1: pause=true
+        pause: 0
       },
 
       app: null
     };
 
     this.handleAppChange = this.handleAppChange.bind(this);
+    this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
   }
 
   componentWillMount () {
@@ -48,7 +57,9 @@ export class GdMap extends React.Component {
       });
 
       self.state.timer = setInterval(function () {
-        updateLocation(map, self.state.hot, self.state.app);
+        if (self.state.hot.pause === 0) {
+          updateLocation(map, self.state.hot, self.state.app);
+        }
       }, 3000); }
     );
   };
@@ -76,6 +87,20 @@ export class GdMap extends React.Component {
     updateLocation(this.state.map, this.state.hot, this.state.app);
   }
 
+  handleTimeRangeChange (type) {
+    var self = this;
+    return function (timeStr, time) {
+      var timeMillis = time.dateMoment.valueOf();
+      if (timeMillis === self.state.timeRange[type]) {
+        // not changed
+        return;
+      }
+
+      self.state.timeRange[type] = timeMillis;
+      console.log(self.state.timeRange['from'] + 'to:' + self.state.timeRange['to']);
+    };
+  }
+
   render () {
     if (!this.state.app) {
       var primary = null;
@@ -99,7 +124,7 @@ export class GdMap extends React.Component {
 
         <button type="button" className="btn btn-primary"
                 style={{display: 'inline-block', float: 'right', marginLeft: '20px'}}
-                onClick={() => this.props.actions.replayOnMap(this.state.map, this.state.hot)}
+                onClick={() => this.props.actions.replayOnMap(this.state.map, this.state.hot, this.state.app, this.state.timeRange)}
         >回放行程
         </button>
 
@@ -109,6 +134,7 @@ export class GdMap extends React.Component {
             dateFormat="YYYY-MM-DD HH:mm:ss"
             forceValidDate={true}
             defaultValue={(new Date()).valueOf() - 86400000}
+            onChange={this.handleTimeRangeChange('from')}
           >
             <DatePicker
               navigation={true}
@@ -125,6 +151,7 @@ export class GdMap extends React.Component {
             dateFormat="YYYY-MM-DD HH:mm:ss"
             forceValidDate={true}
             defaultValue={(new Date()).valueOf()}
+            onChange={this.handleTimeRangeChange('to')}
           >
             <DatePicker
               navigation={true}
