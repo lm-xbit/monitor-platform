@@ -12,8 +12,8 @@ export class DataPage extends React.Component {
     this.state = {
       app: null,
       timeRange: {
-        from: null,
-        to: null
+        from: +Date.now() - 3600 * 1000,
+        to: +Date.now()
       }
     };
 
@@ -67,8 +67,6 @@ export class DataPage extends React.Component {
       }
 
       self.state.timeRange[type] = timeMillis;
-
-      self.props.actions.refreshLocation(self.state.app, self.state.timeRange);
     };
   }
 
@@ -89,7 +87,7 @@ export class DataPage extends React.Component {
 
     return (
       <div>
-        <div>
+        <div style={{paddingRight: '200px'}}>
           <label style={{marginRight: '10px', display: 'inline-block', float: 'left', paddingTop: '5px'}}>Select Application</label>
           <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app"
                   name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
@@ -101,7 +99,7 @@ export class DataPage extends React.Component {
           </select>
           <button type="button" className="btn btn-primary"
                   style={{display: 'inline-block', float: 'right', marginLeft: '20px'}}
-                  onClick={() => this.props.actions.refreshLocation(this.state.app)}
+                  onClick={() => this.props.actions.refreshLocation(this.state.app, this.state.timeRange)}
           >立即刷新
           </button>
           <div style={{display: 'inline-block', float: 'right'}}>
@@ -109,7 +107,8 @@ export class DataPage extends React.Component {
             <DateField
               dateFormat="YYYY-MM-DD HH:mm:ss"
               forceValidDate={true}
-              defaultValue={1474353243714}
+              position="right"
+              defaultValue={this.state.timeRange.from}
               onChange={this.handleTimeRangeChange('from')}
             >
               <DatePicker
@@ -126,7 +125,7 @@ export class DataPage extends React.Component {
             <DateField
               dateFormat="YYYY-MM-DD HH:mm:ss"
               forceValidDate={true}
-              defaultValue={1474353243714}
+              defaultValue={this.state.timeRange.to}
               onChange={this.handleTimeRangeChange('to')}
             >
               <DatePicker
