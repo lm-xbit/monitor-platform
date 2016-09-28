@@ -123,7 +123,7 @@ export class GdMap extends React.Component {
       <div style={{height: '100%'}}>
 
         <button type="button" className="btn btn-primary"
-                style={{display: 'inline-block', float: 'right', marginLeft: '20px'}}
+                style={{display: 'inline-block', float: 'right', margin: '0 200px 0 20px'}}
                 onClick={() => this.props.actions.replayOnMap(this.state.map, this.state.hot, this.state.app, this.state.timeRange)}
         >回放行程
         </button>
