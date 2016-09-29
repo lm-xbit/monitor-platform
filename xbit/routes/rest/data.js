@@ -65,7 +65,7 @@ var indexData = function(timestamp, key, metrics) {
  * for queries:
  *    from: from time in milliseconds
  *    to:   to time in milliseconds
- *    aggs: aggregation interval in minutes? shall be seconds?
+ *    aggs: aggregation interval in seconds, if not given, default to 60 seconds
  */
 router.get("/:key", function (req, res) {
     if (!req.user) {
@@ -87,9 +87,9 @@ router.get("/:key", function (req, res) {
     var to = req.query.to;
     var aggs = req.query.aggs;
 
-    if (!aggs) {
-        //default is 3 minues
-        aggs = 3;
+    if (!aggs || aggs < 15) {
+        // don't allow a too small aggregation value
+        aggs = 60;
     }
 
     if (deviceKey == "test") {
@@ -103,23 +103,23 @@ router.get("/:key", function (req, res) {
         var count = 10;
 
         if (from) {
-            count = (to - from)/aggs/60/1000;
+            count = (to - from)/1000/aggs;
             if (count <= 0) {
                 count = 1;
             }
         }
         else {
-            from = now - count*aggs*60*1000;
+            from = now - count*aggs*1000;
         }
 
         for (var i = 0; i < count; i++) {
             var location = {};
             var doc = {};
-            location.latitude = 30.64790065 + i*0.1;
-            location.longitude = 104.02691083 + i*0.2;
+            location.latitude = 30.64790065 + i*0.015;
+            location.longitude = 104.02691083 + i*0.02;
             location.altitude = 500;
             location.accuracy = 50;
-            doc.timestamp = now - i * aggs*60*1000;
+            doc.timestamp = now - i * aggs*1000;
             doc.location = location;
             result.push(doc);
         }
@@ -139,7 +139,6 @@ router.get("/:key", function (req, res) {
           {
               index: 'xbit',
               type: 'geoData',
-              // q: "key:" + deviceKey,
               body: {
                   size: 0,
                   query: {
@@ -151,25 +150,16 @@ router.get("/:key", function (req, res) {
                           }, {
                               "range": {
                                   "@timestamp": {"gte": from, "lte": to}
-                                  // "@timestamp": {"gte": 1474970663765}
                               }
                           }]
                       }
-                      /*
-                      range: {
-                          "@timestamp": {
-                              gte: from,
-                              lte: to
-                          }
-                      }
-                      */
                   },
                   aggs: {
                       "result": {
                           "date_histogram": {
                               "field": "@timestamp",
-                              "interval": aggs + "m",
-                              "min_doc_count": 1
+                              "interval": aggs + "s",
+                              "min_doc_count": 1        // get rid of those empty buckets
                           },
                           "aggs": {
                               "location": {
