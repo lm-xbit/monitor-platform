@@ -60,7 +60,7 @@ var indexData = function(timestamp, key, metrics) {
 };
 
 /**
- * /rest/data/<key>?from=xxx&to=xxx&aggs=xxx
+ * /rest/data/<key>?from=xxx&to=xxx&aggs=xxx&nodata=true|false
  *
  * for queries:
  *    from: from time in milliseconds
@@ -86,6 +86,9 @@ router.get("/:key", function (req, res) {
     var from = req.query.from;
     var to = req.query.to;
     var aggs = req.query.aggs;
+
+    // do we need empty bucket in case no point found in that bucket?
+    var nodata = req.query.nodata === "true";
 
     if (!aggs || aggs < 15) {
         // don't allow a too small aggregation value
@@ -159,7 +162,7 @@ router.get("/:key", function (req, res) {
                           "date_histogram": {
                               "field": "@timestamp",
                               "interval": aggs + "s",
-                              "min_doc_count": 1        // get rid of those empty buckets
+                              "min_doc_count": nodata ? 1 : 0
                           },
                           "aggs": {
                               "location": {

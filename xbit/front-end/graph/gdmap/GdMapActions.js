@@ -42,6 +42,8 @@ export const updateLocation = (map, hot, app) => {
         hot.marker.setPosition(converted);
       }
 
+      /**
+       * Hide the offending circle
       if (!hot.circle) {
         hot.circle = new window.AMap.Circle({
           center: converted,
@@ -56,6 +58,7 @@ export const updateLocation = (map, hot, app) => {
       } else {
         hot.circle.setCenter(converted);
       }
+      */
 
       if (!hot.range) {
         hot.range = new window.AMap.Circle({

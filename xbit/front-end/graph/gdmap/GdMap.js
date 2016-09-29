@@ -23,7 +23,7 @@ export class GdMap extends React.Component {
       hot: {
         marker: null,
         range: null,
-        circle: null,
+        // circle: null,
         // 0:  pause=false, 1: pause=true
         pause: 0
       },
