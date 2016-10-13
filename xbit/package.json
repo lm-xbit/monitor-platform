@@ -57,6 +57,7 @@
     "async": "^2.0.1",
     "body-parser": "~1.13.2",
     "bootstrap": "^3.3.7",
+    "bootstrap-datetime-picker": "^2.3.10",
     "bunyan": "^1.8.1",
     "chai": "~1.8.1",
     "classnames": "^2.2.5",
