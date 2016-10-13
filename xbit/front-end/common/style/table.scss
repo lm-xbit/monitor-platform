@@ -1,5 +1,5 @@
 :global {
-  table {
+  .xbit {
     border-bottom: solid 2px #ccc;
     width: 100%;
     th, td {
@@ -17,13 +17,13 @@
       padding: 4px 5px 4px 10px;
       text-align: left;
     }
-  }
 
-  th:last-child, td:last-child {
-    border-right: none;
-  }
+    th:last-child, td:last-child {
+      border-right: none;
+    }
 
-  tbody tr:nth-of-type(odd) {
-    background: #e1e1e1;
+    tbody tr:nth-of-type(odd) {
+      background: #e1e1e1;
+    }
   }
 }

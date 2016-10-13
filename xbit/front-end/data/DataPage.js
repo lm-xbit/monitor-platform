@@ -90,7 +90,8 @@ export class DataPage extends React.Component {
         <div style={{paddingRight: '200px'}}>
           <label style={{marginRight: '10px', display: 'inline-block', float: 'left', paddingTop: '5px'}}>Select Application</label>
           <select className="form-control" style={{display: 'inline-block', float: 'left', width: '150px'}} id="app"
-                  name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}>
+                  name="app" defaultValue={primary ? primary.key : ''} onChange={this.handleAppChange}
+          >
             {
               this.props.apps.map(
                 app => <option value={app.key}>{app.name}</option>
