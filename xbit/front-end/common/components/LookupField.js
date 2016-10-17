@@ -155,8 +155,7 @@ function renderMenu (items, value, style, autoCompleteComponent) {
     return (
       <div style={{...style, ...autoCompleteComponent.props.menuStyle}}
            children={items}
-      >
-      </div>
+      />
     );
   }
 }
@@ -218,8 +217,7 @@ export default class LookupField extends React.Component {
           placeholder={this.props.placeholder}
           disabled={this.props.disabled}
         />
-        <span className={"icons24 handle"}>
-        </span>
+        <span className={'icons24 handle'} />
       </div>);
   }
 }

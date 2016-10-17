@@ -56,7 +56,8 @@ export class BasicSettings extends React.Component {
             <label htmlFor="username">Username
               <div style={{
                 float: 'right'
-              }}>
+              }}
+              >
                 <a onClick={e => {
                   e.preventDefault();
                   this.setState({
@@ -103,20 +104,23 @@ export class BasicSettings extends React.Component {
             <label htmlFor="email">Email</label>
             <input className="form-control" id="email" name="email" type="email" value={this.props.basic.email} disabled="true" style={{
               width: '100%'
-            }}/>
+            }}
+            />
           </div>
           <div className="form-group">
             <label htmlFor="phone">Phone</label>
             <input className="form-control" id="phone" name="phone" value={this.props.basic.phone} disabled="true" style={{
               width: '100%'
-            }}/>
+            }}
+            />
           </div>
           <div className="form-group">
             <label htmlFor="username">
               Manage Password
               <div style={{
                 float: 'right'
-              }}>
+              }}
+              >
                 <a onClick={e => {
                   e.preventDefault();
                   this.setState({
@@ -131,15 +135,17 @@ export class BasicSettings extends React.Component {
             <div style={{
               display: this.state.changingPassword ? 'none' : 'block',
               width: '100%'
-            }}>
-            </div>
+            }}
+            />
             <div style={{
               display: this.state.changingPassword ? 'block' : 'none',
               width: '100%'
-            }}>
+            }}
+            >
               <div className="input-group" style={{
                 width: '100%'
-              }}>
+              }}
+              >
                 <label className="control-label col-sm-4" htmlFor="password">Old Password</label>
                 <div className="col-sm-8">
                   <input className="form-control" id="password" name="password" type="password" style={{
@@ -153,7 +159,8 @@ export class BasicSettings extends React.Component {
 
               <div className="input-group" style={{
                 width: '100%'
-              }}>
+              }}
+              >
                 <label className="control-label col-sm-4" htmlFor="newPassword">New Password</label>
                 <div className="col-sm-8">
                   <input className="form-control" id="newPassword" name="newPassword" type="password" style={{
@@ -167,7 +174,8 @@ export class BasicSettings extends React.Component {
 
               <div className="input-group" style={{
                 width: '100%'
-              }}>
+              }}
+              >
                 <label className="control-label col-sm-4" htmlFor="repeatPassword">Repeat Password</label>
                 <div className="col-sm-8">
                   <input className="form-control" id="repeatPassword" name="repeatPassword" type="password" style={{
@@ -181,7 +189,8 @@ export class BasicSettings extends React.Component {
 
               <div className="input-group" style={{
                 width: '100%'
-              }}>
+              }}
+              >
                 <label className="control-label col-sm-4">&nbsp;</label>
                 <div className="col-sm-8">
                   <button className="form-control btn btn-warning" onClick={e => {
@@ -211,7 +220,8 @@ export class BasicSettings extends React.Component {
                     this.setState({
                       changingPassword: false
                     });
-                  }}>Submit
+                  }}
+                  >Submit
                   </button>
                 </div>
               </div>

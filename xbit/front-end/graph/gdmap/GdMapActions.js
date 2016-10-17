@@ -2,6 +2,7 @@ import $ from 'jquery';
 import converter from 'coordtransform';
 
 var offset = 1;
+
 export const updateLocation = (map, hot, app) => {
   if (!app) {
     console.log('Application not ready. Display nothing ...');
@@ -42,24 +43,6 @@ export const updateLocation = (map, hot, app) => {
         hot.marker.setPosition(converted);
       }
 
-      /**
-       * Hide the offending circle
-      if (!hot.circle) {
-        hot.circle = new window.AMap.Circle({
-          center: converted,
-          radius: 300,
-          strokeColor: '#F33',
-          strokeOpacity: 1,
-          strokeWeight: 1,
-          fillColor: '#ee2200',
-          fillOpacity: 0.35,
-          map: map
-        });
-      } else {
-        hot.circle.setCenter(converted);
-      }
-      */
-
       if (!hot.range) {
         hot.range = new window.AMap.Circle({
           center: converted,
@@ -78,26 +61,36 @@ export const updateLocation = (map, hot, app) => {
   });
 };
 
+/**
+ * Replay locations. Locations already been converted
+ * @param map
+ * @param replay
+ */
 export const replayLocation = (map, replay) => {
+  console.log('Try replay ' + replay.data.length + ' locations. Past positions: ' + replay.past.length + ', future positions: ' + replay.future.length);
   var pos = replay.data[replay.index];
 
-  var converted = converter.wgs84togcj02(pos.longitude, pos.latitude);
-
+  var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
   if (!replay.marker) {
     replay.marker = new window.AMap.Marker({
       map: map,
-      position: converted
+      position: loc
     });
   } else {
-    replay.marker.setPosition(converted);
+    replay.marker.setPosition(loc);
   }
 
+  replay.marker.setLabel({
+    offset: new window.AMap.Pixel(-20, 40),
+    content: 'Timestamp'
+  });
+
   // for the first time, let's focus the center ...
-  map.setCenter(converted);
+  map.setCenter(loc);
 
   if (!replay.range) {
     replay.range = new window.AMap.Circle({
-      center: converted,
+      center: loc,
       radius: pos.accuracy,
       strokeColor: '#F33',
       strokeOpacity: 1,
@@ -107,94 +100,53 @@ export const replayLocation = (map, replay) => {
       map: map
     });
   } else {
-    replay.range.setCenter(converted);
+    replay.range.setCenter(loc);
+    replay.range.setRadius(pos.accuracy);
   }
 
   // the polyPast & polyFuture
-  var pastArr = [];
-  if (replay.polyPast) {
-    replay.polyPast.setPath(pastArr);
-  } else {
-    replay.polyPast = new window.AMap.Polyline({
-      map: map,
-      path: pastArr,
-      strokeColor: '#3366FF',
-      strokeOpacity: 0.5,
-      strokeWeight: 5,
-      strokeStyle: 'solid',
-    });
+  if (replay.past.length === 0) {
+    replay.past.push(loc);
+  } else if (!loc.equals(replay.past[replay.past.length - 1])) {
+    replay.past.push(loc);
   }
 
-  var futureArr = [];
-  if (replay.polyFuture) {
-    replay.polyFuture.setPath(futureArr);
-  } else {
-    replay.polyFuture = new window.AMap.Polyline({
-      map: map,
-      path: futureArr,
-      strokeColor: '#3366FF',
-      strokeOpacity: 0.5,
-      strokeWeight: 5,
-      strokeStyle: 'dashed',
-      strokeDasharray: [10, 5]
-    });
+  if (replay.past.length >= 2) {
+    if (replay.polyPast) {
+      replay.polyPast.setPath(replay.past);
+    } else {
+      replay.polyPast = new window.AMap.Polyline({
+        map: map,
+        path: replay.past,
+        strokeColor: '#3366FF',
+        strokeOpacity: 0.5,
+        strokeWeight: 5,
+        strokeStyle: 'solid',
+      });
+    }
   }
-};
 
-export const replayOnMap = (map, hot, app, timeRange) => {
-  return function (dispatch) {
-    let url = '/rest/data/' + app.key;
-
-    // add time range
-    url += '?from=';
-    url += timeRange['from'];
-    url += '&to=';
-    url += timeRange['to'];
-
-    $.getJSON(url, '', function (json) {
-      if (json.data && json.data.length > 0) {
-        hot.pause = 1;
-        var lineArr = [];
-        var converted;
-        $.each(json.data, function (n, value) {
-          if (value.location.longitude && value.location.latitude) {
-            converted = converter.wgs84togcj02(value.location.longitude, value.location.latitude);
-            lineArr.push(new window.AMap.LngLat(converted[0], converted[1]));
-            console.log(converted[0] + 'to:' + converted[1]);
-          }
-        });
-
-        if (timeRange.polyline) {
-          timeRange.polyline.setPath(lineArr);
-          timeRange.polyline.setMap(map);
-        } else {
-          var polyline = new window.AMap.Polyline({
-            path: lineArr,
-            strokeColor: '#3366FF',
-            strokeOpacity: 1,
-            strokeWeight: 5,
-            strokeStyle: 'solid',
-            strokeDasharray: [10, 5]
-          });
-          polyline.setMap(map);
-          timeRange.polyline = polyline;
-        }
-
-        if (!hot.marker) {
-          hot.marker = new window.AMap.Marker({
-            map: map,
-            position: converted
-          });
-
-          // for the first time, let's focus the center ...
-          map.setCenter(converted);
-        } else {
-          map.setCenter(lineArr[0]);
-          hot.marker.moveAlong(lineArr, 80);
-        }
-      }
-    });
-  };
+  if (replay.future.length >= 2) {
+    if (replay.polyFuture) {
+      replay.polyFuture.setPath(replay.future);
+    } else {
+      replay.polyFuture = new window.AMap.Polyline({
+        map: map,
+        path: replay.future,
+        strokeColor: '#3366FF',
+        strokeOpacity: 0.5,
+        strokeWeight: 5,
+        strokeStyle: 'dashed',
+        strokeDasharray: [10, 5]
+      });
+    }
+  } else {
+    if (replay.polyFuture) {
+      replay.polyFuture.hide();
+      replay.polyFuture.setMap(null);
+      replay.polyFuture = null;
+    }
+  }
 };
 
 /**
@@ -220,6 +172,7 @@ export const startReplay = function (key, timeRange, callback) {
        * Faked data
        */
       type++;
+      /*
       if ((type % 4) === 0) {
         json = {
           status: 400,
@@ -242,6 +195,8 @@ export const startReplay = function (key, timeRange, callback) {
           }]
         };
       } else {
+      */
+      if (json.status === 200) {
         json = {
           status: 200,
           message: 'OK',

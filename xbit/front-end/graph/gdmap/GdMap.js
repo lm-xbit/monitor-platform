@@ -3,7 +3,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {updateLocation, replayLocation, loadGdMap, loadApps, startReplay} from './GdMapActions';
 import $ from 'jquery';
-import {TransitionView, Calendar, DateField, DatePicker} from 'react-date-picker';
 import 'react-date-picker/index.css';
 import DateTimeRangePicker from '../../common/components/DateTimeRangePicker';
 import converter from 'coordtransform';
@@ -141,6 +140,30 @@ export class GdMap extends React.Component {
         this.state.replay.timer = null;
       }
 
+      if (this.state.replay.marker) {
+        this.state.replay.marker.hide();
+        this.state.replay.marker.setMap(null);
+        this.state.replay.marker = null;
+      }
+
+      if (this.state.replay.range) {
+        this.state.replay.range.hide();
+        this.state.replay.range.setMap(null);
+        this.state.replay.range = null;
+      }
+
+      if (this.state.replay.polyPast) {
+        this.state.replay.polyPast.hide();
+        this.state.replay.polyPast.setMap(null);
+        this.state.replay.polyPast = null;
+      }
+
+      if (this.state.replay.polyFuture) {
+        this.state.replay.polyFuture.hide();
+        this.state.replay.polyFuture.setMap(null);
+        this.state.replay.polyFuture = null;
+      }
+
       this._timeRangePicker.enable();
       $(this.refs.toggle).html('回放行程');
     }
@@ -176,30 +199,52 @@ export class GdMap extends React.Component {
     this.state.replay.past = [];
     this.state.replay.future = [];
 
-    var lastConverted = null;
+    var lastPos = null;
     data.forEach(function (pos) {
-      var converted = converter.wgs84togcj02(pos.longitude, pos.latitude);
-      converted.accuracy = pos.accuracy;
+      var loc = converter.wgs84togcj02(pos.longitude, pos.latitude);
+
+      var converted = {
+        longitude: loc[0],
+        latitude: loc[1],
+        accuracy: pos.accuracy
+      };
+
       self.state.replay.data.push(converted);
 
-      if (lastConverted === null || !converted.equals(lastConverted)) {
-        self.state.replay.future.push(converted);
+      // we may have duplicate positions! in this case, let's get rid of it ...
+      var lnglat = new window.AMap.LngLat(loc[0], loc[1]);
+      if (lastPos === null || !lnglat.equals(lastPos)) {
+        self.state.replay.future.push(lnglat);
+
+        lastPos = lnglat;
       }
     });
 
     this.state.replay.index = 0;
     replayLocation(this.state.map, this.state.replay);
 
+    var replay = this.state.replay;
     this.state.replay.timer = setInterval(function () {
-      self.state.replay.index ++;
-      if (self.state.replay.index === self.state.replay.data.length) {
-        alert('All data have been replayed!');
-        clearInterval(self.state.replay.timer);
-        self.state.replay.timer = null;
-      } else {
-        replayLocation(self.state.map, self.state.replay);
+      if (replay.index > 0) {
+        var pos = replay.data[replay.index - 1];
+        var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
+
+        // we have replay some data points. Let's remove the old points
+        // after display, let's remove the recent point ... as it will be set as current position next time
+        if (replay.future.length > 0 && loc.equals(replay.future[0])) {
+          replay.future.splice(0, 1);
+        }
       }
-    }, 1000);
+
+      replay.index ++;
+      if (replay.index === replay.data.length) {
+        alert('All data have been replayed!');
+        clearInterval(replay.timer);
+        replay.timer = null;
+      } else {
+        replayLocation(self.state.map, replay);
+      }
+    }, 3000);
   }
 
   render () {
@@ -254,8 +299,7 @@ export class GdMap extends React.Component {
             </div>
           </form>
         </div>
-        <div style={{ margin: 'auto', width: '100%', height: 'calc(100% - 50px)' }} id="map-container" >
-        </div>
+        <div style={{ margin: 'auto', width: '100%', height: 'calc(100% - 50px)' }} id="map-container" />
       </div>
     );
   };

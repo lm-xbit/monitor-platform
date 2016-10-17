@@ -219,10 +219,12 @@ export class AppSettings extends React.Component {
                     >
                       <i className="fa fa-plug" style={{
                         display: app.connected ? 'none' : 'inherit'
-                      }}/>
+                      }}
+                      />
                       <i className="fa fa-retweet" style={{
                         display: app.connected ? 'inherit' : 'none'
-                      }}/>
+                      }}
+                      />
                     </button>
                     &nbsp;&nbsp;
                     <button className="btn btn-xs btn-danger" onClick={e => {
@@ -272,11 +274,13 @@ export class AppSettings extends React.Component {
               </button>
               <h4 className="modal-title" style={{
                 display: this.state.isEditing ? 'none' : 'inherit'
-              }}>Create New Application ...</h4>
+              }}
+              >Create New Application ...</h4>
 
               <h4 className="modal-title" style={{
                 display: this.state.isEditing ? 'inherit' : 'none'
-              }}>Updating Application ...</h4>
+              }}
+              >Updating Application ...</h4>
             </div>
             <div className="modal-body">
               <form>
@@ -298,7 +302,8 @@ export class AppSettings extends React.Component {
                 </div>
                 <div className="form-group" style={{
                   display: this.state.currentApp.type === '' ? 'none' : 'inherit'
-                }}>
+                }}
+                >
                   <label className="control-label" htmlFor="url">Download App</label>
                   <QRCode value={this.state.base + '/downloads/android/' + this.state.currentApp.type + '.apk'}/>
                 </div>
@@ -323,7 +328,8 @@ export class AppSettings extends React.Component {
         >
           <div className="modal-content" style={{
             width: '300px'
-          }}>
+          }}
+          >
             <div className="modal-body">
               <form>
                 <div className="form-group">
@@ -334,7 +340,8 @@ export class AppSettings extends React.Component {
                       'padding-top': '20px',
                       width: '50%',
                       margin: '0 auto'
-                    }}>
+                    }}
+                    >
                       <QRCode value={JSON.stringify(this.state.connectInfo)}/>
                     </div>
                   </div>

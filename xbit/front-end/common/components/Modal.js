@@ -72,8 +72,7 @@ Modal.propTypes = {
 const PseudoModal = (props)=> {
   return (
     <div>
-      <div className={style.overlay} style={{zIndex: overlayZIndex}}>
-      </div>
+      <div className={style.overlay} style={{zIndex: overlayZIndex}} />
       <div className={style.content} style={{width: _.get(props, 'styleProps.width', defaultStyle.width), zIndex: contentZIndex}}>
         <div className={cx(style.modalHead, 'clearfix')}>
           <h2 style={{float: 'left'}}>{props.title}</h2>
@@ -85,8 +84,7 @@ const PseudoModal = (props)=> {
                   props.closePortal();
                 }, 0);
               }}
-          >
-          </span>
+          />
         </div>
         <div className={style.userContent}>
           {/* just pass in closePortal Callback  */}

@@ -30,7 +30,7 @@ const App = (props) => {
           </div>
         </div>
         <span className={style.logout}>
-          <i className="fa fa-sign-out" aria-hidden="true"></i>
+          <i className="fa fa-sign-out" aria-hidden="true" />
           <a href="/logout">
             Log out
           </a>
