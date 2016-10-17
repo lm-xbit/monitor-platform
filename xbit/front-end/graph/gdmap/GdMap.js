@@ -225,15 +225,13 @@ export class GdMap extends React.Component {
 
     var replay = this.state.replay;
     this.state.replay.timer = setInterval(function () {
-      if (replay.index > 0) {
-        var pos = replay.data[replay.index - 1];
-        var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
+      var pos = replay.data[replay.index];
+      var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
 
-        // we have replay some data points. Let's remove the old points
-        // after display, let's remove the recent point ... as it will be set as current position next time
-        if (replay.future.length > 0 && loc.equals(replay.future[0])) {
-          replay.future.splice(0, 1);
-        }
+      // we have replay some data points. Let's remove the old points
+      // after display, let's remove the recent point ... as it will be set as current position next time
+      if (replay.future.length > 0 && loc.equals(replay.future[0])) {
+        replay.future.splice(0, 1);
       }
 
       replay.index ++;
