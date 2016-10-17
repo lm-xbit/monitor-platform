@@ -177,12 +177,12 @@ export class GdMap extends React.Component {
     this.state.replay.future = [];
 
     var lastConverted = null;
-    data.forEach(function(pos) {
+    data.forEach(function (pos) {
       var converted = converter.wgs84togcj02(pos.longitude, pos.latitude);
       converted.accuracy = pos.accuracy;
       self.state.replay.data.push(converted);
 
-      if(lastConverted === null || !converted.equals(lastConverted)) {
+      if (lastConverted === null || !converted.equals(lastConverted)) {
         self.state.replay.future.push(converted);
       }
     });

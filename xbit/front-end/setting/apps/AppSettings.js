@@ -61,12 +61,16 @@ export class AppSettings extends React.Component {
   }
 
   createApplication () {
-    this.setState({isEditing: false, currentApp: {
-      name: '',
-      type: '',
-      description: '',
-      key: ''
-    }});
+    this.setState({
+      isEditing: false,
+      currentApp:
+      {
+        name: '',
+        type: '',
+        description: '',
+        key: ''
+      }
+    });
 
     this.setState({modalIsOpen: true});
   }
@@ -193,61 +197,63 @@ export class AppSettings extends React.Component {
               </tr>
             </thead>
             <tbody>
-            {this.props.apps.map(app =>
-              <tr style={{height: '30px', width: '30px'}}>
-                <td style={{'lineHeight': '30px', 'paddingTop': '15px'}}>
-                  <i style={{
-                    color: 'green',
-                    display: app.primary ? 'inherit' : 'none'
-                  }} className='fa fa-star'
-                  />
-                </td>
-                <td style={{'lineHeight': '30px'}}>{app.name}</td>
-                <td style={{'lineHeight': '30px'}}>{app.type}</td>
-                <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
-                <td style={{'lineHeight': '30px'}}>{this.getAppActivity(app)}</td>
-                <td style={{'lineHeight': '30px', 'minWidth': '120px'}}>
-                  <button className="btn btn-xs btn-success" onClick={e => {
-                    this.connectApplication(app);
-                    e.preventDefault();
-                  }} data-tip="Connect or re-connect this application ..."
-                  >
-                    <i className="fa fa-plug" style={{
-                      display: app.connected ? 'none' : 'inherit'
-                    }}/>
-                    <i className="fa fa-retweet" style={{
-                      display: app.connected ? 'inherit' : 'none'
-                    }}/>
-                  </button>
-                  &nbsp;&nbsp;
-                  <button className="btn btn-xs btn-danger" onClick={e => {
-                    this.removeApplication(app);
-                    e.preventDefault();
-                  }} data-tip="Delete this application ..."
-                  >
-                    <i className="fa fa-remove"/>
-                  </button>
-                  &nbsp;&nbsp;
-                  <button className="btn btn-xs btn-warning" onClick={e => {
-                    this.updateApplication(app);
-                    e.preventDefault();
-                  }} data-tip="Edit and update information of this application ..."
-                  >
-                    <i className="fa fa-edit"/>
-                  </button>
-                  &nbsp;&nbsp;
-                  <button className='btn btn-xs btn-success' style={{
-                    display: app.primary ? 'none' : 'inherit'
-                  }} onClick={e => {
-                    this.starApplication(app);
-                    e.preventDefault();
-                  }} data-tip="Make this application my primary application ..."
-                  >
-                    <i className='fa fa-star'/>
-                  </button>
-                </td>
-              </tr>
-            )}
+              {
+              this.props.apps.map(app =>
+                <tr style={{height: '30px', width: '30px'}}>
+                  <td style={{'lineHeight': '30px', 'paddingTop': '15px'}}>
+                    <i style={{
+                      color: 'green',
+                      display: app.primary ? 'inherit' : 'none'
+                    }} className='fa fa-star'
+                    />
+                  </td>
+                  <td style={{'lineHeight': '30px'}}>{app.name}</td>
+                  <td style={{'lineHeight': '30px'}}>{app.type}</td>
+                  <td style={{'lineHeight': '30px'}}>{this.getAppStatus(app)}</td>
+                  <td style={{'lineHeight': '30px'}}>{this.getAppActivity(app)}</td>
+                  <td style={{'lineHeight': '30px', 'minWidth': '120px'}}>
+                    <button className="btn btn-xs btn-success" onClick={e => {
+                      this.connectApplication(app);
+                      e.preventDefault();
+                    }} data-tip="Connect or re-connect this application ..."
+                    >
+                      <i className="fa fa-plug" style={{
+                        display: app.connected ? 'none' : 'inherit'
+                      }}/>
+                      <i className="fa fa-retweet" style={{
+                        display: app.connected ? 'inherit' : 'none'
+                      }}/>
+                    </button>
+                    &nbsp;&nbsp;
+                    <button className="btn btn-xs btn-danger" onClick={e => {
+                      this.removeApplication(app);
+                      e.preventDefault();
+                    }} data-tip="Delete this application ..."
+                    >
+                      <i className="fa fa-remove"/>
+                    </button>
+                    &nbsp;&nbsp;
+                    <button className="btn btn-xs btn-warning" onClick={e => {
+                      this.updateApplication(app);
+                      e.preventDefault();
+                    }} data-tip="Edit and update information of this application ..."
+                    >
+                      <i className="fa fa-edit"/>
+                    </button>
+                    &nbsp;&nbsp;
+                    <button className='btn btn-xs btn-success' style={{
+                      display: app.primary ? 'none' : 'inherit'
+                    }} onClick={e => {
+                      this.starApplication(app);
+                      e.preventDefault();
+                    }} data-tip="Make this application my primary application ..."
+                    >
+                      <i className='fa fa-star'/>
+                    </button>
+                  </td>
+                </tr>
+              )
+            }
             </tbody>
           </table>
         </div>

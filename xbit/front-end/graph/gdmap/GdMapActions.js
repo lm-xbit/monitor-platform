@@ -111,6 +111,7 @@ export const replayLocation = (map, replay) => {
   }
 
   // the polyPast & polyFuture
+  var pastArr = [];
   if (replay.polyPast) {
     replay.polyPast.setPath(pastArr);
   } else {
@@ -124,6 +125,7 @@ export const replayLocation = (map, replay) => {
     });
   }
 
+  var futureArr = [];
   if (replay.polyFuture) {
     replay.polyFuture.setPath(futureArr);
   } else {

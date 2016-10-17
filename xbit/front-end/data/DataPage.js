@@ -151,15 +151,17 @@ export class DataPage extends React.Component {
             <th>精度（米）</th>
           </tr> </thead>
           <tbody>
-          {this.props.locations.map(app =>
-            <tr style={{height: '30px'}}>
-              <td style={{lineHeight: '30px'}}>{new Date(app.timestamp).toString()}</td>
-              <td style={{lineHeight: '30px'}}>{app.longitude}</td>
-              <td style={{lineHeight: '30px'}}>{app.latitude}</td>
-              <td style={{lineHeight: '30px'}}>{app.altitude}</td>
-              <td style={{lineHeight: '30px'}}>{app.accuracy}</td>
-            </tr>
-          )}
+            {
+            this.props.locations.map(app =>
+              <tr style={{height: '30px'}}>
+                <td style={{lineHeight: '30px'}}>{new Date(app.timestamp).toString()}</td>
+                <td style={{lineHeight: '30px'}}>{app.longitude}</td>
+                <td style={{lineHeight: '30px'}}>{app.latitude}</td>
+                <td style={{lineHeight: '30px'}}>{app.altitude}</td>
+                <td style={{lineHeight: '30px'}}>{app.accuracy}</td>
+              </tr>
+            )
+          }
           </tbody>
         </table>
       </div>
