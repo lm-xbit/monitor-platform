@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import converter from 'coordtransform';
+import moment from 'moment';
 
 var offset = 1;
 
@@ -70,7 +71,7 @@ export const replayLocation = (map, replay) => {
   console.log('Try replay ' + replay.data.length + ' locations. Past positions: ' + replay.past.length + ', future positions: ' + replay.future.length);
   var pos = replay.data[replay.index];
 
-  var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
+  var loc = new window.AMap.LngLat(pos.location.longitude, pos.location.latitude);
   if (!replay.marker) {
     replay.marker = new window.AMap.Marker({
       map: map,
@@ -82,7 +83,7 @@ export const replayLocation = (map, replay) => {
 
   replay.marker.setLabel({
     offset: new window.AMap.Pixel(-20, 40),
-    content: 'Timestamp'
+    content: moment(pos.timestamp).format('YYYY-MM-DD HH:mm:ss')
   });
 
   // for the first time, let's focus the center ...
@@ -156,8 +157,7 @@ export const replayLocation = (map, replay) => {
  * @param callback accept two parameters, callback(err, data)
  * @returns {Function}
  */
-var type = 0;
-export const startReplay = function (key, timeRange, callback) {
+export const startReplay = function (key, timeRange, interval, callback) {
   return function (dispatch) {
     let url = '/rest/data/' + key;
 
@@ -166,12 +166,13 @@ export const startReplay = function (key, timeRange, callback) {
     url += timeRange['from'];
     url += '&to=';
     url += timeRange['to'];
+    url += '&aggs=';
+    url += interval;
 
     $.getJSON(url, '', function (json) {
       /**
        * Faked data
        */
-      type++;
       /*
       if ((type % 4) === 0) {
         json = {
@@ -196,6 +197,7 @@ export const startReplay = function (key, timeRange, callback) {
         };
       } else {
       */
+      /*
       if (json.status === 200) {
         json = {
           status: 200,
@@ -213,6 +215,7 @@ export const startReplay = function (key, timeRange, callback) {
           json.data.push(pos);
         }
       }
+      */
 
       if (!json || json.status !== 200) {
         alert('Cannot load applications - ' + json ? json.message : 'Unknown error');

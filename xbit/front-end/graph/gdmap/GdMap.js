@@ -15,6 +15,11 @@ export class GdMap extends React.Component {
 
     this.state = {
       timer: null,
+
+      replaying: false,
+
+      replayInterval: 60,
+
       replay: {
         timer: null,
         data: [],
@@ -51,6 +56,7 @@ export class GdMap extends React.Component {
     };
 
     this.handleAppChange = this.handleAppChange.bind(this);
+    this.handleReplayIntervalChange = this.handleReplayIntervalChange.bind(this);
     this.handleTimeRangeChange = this.handleTimeRangeChange.bind(this);
     this.toggleReplay = this.toggleReplay.bind(this);
   }
@@ -89,6 +95,14 @@ export class GdMap extends React.Component {
       clearInterval(this.state.timer);
       this.state.timer = null;
     }
+  }
+
+  handleReplayIntervalChange (event) {
+    let ival = event.target.value;
+
+    this.state.replayInterval = Number(ival);
+
+    this.forceUpdate();
   }
 
   handleAppChange (event) {
@@ -133,7 +147,11 @@ export class GdMap extends React.Component {
       this._timeRangePicker.disable();
       $(this.refs.toggle).html('停止回放');
 
-      this.props.actions.startReplay(this.state.app.key, this.state.timeRange, this.startReplay.bind(this));
+      this.props.actions.startReplay(this.state.app.key, this.state.timeRange, this.state.replayInterval, this.startReplay.bind(this));
+
+      this.state.replaying = true;
+
+      this.forceUpdate();
     } else {
       if (this.state.replay.timer) {
         clearInterval(this.state.replay.timer);
@@ -166,6 +184,10 @@ export class GdMap extends React.Component {
 
       this._timeRangePicker.enable();
       $(this.refs.toggle).html('回放行程');
+
+      this.state.replaying = false;
+
+      this.forceUpdate();
     }
   }
 
@@ -200,13 +222,29 @@ export class GdMap extends React.Component {
     this.state.replay.future = [];
 
     var lastPos = null;
-    data.forEach(function (pos) {
-      var loc = converter.wgs84togcj02(pos.longitude, pos.latitude);
+    for (var idx = data.length - 1; idx >= 0; idx--) {
+      let pos = data[idx];
+      /**
+       * pos: {
+       *    timestamp: 12345,
+       *    location: {
+       *       latitude: 130.2,
+       *       longitude: 11.32,
+       *       altitude: 123.34
+       *       accuracy: 50
+       *    }
+       * }
+       */
+      let loc = converter.wgs84togcj02(pos.location.longitude, pos.location.latitude);
 
       var converted = {
-        longitude: loc[0],
-        latitude: loc[1],
-        accuracy: pos.accuracy
+        timestamp: pos.timestamp,
+        location: {
+          longitude: loc[0],
+          latitude: loc[1],
+          altitude: pos.location.altitude,
+          accuracy: pos.location.accuracy
+        }
       };
 
       self.state.replay.data.push(converted);
@@ -218,7 +256,7 @@ export class GdMap extends React.Component {
 
         lastPos = lnglat;
       }
-    });
+    };
 
     this.state.replay.index = 0;
     replayLocation(this.state.map, this.state.replay);
@@ -226,7 +264,7 @@ export class GdMap extends React.Component {
     var replay = this.state.replay;
     this.state.replay.timer = setInterval(function () {
       var pos = replay.data[replay.index];
-      var loc = new window.AMap.LngLat(pos.longitude, pos.latitude);
+      var loc = new window.AMap.LngLat(pos.location.longitude, pos.location.latitude);
 
       // we have replay some data points. Let's remove the old points
       // after display, let's remove the recent point ... as it will be set as current position next time
@@ -266,10 +304,28 @@ export class GdMap extends React.Component {
     return (
       <div style={{height: '100%'}}>
         <button type="button" className="btn btn-primary"
-                style={{display: 'inline-block', float: 'right', margin: '0 200px 0 20px'}}
+                style={{display: 'inline-block', float: 'right', margin: '0 20px 0 20px'}}
                 onClick={this.toggleReplay} ref='toggle'
         >回放行程
         </button>
+        <div style={{display: 'inline-block', float: 'right'}}>
+          <form className="form-inline">
+            <div className="form-group" style={{marginBottom: '10px'}}>
+              <label style={{float: 'left', marginRight: '10px', marginLeft: '10px'}} htmlFor="app" className="control-label">Every</label>
+              <select className="form-control" style={{width: '200px'}} id="app" name="app" disabled={this.state.replaying}
+                      defaultValue={this.state.replayInterval} onChange={this.handleReplayIntervalChange}>
+                <option value='5'>5 seconds</option>
+                <option value='15'>15 seconds</option>
+                <option value='30'>30 seconds</option>
+                <option value='60'>1 minute</option>
+                <option value='300'>5 minutes</option>
+                <option value='900'>15 minutes</option>
+                <option value='1800'>30 minutes</option>
+                <option value='3600'>1 hour</option>
+              </select>
+            </div>
+          </form>
+        </div>
 
         <div style={{display: 'inline-block', float: 'right'}}>
           <DateTimeRangePicker
