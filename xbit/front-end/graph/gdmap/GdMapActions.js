@@ -2,8 +2,6 @@ import $ from 'jquery';
 import converter from 'coordtransform';
 import moment from 'moment';
 
-var offset = 1;
-
 export const updateLocation = (map, hot, app) => {
   if (!app) {
     console.log('Application not ready. Display nothing ...');
@@ -17,19 +15,6 @@ export const updateLocation = (map, hot, app) => {
 
     if (json.data && json.data.length > 0) {
       pos = json.data[json.data.length - 1].location;
-    } else {
-      /**
-       * Testing purpose. Let's remove this in production environment
-       * @type {{longitude: number, latitude: number}}
-       */
-      pos = {
-        longitude: 103.982584 + ++offset * 0.0001,
-        latitude: 30.681369,
-        accuracy: 50,
-      };
-    }
-
-    if (pos) {
       var converted = converter.wgs84togcj02(pos.longitude, pos.latitude);
 
       if (!hot.marker) {
@@ -75,7 +60,8 @@ export const replayLocation = (map, replay) => {
   if (!replay.marker) {
     replay.marker = new window.AMap.Marker({
       map: map,
-      position: loc
+      position: loc,
+      icon: '/assets/images/marker_hot.png'
     });
   } else {
     replay.marker.setPosition(loc);
@@ -87,7 +73,7 @@ export const replayLocation = (map, replay) => {
   });
 
   // for the first time, let's focus the center ...
-  map.setCenter(loc);
+  // map.setCenter(loc);
 
   if (!replay.range) {
     replay.range = new window.AMap.Circle({
@@ -170,53 +156,6 @@ export const startReplay = function (key, timeRange, interval, callback) {
     url += interval;
 
     $.getJSON(url, '', function (json) {
-      /**
-       * Faked data
-       */
-      /*
-      if ((type % 4) === 0) {
-        json = {
-          status: 400,
-          message: 'Not found'
-        };
-      } else if ((type % 4) === 1) {
-        json = {
-          status: 200,
-          message: 'OK',
-          data: []
-        };
-      } else if ((type % 4) === 2) {
-        json = {
-          status: 200,
-          message: 'OK',
-          data: [{
-            longitude: 103.982584,
-            latitude: 30.681369,
-            accuracy: 50
-          }]
-        };
-      } else {
-      */
-      /*
-      if (json.status === 200) {
-        json = {
-          status: 200,
-          message: 'OK',
-          data: []
-        };
-
-        for (var i = 0; i < 10; i++) {
-          var pos = {
-            longitude: 103.982584 + i * 0.01,
-            latitude: 30.681369 + i * 0.005,
-            accuracy: 50
-          };
-
-          json.data.push(pos);
-        }
-      }
-      */
-
       if (!json || json.status !== 200) {
         alert('Cannot load applications - ' + json ? json.message : 'Unknown error');
         callback(new Error('Cannot load data from server', null));

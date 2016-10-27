@@ -67,6 +67,10 @@ var indexData = function(timestamp, key, metrics) {
  *    to:   to time in milliseconds
  *    aggs: aggregation interval in seconds, if not given, default to 60 seconds
  */
+var offset = 0;
+var testLat = 30.681369;
+var testLon = 103.982584;
+
 router.get("/:key", function (req, res) {
     if (!req.user) {
         res.render("login");
@@ -115,11 +119,29 @@ router.get("/:key", function (req, res) {
             from = now - count*aggs*1000;
         }
 
+        if (offset % 2 === 0) {
+            testLat += 0.0005;
+        }
+        else {
+            testLon += 0.001;
+        }
+
+        offset ++;
+
+        var lat = testLat;
+        var lon = testLon;
         for (var i = 0; i < count; i++) {
             var location = {};
             var doc = {};
-            location.latitude = 30.64790065 + i*0.015;
-            location.longitude = 104.02691083 + i*0.02;
+            if(i % 2 === 0) {
+                lat += 0.0015;
+            }
+            else {
+                lon += 0.002;
+            }
+
+            location.latitude = lat;
+            location.longitude = lon;
             location.altitude = 500;
             location.accuracy = 50;
             doc.timestamp = now - i * aggs*1000;
