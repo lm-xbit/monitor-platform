@@ -55,7 +55,7 @@ public class CheckConnectionManager {
         }
     }
 
-    public void checkConnetion(Config config) {
+    public void checkConnection(Config config) {
         mConfig = config;
         final Config.Gate gate = mConfig.gate;
         final Config.App app = mConfig.app;

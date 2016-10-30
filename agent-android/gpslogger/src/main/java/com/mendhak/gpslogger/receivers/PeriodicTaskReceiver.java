@@ -7,18 +7,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Strings;
+import com.mendhak.gpslogger.common.Systems;
+import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Sample;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import de.greenrobot.event.EventBus;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,8 +26,6 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,6 +51,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private long _reportInterval;
     private long _lastReportEpoch = System.currentTimeMillis();
     private GpsLoggingService _logginService;
+    private Intent alarmIntent;
 
     public PeriodicTaskReceiver(GpsLoggingService logginService) {
         _logginService = logginService;
@@ -67,12 +66,13 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 // TODO ...
             } else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
                 LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
-                _tryReportData();
+                //                tryReportData();
+                EventBus.getDefault().postSticky(new CommandEvents.Report());
             }
         }
     }
 
-    public void collectLocationSample(Context context) {
+    public void collectLocationSample() {
         Sample sample = _gatherSample(System.currentTimeMillis());
         _samples.add(sample);
 
@@ -81,7 +81,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
         if (_samples.size() >= (_SLOT_NUM * 2)) {
             LOG.warn("Too many samples have been gathered. Force reporting back to server ...");
-            _tryReportData();
+            tryReportData();
         }
     }
 
@@ -110,62 +110,34 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
     /**
      * Start the periodic alarm if not already been started up yet
-     *
-     * @param context
      */
-    public void startPeriodicTaskHeartBeat(final Context context) {
-        Intent alarmIntent = new Intent(context, PeriodicTaskReceiver.class);
-        boolean isAlarmUp = PendingIntent.getBroadcast(context, 0, alarmIntent, PendingIntent.FLAG_NO_CREATE) != null;
+    public void startReportTimer() {
+        long triggerTime = System.currentTimeMillis() + _reportInterval;
 
-        if (isAlarmUp) {
-            return;
-        }
+        alarmIntent = new Intent(_logginService, PeriodicTaskReceiver.class);
+        cancelAlarm();
 
-        LOG.info("Try starting sampling timer and reporter alarm ...");
-        /**
-         * THIS LOOKS WON'T WORK because the intent handler will create a new instance PeriodicTaskReceiver????
-         * Give up to use the executor to manage the timer instead.
-         *
-         * // AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-         * // alarmIntent.setAction(INTENT_ACTION_REPORT);
-         * // PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
-         * // alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + _REPORTING_INTERVAL,
-         * _REPORTING_INTERVAL, pendingIntent);
-         */
-        // reset ..
-        _samples.clear();
-
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            public void run() {
-                collectLocationSample(_logginService);
-
-                long now = System.currentTimeMillis();
-                if ((now - _lastReportEpoch) >= _reportInterval) {
-                    LOG.debug("Time to reporter data ...");
-                    _tryReportData();
-                    _lastReportEpoch = now;
-                }
+        PendingIntent sender = PendingIntent.getBroadcast(_logginService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) _logginService.getSystemService(Context.ALARM_SERVICE);
+        if (Systems.isDozing(_logginService)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, sender);
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        } else {
+            am.set(AlarmManager.RTC_WAKEUP, triggerTime, sender);
+        }
+        LOG.debug("report timer has been set");
     }
 
     /**
      * Stop the periodic alarm
-     *
-     * @param context
      */
-    public void stopPeriodicTaskHeartBeat(Context context) {
-        LOG.info("GPS logging is disabled. Stop reporting task ...");
+    public void stopReportTimer() {
+        LOG.info("GPS logging is disabled. Stop reporting timer ...");
 
-        _tryReportData();
+        tryReportData();
 
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent alarmIntent = new Intent(context, PeriodicTaskReceiver.class);
-        alarmIntent.setAction(INTENT_ACTION_REPORT);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
-        alarmManager.cancel(pendingIntent);
+        cancelAlarm();
     }
 
 
@@ -259,6 +231,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 tmp.put("timestamp", sample.epoch);
                 tmp.put("metrics", _toMetrics(sample));
             }
+
+            _samples.clear();
         } catch (Exception e) {
             LOG.error("Cannot create data to post - " + e.getMessage(), e);
         }
@@ -332,7 +306,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     /**
      * Either the slot is full or the report interval have reached
      */
-    private void _tryReportData() {
+    public void tryReportData() {
         try {
             if (_samples.size() == 0) {
                 LOG.info("No data to report. Skip this reporting cycle");
@@ -368,6 +342,14 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             }
 
             return null;
+        }
+    }
+
+    private void cancelAlarm() {
+        if (alarmIntent != null) {
+            AlarmManager am = (AlarmManager) _logginService.getSystemService(Context.ALARM_SERVICE);
+            PendingIntent sender = PendingIntent.getBroadcast(_logginService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            am.cancel(sender);
         }
     }
 }

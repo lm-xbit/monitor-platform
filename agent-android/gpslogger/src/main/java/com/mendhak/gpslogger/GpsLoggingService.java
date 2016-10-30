@@ -20,20 +20,13 @@
 package com.mendhak.gpslogger;
 
 import android.annotation.TargetApi;
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.app.*;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
-import android.os.Binder;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.os.SystemClock;
+import android.os.*;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import com.google.android.gms.common.ConnectionResult;
@@ -41,13 +34,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
-import com.mendhak.gpslogger.common.EventBusHook;
-import com.mendhak.gpslogger.common.IntentConstants;
-import com.mendhak.gpslogger.common.Maths;
-import com.mendhak.gpslogger.common.PreferenceHelper;
-import com.mendhak.gpslogger.common.Session;
-import com.mendhak.gpslogger.common.Strings;
-import com.mendhak.gpslogger.common.Systems;
+import com.mendhak.gpslogger.common.*;
 import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.events.ProfileEvents;
 import com.mendhak.gpslogger.common.events.ServiceEvents;
@@ -65,19 +52,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 /**
- * There are actually three kinds of location provider
- * 1. GPS: this is the most accurate but power consuming provider
- * 2. Network: this is less accurate but also more power saving provider
- * 3. Passive: this is a passive location receiver by consuming just few power
+ * There are actually three kinds of location provider 1. GPS: this is the most accurate but power consuming provider 2. Network: this is less
+ * accurate but also more power saving provider 3. Passive: this is a passive location receiver by consuming just few power
  *
- * So our strategy is
- * 1. we try to collect a location on predefined interval (5 seconds)
- * 2. during this interval, we may have GPS location, network location or passive location,
- *    we compare and select the best location (most accurate one)
- * 3. we have different requesting intervals for different provider:
- *    a. for GPS we try to request it on one minute basis (configurable)
- *    b. for network, we try to request it more frequently like 15 seconds
- *    c. for passive provider, we always receive it and save the best result for choosing
+ * So our strategy is 1. we try to collect a location on predefined interval (5 seconds) 2. during this interval, we may have GPS location, network
+ * location or passive location, we compare and select the best location (most accurate one) 3. we have different requesting intervals for different
+ * provider: a. for GPS we try to request it on one minute basis (configurable) b. for network, we try to request it more frequently like 15 seconds
+ * c. for passive provider, we always receive it and save the best result for choosing
  */
 public class GpsLoggingService extends Service {
     private static final int ACTIVITY_UNKNOWN = 0;
@@ -107,6 +88,7 @@ public class GpsLoggingService extends Service {
 
     private LocationClient gpsLocationClient;
     private LocationClient nwLocationClient;
+    private Handler handler = new Handler();
 
     /**
      * Periodic task to report data ...
@@ -120,6 +102,7 @@ public class GpsLoggingService extends Service {
 
     PendingIntent activityRecognitionPendingIntent;
     GoogleApiClient googleApiClient;
+    private Intent alarmIntent;
     // ---------------------------------------------------
 
     @Override
@@ -140,48 +123,44 @@ public class GpsLoggingService extends Service {
     /**
      * Start current available location clients
      *
-     * TODO: we shall enable faster GPS polling on direction from UI, but for now let's fix this to 30 minutes or so to acquire
-     *       a more accurate update from GPS
+     * TODO: we shall enable faster GPS polling on direction from UI, but for now let's fix this to 30 minutes or so to acquire a more accurate update
+     * from GPS
      *
-     * TODO: we shall use a more intelligent way to acquire network location according to activity detected. Current following
-     *       hard-coded logic will be followed
-     *       1. if user is still, let's request network position for 15 minutes
-     *       2. if user is moving slowly (walking, etc.) let's request network position every 1 minutes or so
-     *       3. if user is moving quickly let's request the location update every 15 seconds or so
+     * TODO: we shall use a more intelligent way to acquire network location according to activity detected. Current following hard-coded logic will
+     * be followed 1. if user is still, let's request network position for 15 minutes 2. if user is moving slowly (walking, etc.) let's request
+     * network position every 1 minutes or so 3. if user is moving quickly let's request the location update every 15 seconds or so
      */
     private void startLocationClients() {
-        if(!checkLocationProviderStatus()) {
+        if (!checkLocationProviderStatus()) {
             Session.setStatus("No location provider available!");
             setLocationServiceUnavailable();
             return;
         }
 
-        if(gpsLocationClient == null) {
+        if (gpsLocationClient == null) {
             gpsLocationClient = new LocationClient(LocationManager.GPS_PROVIDER, locationManager, this);
         }
 
         LOG.info("Try starting GPS location client, GPS enabled? " + Session.isGpsEnabled());
-        if(Session.isGpsEnabled()) {
+        if (Session.isGpsEnabled()) {
             gpsLocationClient.start(30 * 60 * 1000, 200);
         }
 
-        if(nwLocationClient == null) {
+        if (nwLocationClient == null) {
             nwLocationClient = new LocationClient(LocationManager.NETWORK_PROVIDER, locationManager, this);
         }
 
 
         LOG.info("Try starting NETWORK location client, NETWORK enabled? " + Session.isTowerEnabled());
-        if(Session.isTowerEnabled()) {
+        if (Session.isTowerEnabled()) {
             nwLocationClient.start(120 * 1000, 0);
         }
 
-        if(Session.isGpsEnabled() && Session.isTowerEnabled()) {
+        if (Session.isGpsEnabled() && Session.isTowerEnabled()) {
             Session.setStatus("Will use GPS and Network positions");
-        }
-        else if(Session.isGpsEnabled()) {
+        } else if (Session.isGpsEnabled()) {
             Session.setStatus("Will only use GPS positions");
-        }
-        else {
+        } else {
             Session.setStatus("Will only use Network positions");
         }
     }
@@ -190,11 +169,11 @@ public class GpsLoggingService extends Service {
      * Stop current location clients, except the passive one
      */
     private void stopLocationClients() {
-        if(gpsLocationClient != null) {
+        if (gpsLocationClient != null) {
             gpsLocationClient.stop();
         }
 
-        if(nwLocationClient != null) {
+        if (nwLocationClient != null) {
             nwLocationClient.stop();
         }
     }
@@ -262,7 +241,7 @@ public class GpsLoggingService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         handleIntent(intent);
 
-         return START_REDELIVER_INTENT;
+        return START_REDELIVER_INTENT;
     }
 
     @Override
@@ -282,7 +261,7 @@ public class GpsLoggingService extends Service {
     //
     // Cancel alarm for a given location client
     public void cancelAlarmForNextPoint(LocationClient lc) {
-        if(alarmManager == null) {
+        if (alarmManager == null) {
             LOG.error("Alarm manager not ready. Possibly not started.");
             return;
         }
@@ -312,78 +291,80 @@ public class GpsLoggingService extends Service {
     }
 
     private void handleIntent(Intent intent) {
+        LOG.info("handleIntent---->Intent received.");
         ActivityRecognitionResult arr = ActivityRecognitionResult.extractResult(intent);
         if (arr != null) {
             int activity = ACTIVITY_UNKNOWN;
 
             String detectedActivity = "";
+            LOG.info("handleIntent---->ActivityRecognitionResult:" + arr.getMostProbableActivity().getType());
 
-            switch(arr.getMostProbableActivity().getType()) {
-            case DetectedActivity.IN_VEHICLE:
-                activity = ACTIVITY_MOVE_QUICKLY;
-                detectedActivity = getString(R.string.activity_in_vehicle);
-                break;
-            case DetectedActivity.STILL:
-                activity = ACTIVITY_STILL;
-                detectedActivity = getString(R.string.activity_still);
-                break;
-            case DetectedActivity.ON_BICYCLE:
-                activity = ACTIVITY_MOVE_QUICKLY;
-                detectedActivity = getString(R.string.activity_on_bicycle);
-                break;
-            case DetectedActivity.ON_FOOT:
-                activity = ACTIVITY_MOVE_SLOWLY;
-                detectedActivity = getString(R.string.activity_on_foot);
-                break;
-            case DetectedActivity.RUNNING:
-                activity = ACTIVITY_MOVE_QUICKLY;
-                detectedActivity = getString(R.string.activity_running);
-                break;
-            case DetectedActivity.TILTING:
-                activity = ACTIVITY_MOVE_SLOWLY;
-                detectedActivity = getString(R.string.activity_tilting);
-                break;
-            case DetectedActivity.WALKING:
-                activity = ACTIVITY_MOVE_QUICKLY;
-                detectedActivity = getString(R.string.activity_walking);
-                break;
-            // case DetectedActivity.UNKNOWN:
-            default:
-                activity = ACTIVITY_UNKNOWN;
-                detectedActivity = getString(R.string.activity_unknown);
-                break;
+            switch (arr.getMostProbableActivity().getType()) {
+                case DetectedActivity.IN_VEHICLE:
+                    activity = ACTIVITY_MOVE_QUICKLY;
+                    detectedActivity = getString(R.string.activity_in_vehicle);
+                    break;
+                case DetectedActivity.STILL:
+                    activity = ACTIVITY_STILL;
+                    detectedActivity = getString(R.string.activity_still);
+                    break;
+                case DetectedActivity.ON_BICYCLE:
+                    activity = ACTIVITY_MOVE_QUICKLY;
+                    detectedActivity = getString(R.string.activity_on_bicycle);
+                    break;
+                case DetectedActivity.ON_FOOT:
+                    activity = ACTIVITY_MOVE_SLOWLY;
+                    detectedActivity = getString(R.string.activity_on_foot);
+                    break;
+                case DetectedActivity.RUNNING:
+                    activity = ACTIVITY_MOVE_QUICKLY;
+                    detectedActivity = getString(R.string.activity_running);
+                    break;
+                case DetectedActivity.TILTING:
+                    activity = ACTIVITY_MOVE_SLOWLY;
+                    detectedActivity = getString(R.string.activity_tilting);
+                    break;
+                case DetectedActivity.WALKING:
+                    activity = ACTIVITY_MOVE_QUICKLY;
+                    detectedActivity = getString(R.string.activity_walking);
+                    break;
+                // case DetectedActivity.UNKNOWN:
+                default:
+                    activity = ACTIVITY_UNKNOWN;
+                    detectedActivity = getString(R.string.activity_unknown);
+                    break;
             }
 
             Session.setActivity(detectedActivity, arr.getMostProbableActivity().getConfidence());
             EventBus.getDefault().post(new ServiceEvents.ActivityRecognitionEvent(arr));
 
 
-            if(this.activity != activity) {
+            if (this.activity != activity) {
                 lastActivityDetectedEpoch = System.currentTimeMillis();
                 LOG.info("Detected user STILL still at - " + activity);
                 this.activity = activity;
             }
 
-            if((System.currentTimeMillis() - lastActivityDetectedEpoch) > 60 * 1000) {
+            if ((System.currentTimeMillis() - lastActivityDetectedEpoch) > 60 * 1000) {
                 LOG.info("User activity changed for a longer period! Let's change sampling frequency");
                 switch (this.activity) {
-                case ACTIVITY_STILL:
-                    // every 15 minutes
-                    nwLocationClient.start(15 * 60 * 1000, 0);
-                    break;
-                case ACTIVITY_MOVE_SLOWLY:
-                    // every 1 minutes
-                    nwLocationClient.start(60 * 1000, 0);
-                    break;
-                case ACTIVITY_MOVE_QUICKLY:
-                    // every 15 seconds
-                    nwLocationClient.start(15 * 1000, 0);
-                    break;
-                default:
-                // case ACTIVITY_UNKNOWN:
-                    // every 1 minutes
-                    nwLocationClient.start(60 * 1000, 0);
-                    break;
+                    case ACTIVITY_STILL:
+                        // every 15 minutes
+                        nwLocationClient.start(15 * 60 * 1000, 0);
+                        break;
+                    case ACTIVITY_MOVE_SLOWLY:
+                        // every 1 minutes
+                        nwLocationClient.start(60 * 1000, 0);
+                        break;
+                    case ACTIVITY_MOVE_QUICKLY:
+                        // every 15 seconds
+                        nwLocationClient.start(15 * 1000, 0);
+                        break;
+                    default:
+                        // case ACTIVITY_UNKNOWN:
+                        // every 1 minutes
+                        nwLocationClient.start(60 * 1000, 0);
+                        break;
                 }
             }
 
@@ -408,6 +389,8 @@ public class GpsLoggingService extends Service {
                 if (bundle.getBoolean(IntentConstants.GET_NEXT_POINT)) {
                     // see which provider shall be ...
                 }
+            } else {
+                LOG.debug("Service restarted with null bundle.");
             }
         } else {
             // A null intent is passed in if the service has been killed and restarted.
@@ -451,9 +434,11 @@ public class GpsLoggingService extends Service {
 
         startLocationClients();
 
-        periodicTaskReceiver.startPeriodicTaskHeartBeat(this);
+        periodicTaskReceiver.startReportTimer();
+        // We can gather sample at 5 seconds minimum
+        handler.postDelayed(startGatherLocRunnable, 5 * 1000);
 
-        if(generalListener == null) {
+        if (generalListener == null) {
             generalListener = new GeneralLocationListener(this, "");
         }
 
@@ -465,11 +450,19 @@ public class GpsLoggingService extends Service {
             passiveLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
             locationManager.addGpsStatusListener(generalListener);
             locationManager.addNmeaListener(generalListener);
-        }
-        catch(SecurityException se) {
+        } catch (SecurityException se) {
             LOG.error("No GPS and NMEA message available");
         }
     }
+
+    //We can gather sample at 5 seconds minimum
+    private Runnable startGatherLocRunnable = new Runnable() {
+        @Override
+        public void run() {
+            periodicTaskReceiver.collectLocationSample();
+            handler.postDelayed(startGatherLocRunnable, 5 * 1000);
+        }
+    };
 
     /**
      * Asks the main service client to clear its form.
@@ -491,17 +484,17 @@ public class GpsLoggingService extends Service {
         Session.setUserStillSinceTimeStamp(0);
         Session.setLatestTimeStamp(0);
 
-        periodicTaskReceiver.stopPeriodicTaskHeartBeat(this);
+        periodicTaskReceiver.stopReportTimer();
+        handler.removeCallbacks(startGatherLocRunnable);
 
         stopLocationClients();
 
-        if(generalListener != null) {
+        if (generalListener != null) {
             try {
                 locationManager.removeUpdates(generalListener);
                 locationManager.removeGpsStatusListener(generalListener);
                 locationManager.removeNmeaListener(generalListener);
-            }
-            catch(SecurityException se) {
+            } catch (SecurityException se) {
                 // ignore
             }
         }
@@ -675,31 +668,30 @@ public class GpsLoggingService extends Service {
      * This event is raised when the GeneralLocationListener has a new location. This method in turn updates notification, writes to file, reobtains
      * preferences, notifies main service client and resets location managers.
      *
-     * If this is a passive location, we simply record it (unless we are requesting updates)
-     * otherwise, we need to favor the location updates in following order: GPS location > Cell location > Passive Location
+     * If this is a passive location, we simply record it (unless we are requesting updates) otherwise, we need to favor the location updates in
+     * following order: GPS location > Cell location > Passive Location
+     *
      * @param loc
      *         Location object
      */
     void onLocationChanged(LocationClient client, Location loc) {
-        if(client == null) {
+        if (client == null) {
             // this is passive ...
             passiveLocation = loc;
             Session.setStatus("Passive provider got a location - " + loc);
-        }
-        else {
+        } else {
             String provider = client.getProvider();
 
             if ("GPS".equalsIgnoreCase(provider)) {
                 gpsLocation = loc;
                 Session.setStatus("GPS provider got a location - " + loc);
-            }
-            else if ("CELL".equalsIgnoreCase(provider)) {
+            } else if ("CELL".equalsIgnoreCase(provider)) {
                 cellLocation = loc;
                 Session.setStatus("Network provider got a location - " + loc);
             }
         }
 
-        if(GPSUtil.isBetterLocation(loc, Session.getCurrentLocationInfo())) {
+        if (GPSUtil.isBetterLocation(loc, Session.getCurrentLocationInfo())) {
             adjustAltitude(loc);
 
             Session.setLatestTimeStamp(System.currentTimeMillis());
@@ -713,11 +705,10 @@ public class GpsLoggingService extends Service {
     }
 
     void onStatusChanged(LocationClient client, int status, Bundle extra) {
-        if(status == LocationProvider.AVAILABLE) {
+        if (status == LocationProvider.AVAILABLE) {
             Session.setStatus("Provider " + client.getProvider() + " is available");
             // client.start();
-        }
-        else {
+        } else {
             Session.setStatus("Provider " + client.getProvider() + " is unavailable");
             // client.stop();
         }
@@ -887,5 +878,16 @@ public class GpsLoggingService extends Service {
     @EventBusHook
     public void onEvent(ProfileEvents.UpdatePeriodicProfile event) {
         periodicTaskReceiver.updateConfigParams();
+    }
+
+    @EventBusHook
+    public void onEvent(CommandEvents.Report event) {
+        reportData();
+        EventBus.getDefault().removeStickyEvent(CommandEvents.Report.class);
+    }
+
+    private void reportData(){
+        periodicTaskReceiver.tryReportData();
+        periodicTaskReceiver.startReportTimer();
     }
 }

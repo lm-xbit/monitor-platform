@@ -181,7 +181,7 @@ public class CaptureActivity extends Activity {
                     public void run() {
                         try {
                             final Config config = GsonUtil.fromJson(result, Config.class);
-                            CheckConnectionManager.stance.checkConnetion(config);
+                            CheckConnectionManager.stance.checkConnection(config);
                         } catch (Exception e) {
                             Log.e("CaptureActivity", e.getMessage(), e);
                             Toast.makeText(CaptureActivity.this, "The format is error!", Toast.LENGTH_SHORT).show();

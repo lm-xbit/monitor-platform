@@ -5,8 +5,7 @@ import android.support.annotation.Nullable;
 
 public class CommandEvents {
     /**
-     * Requests starting or stopping the logging service.
-     * Called from the fragment button click events
+     * Requests starting or stopping the logging service. Called from the fragment button click events
      */
     public static class RequestToggle {
     }
@@ -16,7 +15,8 @@ public class CommandEvents {
      */
     public static class RequestStartStop {
         public boolean start;
-        public RequestStartStop(boolean start){
+
+        public RequestStartStop(boolean start) {
             this.start = start;
         }
     }
@@ -26,9 +26,16 @@ public class CommandEvents {
      */
     public static class AutoSend {
         public String formattedFileName;
-        public AutoSend(@Nullable String formattedFileName){
+
+        public AutoSend(@Nullable String formattedFileName) {
             this.formattedFileName = formattedFileName;
         }
+    }
+
+    /**
+     * Requests auto sending to targets
+     */
+    public static class Report {
     }
 
     /**
@@ -36,6 +43,7 @@ public class CommandEvents {
      */
     public static class Annotate {
         public String annotation;
+
         public Annotate(String annotation) {
             this.annotation = annotation;
         }
