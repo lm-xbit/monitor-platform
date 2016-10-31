@@ -131,7 +131,7 @@ class GeneralLocationListener implements LocationListener, GpsStatus.Listener, G
                     satellitesVisible++;
                 }
 
-                LOG.debug(String.valueOf(satellitesVisible) + " satellites");
+//                LOG.debug(String.valueOf(satellitesVisible) + " satellites");
                 loggingService.setSatelliteInfo(satellitesVisible);
                 break;
 
