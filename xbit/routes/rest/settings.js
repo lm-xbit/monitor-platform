@@ -576,4 +576,137 @@ router.get("/status/:key", function(req, res, next) {
     });
 });
 
+/**
+ * Adding a schema
+ */
+router.post("/schemas/:key", function(req, res, next) {
+  var email = req.session.passport.user;
+  var deviceKey = req.params.key;
+  logger.info("Try adding schema for APP with key %s of user %s", req.params.key, email);
+
+  User.findOne({email: email}, function(err, user) {
+    if (err) {
+      logger.error("Cannot find user %s due to %s", email, err.message);
+      return res.status(500).send("Internal error");
+    }
+
+    if (!user) {
+      logger.erorr("User %s not found", email);
+      return res.status(404).send("User not found");
+    }
+
+    if (!user.userKeys) {
+      logger.error("APP key %s for user %s not found", deviceKey, email);
+      return res.status(404).send("User's app not found");
+    }
+    var find = false;
+    user.userKeys.forEach(function(app) {
+      if (app.key == req.params.key) {
+        app.eschema = req.body.eschema;
+        logger.debug("Add eschema for APP %s done", app.key);
+        find = true;
+      }
+    });
+
+    if (find) {
+      user.save(function(err) {
+        if (err) {
+          logger.error("Failed to add eschema due to %s", err.message);
+          return res.status(500).send('Save eschema failed');
+        }
+
+        user.userKeys.forEach(function(app){
+          if (app.key == deviceKey) {
+            res.json({
+              status: 200,
+              eschema: app.eschema
+            });
+          }
+        });
+      });
+    }
+    else {
+      return res.status(404).send("APP not found");
+    }
+  });
+});
+
+router.get("/schemas/:key",function(req, res, next){
+  var email = req.session.passport.user;
+  var deviceKey = req.params.key;
+  logger.info("Try getting schema of APP %s for user %s", req.params.key, email);
+
+  User.findOne({email: email}, function(err, user){
+    if (err) {
+      logger.error("Cannot find user %s due to %s", email, err.message);
+      return res.status(500).send("Internal error");
+    }
+
+    if (!user) {
+      logger.error("User %s not found", email);
+      return res.status(404).send("User not found");
+    }
+
+    if (!user.userKeys) {
+      logger.error("APP key %s for user %s not found", deviceKey, email);
+      return res.status(404).send("User's app " + deviceKey + " not found");
+    }
+
+    var find = false;
+    user.userKeys.forEach(function(app) {
+      if (app.key == deviceKey) {
+        res.json({
+          status: 200,
+          eschema: app.eschema
+        });
+        find = true;
+      }
+    });
+
+    if (!find) {
+      res.status(404).send("User's APP key not found");
+    }
+  });
+});
+
+router.delete("/schemas/:key", function(req, res, next) {
+  var email = req.session.passport.user;
+  var deviceKey = req.params.key;
+  logger.info("Try getting schema of APP %s for user %s", req.params.key, email);
+
+  User.findOne({email: email}, function(err, user){
+    if (err) {
+      logger.error("Cannot find user %s due to %s", email, err.message);
+      return res.status(500).send("Internal error");
+    }
+
+    if (!user) {
+      logger.error("User %s not found", email);
+      return res.status(404).send("User not found");
+    }
+
+    if (!user.userKeys) {
+      logger.error("APP key %s for user %s not found", deviceKey, email);
+      return res.status(404).send("User's app " + deviceKey + " not found");
+    }
+
+    user.userKeys.forEach(function(app) {
+      if (app.key == deviceKey) {
+        app.eschema = {};
+      }
+    });
+
+    user.save(function(err) {
+      if (err) {
+        logger.error("Failed to delete eschema due to %s", err.message);
+        return res.status(500).send("Delete eschema failed");
+      }
+
+      return res.json({
+        status: 200
+      });
+    });
+  });
+});
+
 module.exports = router;

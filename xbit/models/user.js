@@ -2,6 +2,8 @@ var mongoose = require('lib/mongo');
 var passportLocalMongoose = require('passport-local-mongoose');
 var moment = require('moment');
 
+var SchemaValidator = require('models/eschema');
+
 var Schema = mongoose.Schema;
 
 var xBitLogger = require('common/xBitLogger');
@@ -37,7 +39,16 @@ var UserKeySchema = new Schema(
       lastReportedOn: Date, // when this APP last reported back data?
       description: String,
       createOn: {type: Number, default: Date.now()},
-      updateOn: {type: Number, default: Date.now()}
+      updateOn: {type: Number, default: Date.now()},
+      eschema: {
+        type: Object,
+        validate: {
+          validator: function(schema) {
+            return SchemaValidator(schema);
+          },
+          message: 'Validate schema failed'
+        }
+      }
     }
 );
 
