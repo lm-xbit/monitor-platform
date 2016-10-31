@@ -420,11 +420,6 @@ public class GpsLoggingService extends Service {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
-        //TODO: remove me
-        Systems.isDozing(this);
-        alarmManager.cancel(null);
-        //TODO: remove above
-
         Session.setStarted(true);
 
         showNotification();
