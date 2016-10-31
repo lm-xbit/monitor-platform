@@ -12,11 +12,11 @@ import com.mendhak.gpslogger.GpsLoggingService;
 import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
-import com.mendhak.gpslogger.common.Strings;
 import com.mendhak.gpslogger.common.Systems;
 import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Sample;
+import com.mendhak.gpslogger.utils.NetWorkUtil;
 import de.greenrobot.event.EventBus;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -49,26 +49,18 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private String _endpoint;
     private String _appKey;
     private long _reportInterval;
-    private long _lastReportEpoch = System.currentTimeMillis();
-    private GpsLoggingService _logginService;
+    private GpsLoggingService _loggingService;
     private Intent alarmIntent;
 
-    public PeriodicTaskReceiver(GpsLoggingService logginService) {
-        _logginService = logginService;
+    public PeriodicTaskReceiver(GpsLoggingService loggingService) {
+        _loggingService = loggingService;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!Strings.isNullOrEmpty(intent.getAction())) {
-            if (intent.getAction().equals("android.intent.action.BATTERY_LOW")) {
-                // TODO ...
-            } else if (intent.getAction().equals("android.intent.action.BATTERY_OKAY")) {
-                // TODO ...
-            } else if (intent.getAction().equals(INTENT_ACTION_REPORT)) {
-                LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
-                //                tryReportData();
-                EventBus.getDefault().postSticky(new CommandEvents.Report());
-            }
+        if (INTENT_ACTION_REPORT.equalsIgnoreCase(intent.getAction())) {
+            LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
+            EventBus.getDefault().postSticky(new CommandEvents.Report());
         }
     }
 
@@ -114,12 +106,13 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     public void startReportTimer() {
         long triggerTime = System.currentTimeMillis() + _reportInterval;
 
-        alarmIntent = new Intent(_logginService, PeriodicTaskReceiver.class);
+        alarmIntent = new Intent(_loggingService, PeriodicTaskReceiver.class);
+        alarmIntent.setAction(INTENT_ACTION_REPORT);
         cancelAlarm();
 
-        PendingIntent sender = PendingIntent.getBroadcast(_logginService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager am = (AlarmManager) _logginService.getSystemService(Context.ALARM_SERVICE);
-        if (Systems.isDozing(_logginService)) {
+        PendingIntent sender = PendingIntent.getBroadcast(_loggingService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) _loggingService.getSystemService(Context.ALARM_SERVICE);
+        if (Systems.isDozing(_loggingService)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, sender);
             }
@@ -307,21 +300,23 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
      * Either the slot is full or the report interval have reached
      */
     public void tryReportData() {
-        try {
-            if (_samples.size() == 0) {
-                LOG.info("No data to report. Skip this reporting cycle");
-            } else {
-                LOG.debug(String.format("Try reporting %d GPS samples", _samples.size()));
+        if (NetWorkUtil.isConnected(_loggingService)) {
+            try {
+                if (_samples.size() == 0) {
+                    LOG.info("No data to report. Skip this reporting cycle");
+                } else {
+                    LOG.debug(String.format("Try reporting %d GPS samples", _samples.size()));
 
-                JSONObject data = _composePayload();
+                    JSONObject data = _composePayload();
 
-                new ReportDataTask().execute(data);
+                    new ReportDataTask().execute(data);
 
-                // clean this
-                _samples.clear();
+                    // clean this
+                    _samples.clear();
+                }
+            } catch (Exception e) {
+                LOG.error("Cannot report data - " + e.getMessage(), e);
             }
-        } catch (Exception e) {
-            LOG.error("Cannot report data - " + e.getMessage(), e);
         }
     }
 
@@ -347,8 +342,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
     private void cancelAlarm() {
         if (alarmIntent != null) {
-            AlarmManager am = (AlarmManager) _logginService.getSystemService(Context.ALARM_SERVICE);
-            PendingIntent sender = PendingIntent.getBroadcast(_logginService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            AlarmManager am = (AlarmManager) _loggingService.getSystemService(Context.ALARM_SERVICE);
+            PendingIntent sender = PendingIntent.getBroadcast(_loggingService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             am.cancel(sender);
         }
     }

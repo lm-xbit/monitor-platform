@@ -102,7 +102,6 @@ public class GpsLoggingService extends Service {
 
     PendingIntent activityRecognitionPendingIntent;
     GoogleApiClient googleApiClient;
-    private Intent alarmIntent;
     // ---------------------------------------------------
 
     @Override
