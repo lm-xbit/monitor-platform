@@ -143,14 +143,6 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".receivers.PeriodicTaskReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.BATTERY_LOW" />
-                <action android:name="android.intent.action.BATTERY_OKAY" />
-                <action android:name="com.example.app.PERIODIC_TASK_HEART_BEAT" />
-            </intent-filter>
-        </receiver>
-
         <receiver android:name=".receivers.BootAndUpdateReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -181,6 +173,7 @@
         </receiver>
 
         <receiver android:name=".receivers.AlarmReceiver" />
+        <receiver android:name=".receivers.ReportDataReceiver" />
 
         <!--android:theme="@style/Theme.AppCompat.Translucent"-->
         <activity

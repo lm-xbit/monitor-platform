@@ -41,7 +41,7 @@ import com.mendhak.gpslogger.common.events.ServiceEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.common.slf4j.SessionLogcatAppender;
 import com.mendhak.gpslogger.loggers.Files;
-import com.mendhak.gpslogger.receivers.PeriodicTaskReceiver;
+import com.mendhak.gpslogger.receivers.PeriodicReportDataManager;
 import com.mendhak.gpslogger.utils.GPSUtil;
 import de.greenrobot.event.EventBus;
 import org.slf4j.Logger;
@@ -93,7 +93,7 @@ public class GpsLoggingService extends Service {
     /**
      * Periodic task to report data ...
      */
-    PeriodicTaskReceiver periodicTaskReceiver = new PeriodicTaskReceiver(this);
+    PeriodicReportDataManager periodicTaskReceiver = new PeriodicReportDataManager(this);
 
     private GeneralLocationListener generalListener;
     private Location gpsLocation = null;

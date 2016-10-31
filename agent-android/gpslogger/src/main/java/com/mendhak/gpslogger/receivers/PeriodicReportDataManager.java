@@ -2,7 +2,6 @@ package com.mendhak.gpslogger.receivers;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -13,11 +12,9 @@ import com.mendhak.gpslogger.Manager.ReportInfoManager;
 import com.mendhak.gpslogger.common.PreferenceHelper;
 import com.mendhak.gpslogger.common.Session;
 import com.mendhak.gpslogger.common.Systems;
-import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.common.slf4j.Logs;
 import com.mendhak.gpslogger.model.Sample;
 import com.mendhak.gpslogger.utils.NetWorkUtil;
-import de.greenrobot.event.EventBus;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,9 +28,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created with IntelliJ IDEA. User: ning.chen Date: 3/22/16 To change this template use File | Settings | File Templates.
  */
-public class PeriodicTaskReceiver extends BroadcastReceiver {
-    private static final String INTENT_ACTION_REPORT = "REPORT_gps_location_samples";
-    private static final Logger LOG = Logs.of(PeriodicTaskReceiver.class);
+public class PeriodicReportDataManager {
+    private static final int REPORT_CODE = 9168;
+    private static final Logger LOG = Logs.of(PeriodicReportDataManager.class);
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private OkHttpClient httpclient;
@@ -52,16 +49,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private GpsLoggingService _loggingService;
     private Intent alarmIntent;
 
-    public PeriodicTaskReceiver(GpsLoggingService loggingService) {
+    public PeriodicReportDataManager(GpsLoggingService loggingService) {
         _loggingService = loggingService;
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (INTENT_ACTION_REPORT.equalsIgnoreCase(intent.getAction())) {
-            LOG.info(String.format("Reporter timer expires. Try reporting %d samples back to server ...", _samples.size()));
-            EventBus.getDefault().postSticky(new CommandEvents.Report());
-        }
     }
 
     public void collectLocationSample() {
@@ -106,11 +95,11 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     public void startReportTimer() {
         long triggerTime = System.currentTimeMillis() + _reportInterval;
 
-        alarmIntent = new Intent(_loggingService, PeriodicTaskReceiver.class);
-        alarmIntent.setAction(INTENT_ACTION_REPORT);
+        alarmIntent = new Intent(_loggingService, ReportDataReceiver.class);
+        alarmIntent.setAction(ReportDataReceiver.INTENT_ACTION_REPORT);
         cancelAlarm();
 
-        PendingIntent sender = PendingIntent.getBroadcast(_loggingService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent sender = PendingIntent.getBroadcast(_loggingService, REPORT_CODE, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager am = (AlarmManager) _loggingService.getSystemService(Context.ALARM_SERVICE);
         if (Systems.isDozing(_loggingService)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -343,7 +332,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private void cancelAlarm() {
         if (alarmIntent != null) {
             AlarmManager am = (AlarmManager) _loggingService.getSystemService(Context.ALARM_SERVICE);
-            PendingIntent sender = PendingIntent.getBroadcast(_loggingService, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent sender = PendingIntent.getBroadcast(_loggingService, REPORT_CODE, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             am.cancel(sender);
         }
     }
