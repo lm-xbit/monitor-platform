@@ -89,32 +89,32 @@ android {
     }
 
     //Copies final APK to this directory
-    assembleRelease.doLast {
-        def File releaseApk
-
-        copy{
-            from "build/outputs/apk/gpslogger-release.apk"
-            into "./"
-
-            // Use a closure to map the file name
-            rename { String fileName ->
-                releaseApk = file(fileName.replace('release', android.defaultConfig.versionName))
-                releaseApk.name
-            }
-        }
-
-        if (project.hasProperty("RELEASE_STORE_FILE")) {
-            //PGP Sign
-            //Verify with gpg --verify ~/Downloads/gpslogger-71.apk.asc
-            signing {
-                sign releaseApk
-            }
-
-            //SHA256 Checksum
-            //Verify with sha256sum -c ~/Downloads/gpslogger-71.apk.SHA256
-            ant.checksum(file: releaseApk, algorithm: "SHA256", pattern: "{0} {1}")
-        }
-    }
+//    assembleRelease.doLast {
+//        def File releaseApk
+//
+//        copy{
+//            from "build/outputs/apk/gpslogger-release.apk"
+//            into "./"
+//
+//            // Use a closure to map the file name
+//            rename { String fileName ->
+//                releaseApk = file(fileName.replace('release', android.defaultConfig.versionName))
+//                releaseApk.name
+//            }
+//        }
+//
+//        if (project.hasProperty("RELEASE_STORE_FILE")) {
+//            //PGP Sign
+//            //Verify with gpg --verify ~/Downloads/gpslogger-71.apk.asc
+//            signing {
+//                sign releaseApk
+//            }
+//
+//            //SHA256 Checksum
+//            //Verify with sha256sum -c ~/Downloads/gpslogger-71.apk.SHA256
+//            ant.checksum(file: releaseApk, algorithm: "SHA256", pattern: "{0} {1}")
+//        }
+//    }
 
 }
 
