@@ -6,7 +6,7 @@ var SchemaValidator = require('models/eschema');
 
 var Schema = mongoose.Schema;
 
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('../xBitLogger');
 var logger = xBitLogger.createLogger({module: 'user'});
 
 function dateFormat(time) {

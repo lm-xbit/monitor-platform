@@ -3,7 +3,7 @@ var bunyan = require('bunyan');
 var User = require('models/user');
 
 var router = express.Router();
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger();
 
 /**

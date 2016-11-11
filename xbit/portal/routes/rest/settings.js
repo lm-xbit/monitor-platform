@@ -5,11 +5,31 @@ var passport = require('passport');
 var User = require('models/user');
 var shortID = require("shortid");
 
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger({module: 'setting'});
 
-var Resp = require('resp');
-var StatusCodes = require('status');
+class Resp {
+    constructor(status, errmsg, data = undefined) {
+        this.status = status;
+        this.errmsg = errmsg;
+        this.data = data;
+    }
+};
+
+var StatusCodes = {
+    OK: 200,
+    OK_STR: 'OK',
+
+    INTERNAL_ERROR: 1001,
+
+    USER_EXISTS: 1002,
+
+    LOGIN_FAILED: 1003,
+
+    BAD_REQUEST: 1004,
+
+    NOT_FOUND: 1005
+};
 
 var router = express.Router();
 

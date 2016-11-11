@@ -1,4 +1,4 @@
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('../xBitLogger');
 var logger = xBitLogger.createLogger({module: 'data'});
 
 var TYPE_NUMBER = 'number';

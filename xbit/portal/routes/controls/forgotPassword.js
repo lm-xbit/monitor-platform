@@ -8,7 +8,7 @@ var ses = require('nodemailer-ses-transport');
 var configs = require('config');
 
 var router = express.Router();
-var xbitLogger = require('common/xBitLogger');
+var xbitLogger = require('xBitLogger');
 logger = xbitLogger.createLogger();
 
 /**

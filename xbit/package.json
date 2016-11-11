@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development webpack-dev-server --hot --inline --history-api-fallback --config ./webpack/webpack.dev.config.js",
-    "compile": "NODE_ENV=production webpack -p --config ./webpack/webpack.production.config.js",
+    "dev": "NODE_ENV=development webpack-dev-server --hot --inline --history-api-fallback --config ./portal/webpack/webpack.dev.config.js",
+    "compile": "NODE_ENV=production webpack -p --config ./portal/webpack/webpack.production.config.js",
     "static": "http-server ./dist -p 8080",
-    "build": "cp -r ./front-end/resources/ ./public && npm run compile",
+    "build": "cp -r ./portal/front-end/resources/ ./portal/public && npm run compile",
     "eslint": "eslint --ext .js,.jsx front-end/** --ignore-path ./front-end/.eslintignore --fix",
-    "start": "node ./bin/www | node_modules/bunyan/bin/bunyan",
+    "start": "node ./portal/bin/www | node_modules/bunyan/bin/bunyan",
     "debug": "node --debug ./bin/www"
   },
   "devDependencies": {

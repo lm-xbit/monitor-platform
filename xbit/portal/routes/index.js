@@ -1,7 +1,7 @@
 var express = require('express');
 var passport = require('passport');
 var router = express.Router();
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger();
 
 /* GET home page. */

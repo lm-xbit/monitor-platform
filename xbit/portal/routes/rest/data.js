@@ -5,7 +5,7 @@ var ESClient = require("lib/esclient");
 var passport = require('passport');
 var User = require('models/user');
 
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger({module: 'data'});
 
 // fix me: debugging mode

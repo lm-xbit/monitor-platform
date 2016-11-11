@@ -1,4 +1,5 @@
 require('app-module-path').addPath(__dirname);
+require('app-module-path').addPath(__dirname + "/../common");
 
 var express = require('express');
 var path = require('path');
@@ -15,11 +16,11 @@ var routes = require('routes/index');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
-var xBitLogger = require('common/xBitLogger');
+var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger();
 
 // passport config
-var User = require("./models/user");
+var User = require("models/user");
 //passport.use(User.createStrategy());
 passport.use(new LocalStrategy(function(username, password, cb) {
   var auth = User.authenticate();
