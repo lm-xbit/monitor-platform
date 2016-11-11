@@ -1,18 +1,45 @@
 #!/usr/bin/env node
 require('app-module-path').addPath(__dirname + "/../");
-require('app-module-path').addPath(__dirname + "/../common");
+require('app-module-path').addPath(__dirname + "/../../common");
+
+const parseArgs = require('minimist');
 
 /**
- * Module dependencies.
+ * the first arg is node
+ * the second arg is start.js
+ *
+ * So the real arguments starts on the third and on
+ *
+ * We expect following arguments and options
+ *
+ * start --config=<configFile>
+ * start -c <configFile>
  */
+args = process.argv.slice(2);
+var argv = parseArgs(args);
+
+if(argv._.length > 0) {
+  console.log("No argument expect. Try following:");
+  console.log("\tstart --config=<configFile>");
+  console.log("\tstart -c <configFile>");
+
+  process.exit(-1);
+}
+
+if(!argv.c && !argv.config) {
+  console.log("Missing configuration file, please pass in config file as following:");
+  console.log("\tstart -c <configFile>");
+  console.log("\tstart --config=<configFile>");
+
+  process.exit(-2);
+}
+
+let config = argv.c || argv.config;
+
 
 /**
- * Get port from environment and store in Express.
+ * HTTP server for monitoring
  */
-var config = require("../config");
-
-console.log("Try start server with configuration", config);
-
 var port = normalizePort(config.port || process.env.PORT || '3000');
 
 var app = require('../app');
@@ -21,20 +48,20 @@ var http = require('http');
 
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
-
+console.log("Starting mnitoring HTTP server on port " + port + " ...");
 var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-var listener = server.listen(port, config.address);
+server.listen(port, config.address);
 server.on('error', onError);
 server.on('listening', onListening);
 
-console.log("########Starting server at " + config.address + ":" + config.port);
+// let's start the main service here
+console.log("Starting KAFKA consumer ...");
+var main = require('../main');
+main.start(config.kafka || {});
 
 /**
  * Normalize a port into a number, string, or false.

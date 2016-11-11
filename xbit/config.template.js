@@ -10,5 +10,9 @@ exports = module.exports = {
     sesAWSId: "xxx",
     sesAWSKey: "xxxxxxx",
     sesRegion: "us-west-2",
-    logFilePath: "xbitLog"
+    logFilePath: "xbitLog",
+    kafka: {
+        address: "127.0.0.1",
+        port: "2181"
+    }
 };
