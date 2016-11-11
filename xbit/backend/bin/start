@@ -2,6 +2,7 @@
 require('app-module-path').addPath(__dirname + "/../");
 require('app-module-path').addPath(__dirname + "/../../common");
 
+const path = require("path");
 const parseArgs = require('minimist');
 
 /**
@@ -34,8 +35,14 @@ if(!argv.c && !argv.config) {
   process.exit(-2);
 }
 
-let config = argv.c || argv.config;
+console.log("Processing config", process.cwd(), argv.c, argv.config);
 
+let configFile = path.join(process.cwd(), argv.c || argv.config);
+
+console.log("Using config file - " + configFile);
+let config = require(configFile);
+
+console.log("Loaded configuration file - " + config);
 
 /**
  * HTTP server for monitoring
