@@ -100,7 +100,7 @@ var indexData = function(timestamp, key, metrics) {
 
   // TODO compose the doc according to the ES mapping
   var message= {
-    topic: "gps",
+    topic: "data-mobile-tracking",
     messages:JSON.stringify(doc)
   } ;
 
