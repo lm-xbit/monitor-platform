@@ -7,14 +7,12 @@
  */
 var kafka = require('kafka-node') ;
 var ESClient = require("lib/esclient");
+var xBitLogger = require("xBitLogger");
 
 var logger = xBitLogger.createLogger({module: 'main'});
 
-module.exports = producer;
-
 class Server {
     constructor() {
-        logger.info("Create KAFKA client with connection string %s", config.kafka.connectString);
         this.kafkaClient = null;
         this.consumer = null;
         this.offset = null;
@@ -26,6 +24,7 @@ class Server {
      */
     start(config) {
         // 1. offset manager to recover offset errors
+        logger.info("Create KAFKA client with connection string %s", config.connectString);
         this.kafkaClient = new kafka.Client(config.connectString || '127.0.0.1:2181/');
         this.offset = new kafka.Offset(this.kafkaClient);
 
