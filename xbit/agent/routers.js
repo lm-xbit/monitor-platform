@@ -80,6 +80,32 @@ router.post("/:key", function(req, res) {
     ]
  }
  *;
+ * ie:
+ * POST http://xbit:8081/key
+ * {
+ *     "status": 200,
+ *     "message": "OK",
+ *     "data":
+ *     [
+ *         {
+  *             "timestamp": 1470154737000,
+  *             "metrics": [
+  *                 {
+  *                     "name": "lat",
+  *                     "value": 1
+  *                 },
+  *                 {
+  *                     "name": "lon",
+  *                     "value": 5
+  *                 },
+  *                 {
+  *                     "name": "speed",
+  *                     "value": 8
+  *                 }
+  *             ]
+  *         }
+  *     ]
+  * }
 
  /**
  * Try save metrics reported at given timestamp to ES
