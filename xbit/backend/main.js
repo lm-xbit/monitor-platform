@@ -57,19 +57,31 @@ class Server {
 
     _handleMessage(message) {
         // message should be a JSON object that need be put to ES
-        let data = message.data;
-        let deviceKey = message.key;
+        /**
+         * message format:
+         * {
+         *   "topic": "data-mobile-tracking",
+         *   "offset": 0,
+         *   "partition": 0,
+         *   "value": {
+         *        "key": "deviceKey",
+         *        "@timestamp": xxxx,
+         *        "location": {
+         *           "lat": xxx,
+         *           "lon": xxx,
+         *           "xxx": xxx",
+         *        }
+         *   }
+         * }
+         */
+        let data = eval("(" + message.value + ")");
+        let deviceKey = data.key;
         let that = this;
 
-        data.forEach(function(sample) {
-            if (sample.metrics.length == 0) {
-                logger.warn("Ingore sample with timestamp %d", sample.timestamp);
-            }
-            else {
-                logger.debug("Indexing sample with timestamp %d: %s", sample.timestamp, JSON.stringify(sample.metrics));
-                that._indexData(sample.timestamp, deviceKey, sample.metrics);
-            }
-        });
+        let timestamp = data['@timestamp'];
+
+        logger.info("Indexing sample with timestamp %d: %s", timestamp, message.value);
+        that._indexData(timestamp, deviceKey, data.location);
     }
 
     _handleError(err) {
@@ -91,11 +103,7 @@ class Server {
         })
     }
 
-    _indexData(timestamp, key, metrics) {
-        var location = {};
-        for (var i = 0; i < metrics.length; i++) {
-            location[metrics[i].name] = metrics[i].value;
-        }
+    _indexData(timestamp, key, location) {
         var doc = {
             key: key,
             '@timestamp': timestamp,

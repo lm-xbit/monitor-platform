@@ -4,3 +4,6 @@ lib    - shared lib folder, usu. adapter for external libs (e.g. ES, Kafka, etc.
 portal - the Portal APP, provide UI for users
 agent  - the Agent APP, provider access points for applications. Applications will collector data, report to Agent, which will save reported data to KAFKA
 backend - the Backend APP, a standalone process to move data in Kafka to ES after processing the data.
+
+topic:
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic data-mobile-tracking
