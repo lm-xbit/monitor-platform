@@ -43,9 +43,6 @@ var StockSplit = function(map) {
 
 var batches = StockSplit(StockList);
 
-var rule = new schedule.RecurrenceRule();
-rule.second = 0; // execute at the first second of every minute
-
 var StockJson = function(stock) {
   var keyval = stock.split('=');
   if (keyval.length != 2 || keyval[1] == undefined || keyval[1] == '') {
@@ -154,7 +151,8 @@ var ParseStockString = function(stocks) {
 }
 
 var minuteTask = function() {
-  return schedule.scheduleJob(rule, function(){
+  // schedule the task once per minute between 9:00 ~ 14:59 from monday to friday
+  return schedule.scheduleJob('0 * 9-14 * * 1-5', function(){
     logger.info("start crawling data");
     for (var idx in batches) {
       var reqOpt = {
