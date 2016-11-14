@@ -20,6 +20,7 @@ package com.mendhak.gpslogger;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import com.mendhak.gpslogger.Manager.CheckConnectionManager;
 import com.mendhak.gpslogger.common.events.CommandEvents;
 import com.mendhak.gpslogger.utils.LogUtil;
@@ -36,7 +37,13 @@ public class StartupReceiver extends BroadcastReceiver {
 
             CheckConnectionManager.stance.init();
             if (CheckConnectionManager.stance.hasConfig()) {
-                EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        EventBus.getDefault().postSticky(new CommandEvents.RequestStartStop(true));
+                        LogUtil.d("StartupReceiver", "Post Delay --> Starting GpsLoggingService");
+                    }
+                }, 98);
             }
 
             LogUtil.d("StartupReceiver", "Starting GpsLoggingService --> " + "intent.getAction():" + intent.getAction());
