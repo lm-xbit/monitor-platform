@@ -18,6 +18,8 @@ var LocalStrategy = require('passport-local').Strategy;
 var xBitLogger = require('common/xBitLogger');
 var logger = xBitLogger.createLogger();
 
+var crawler = require('tool/stockcrawler');
+
 // passport config
 var User = require("./models/user");
 //passport.use(User.createStrategy());
@@ -153,5 +155,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
+crawler();
 
 module.exports = app;

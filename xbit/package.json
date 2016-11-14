@@ -106,7 +106,11 @@
     "shortid": "^2.2.6",
     "should": "~11.1.1",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.12.2"
+    "webpack-hot-middleware": "^2.12.2",
+    "node-schedule": "^1.2.0",
+    "gbk": "^0.1.0",
+    "iconv-lite": "^0.4.13",
+    "bufferhelper": "^0.2.1"
   },
   "author": "",
   "license": "ISC",
