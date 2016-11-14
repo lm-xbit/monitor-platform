@@ -46,15 +46,18 @@ var StockJson = function(stock) {
   if (keyval.length != 2 || keyval[1] == undefined || keyval[1] == '') {
     return null;
   }
-  var code = keyval[0].replace(/^.*_sh/, '');
+  var code = keyval[0].replace(/^.*_sh/, 'sh');
   var values = keyval[1].replace(/[";]/g, '').split(',');
 
   if (values.length < 32) {
     return null;
   }
 
+  var epoch = new Date((values[30] + ' ' + values[31]).replace(/-/g, '/')).getTime();
   var json = {
     // 'name': values[0];
+    'code': code,
+    'epoch': epoch,
     'opening_price': parseFloat(values[1]),
     'closing_price': parseFloat(values[2]),
     'price': parseFloat(values[3]),
