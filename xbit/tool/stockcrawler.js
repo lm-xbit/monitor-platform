@@ -15,6 +15,11 @@ var logger = xBitLogger.createLogger({module: 'crawler'});
 var SINA_FINANCE_HOSTNAME = 'hq.sinajs.cn';
 var SINA_FINANCE_PATH = "/list=";
 
+/**
+ * cache records the timestamp of last record for each stock to avoid duplicated records
+ */
+var epochs = {};
+
 var StockList = require('tool/stocklist');
 
 var StockSplit = function(map) {
@@ -54,8 +59,11 @@ var StockJson = function(stock) {
   }
 
   var epoch = new Date((values[30] + ' ' + values[31]).replace(/-/g, '/')).getTime();
+  if (epochs[code] && epoch <= epochs[code]) {
+    // the record has been polled already, ignore
+    return null;
+  }
   var json = {
-    // 'name': values[0];
     'code': code,
     'epoch': epoch,
     'opening_price': parseFloat(values[1]),
@@ -90,6 +98,7 @@ var StockJson = function(stock) {
     'date': values[30],
     'time': values[31]
   };
+  epochs[code] = epoch;
   return json;
 }
 
