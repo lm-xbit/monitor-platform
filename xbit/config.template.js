@@ -17,9 +17,11 @@ exports = module.exports = {
         port: "2181"
     },
     backend: {
+        address: "127.0.0.1",
         port: 8081
     },
     agent: {
+        address: "127.0.0.1",
         port: 8000
     }
 };

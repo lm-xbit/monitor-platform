@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 require('app-module-path').addPath(__dirname + "/../");
-require('app-module-path').addPath(__dirname + "/../common");
+require('app-module-path').addPath(__dirname + "/../../common");
 
 /**
  * Module dependencies.
@@ -10,7 +10,7 @@ require('app-module-path').addPath(__dirname + "/../common");
  * Get port from environment and store in Express.
  */
 var config = require("xbitConfig");
-config.$initialize(require("../config"));
+config.$initialize(require("../../config"));
 
 var port = normalizePort(config.agent.port || process.env.PORT || '8000');
 
@@ -29,11 +29,11 @@ var server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
-var listener = server.listen(port, config.dns);
+var listener = server.listen(port, config.agent.address);
 server.on('error', onError);
 server.on('listening', onListening);
 
-console.log("########Starting server at " + config.dns + ":" + config.port);
+console.log("########Starting server at " + config.agent.address + ":" + config.port);
 
 /**
  * Normalize a port into a number, string, or false.

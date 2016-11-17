@@ -41,7 +41,7 @@ let configFile = path.join(process.cwd(), argv.c || argv.config);
 
 console.log("Using config file - " + configFile);
 
-var config = require("config");
+var config = require("xbitConfig");
 config.$initialize(require(configFile));
 
 console.log("Loaded configuration file - " + config);
