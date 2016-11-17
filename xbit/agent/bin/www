@@ -9,9 +9,8 @@ require('app-module-path').addPath(__dirname + "/../common");
 /**
  * Get port from environment and store in Express.
  */
-var config = require("../config");
-
-console.log("Try start server with configuration", config);
+var config = require("config");
+config.$initialize(require("../config"));
 
 var port = normalizePort(config.port || process.env.PORT || '3000');
 
