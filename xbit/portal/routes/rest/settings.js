@@ -525,7 +525,7 @@ router.get('/connect/:key', function(req, res, next) {
                 return next(err);
             }
 
-            var config = require("config");
+            var config = require("xbitConfig");
 
             return res.json({
                 status: 200,

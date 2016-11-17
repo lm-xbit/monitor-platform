@@ -9,7 +9,7 @@ require('app-module-path').addPath(__dirname + "/../common");
 /**
  * Get port from environment and store in Express.
  */
-var config = require("config");
+var config = require("xbitConfig");
 config.$initialize(require("../config"));
 
 var port = normalizePort(config.port || process.env.PORT || '3000');

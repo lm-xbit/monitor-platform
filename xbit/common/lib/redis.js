@@ -3,7 +3,7 @@
  */
 
 var redis = require("redis");
-var config = require("../../config");
+var config = require("xbitConfig");
 
 var host = config.redis.host || "127.0.0.1";
 var port = config.redis.port || 6379;

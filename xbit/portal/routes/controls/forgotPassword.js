@@ -5,7 +5,7 @@ var crypto = require('crypto');
 var User = require('models/user');
 var nodemailer = require('nodemailer');
 var ses = require('nodemailer-ses-transport');
-var configs = require('config');
+var configs = require('xbitConfig');
 
 var router = express.Router();
 var xbitLogger = require('xBitLogger');
