@@ -15,5 +15,11 @@ exports = module.exports = {
     kafka: {
         address: "127.0.0.1",
         port: "2181"
+    },
+    backend: {
+        port: 8081
+    },
+    agent: {
+        port: 8000
     }
 };

@@ -18,6 +18,19 @@ config.$initialize = function(conf) {
             config[key] = conf[key];
         }
     }
+
+    // Make sure we have those configuration items
+    if(!config.kafka) {
+        config.kafka = {};
+    }
+
+    if(!config.agent) {
+        config.agent = {};
+    }
+
+    if(!config.backend) {
+        config.backend = {};
+    }
 };
 
 exports = module.exports = config;

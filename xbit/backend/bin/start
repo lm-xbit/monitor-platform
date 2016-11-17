@@ -2,9 +2,6 @@
 require('app-module-path').addPath(__dirname + "/../");
 require('app-module-path').addPath(__dirname + "/../../common");
 
-var config = require("config");
-config.$initialize(require("../config"));
-
 const path = require("path");
 const parseArgs = require('minimist');
 
@@ -43,14 +40,16 @@ console.log("Processing config", process.cwd(), argv.c, argv.config);
 let configFile = path.join(process.cwd(), argv.c || argv.config);
 
 console.log("Using config file - " + configFile);
-let config = require(configFile);
+
+var config = require("config");
+config.$initialize(require(configFile));
 
 console.log("Loaded configuration file - " + config);
 
 /**
  * HTTP server for monitoring
  */
-var port = normalizePort(config.port || process.env.PORT || '3000');
+var port = normalizePort(config.backend.port || process.env.PORT || '8081');
 
 var app = require('../app');
 var debug = require('debug')('xbit:server');
