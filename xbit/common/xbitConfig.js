@@ -13,11 +13,11 @@ let config = {};
 config.$initialize = function(conf) {
     console.log("Try initialize configuration", conf);
 
-    for(let key in conf.key) {
+    for(let key in conf) {
         if(conf.hasOwnProperty(key) && !key.startsWith("$")) {
-            config[key] = key;
+            config[key] = conf[key];
         }
-    };
+    }
 };
 
 exports = module.exports = config;
