@@ -21,6 +21,8 @@ var logger = xBitLogger.createLogger();
 
 // passport config
 var User = require("models/user");
+var redis = require("lib/redis");
+
 //passport.use(User.createStrategy());
 passport.use(new LocalStrategy(function(username, password, cb) {
   var auth = User.authenticate();
@@ -153,6 +155,28 @@ app.use(function(err, req, res, next) {
     message: err.message,
     error: {}
   });
+});
+
+logger.info("Try to load all users and push to redis");
+//Try to load all user and push the keys to redis
+User.find(function(err, users) {
+  if(err) {
+    logger.error("Cannot get basic information due to %s", err.message);
+  }
+  else if(!users) {
+    logger.info("Not exist user");
+  }
+  else {
+    users.forEach(function(user) {
+      user.userKeys.forEach(function (userKey) {
+        redis.sadd(userKey.type, userKey.key, function (err, reply) {
+          if (err) {
+            logger.error("Fail to add the user %s key %s of type %s to redis - %s", user.email, userKey.key, userKey.type, err);
+          }
+        })
+      })
+    });
+  }
 });
 
 

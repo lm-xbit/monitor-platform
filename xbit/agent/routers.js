@@ -9,6 +9,7 @@ var config = require("xbitConfig");
 var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger({module: 'data'});
 var kafka = require('kafka-node') ;
+var redis = require('lib/redis');
 var Producer = kafka.Producer;
 var Client = kafka.Client;
 var client = new Client(config.zookeeper.host + ":" + config.zookeeper.port);
@@ -19,7 +20,7 @@ var producer = new Producer(client, { requireAcks: 1 });
 /**
  *
  * POST
- * https://hostname/data/type/<key>
+ * https://hostname/data/<type>/<key>
  * {
  *    "status": 200,
  *    "message": "OK",
@@ -82,34 +83,61 @@ router.post("/data/:app/:key", function(req, res) {
     });
   }
 
-  // OK, let's take this APP as valid
-  logger.debug("Try processing reported data:\n%s", JSON.stringify(req.body.data));
-
-  // OK, we have data to handle
-  var data = req.body.data;
-  if(data.length === 0) {
-    // TODO: heart beat handling?
-    logger.debug("No metrics reported. Take as heartbeat");
-
-    return res.json({
-      status: 200,
-      message: "OK"
-    });
-  }
-
-  logger.debug("Receive data with %d samples", data.length);
-  for (var i = 0; i < data.length; i++) {
-    if (data[i].metrics.length == 0) {
-      continue;
+  //check if valid request
+  redis.sismember(app, key, function (err, reply) {
+    if (err) {
+      logger.error("Fail to check if the app %s exist - %s", app, err);
+      return res.json(
+        {
+          status: 500,
+          errMsg: err
+        }
+      );
     }
+    else {
+      if (reply != 1) {
+        logger.info("The key %s is not exist of app %s", key, app);
+        return res.json(
+          {
+            status: 403,
+            errMsg: key + " Not exist"
+          }
+        )
+      }
+      else {
+        // OK, let's take this APP as valid
+        logger.debug("Try processing reported data:\n%s", JSON.stringify(req.body.data));
 
-    indexData(app, data[i].timestamp, deviceKey, data[i].metrics);
-  }
+        // OK, we have data to handle
+        var data = req.body.data;
+        if(data.length === 0) {
+          // TODO: heart beat handling?
+          logger.debug("No metrics reported. Take as heartbeat");
 
-  return res.json({
-    status: 200,
-    message: 'OK'
+          return res.json({
+            status: 200,
+            message: "OK"
+          });
+        }
+
+        logger.debug("Receive data with %d samples", data.length);
+        for (var i = 0; i < data.length; i++) {
+          if (data[i].metrics.length == 0) {
+            continue;
+          }
+
+          indexData(app, data[i].timestamp, deviceKey, data[i].metrics);
+        }
+
+        return res.json({
+          status: 200,
+          message: 'OK'
+        });
+      }
+    }
   });
+
+
 });
 
 

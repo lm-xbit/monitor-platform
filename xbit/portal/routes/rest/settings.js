@@ -7,6 +7,7 @@ var shortID = require("shortid");
 
 var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger({module: 'setting'});
+var redis = require("lib/redis");
 
 class Resp {
     constructor(status, errmsg, data = undefined) {
@@ -341,12 +342,13 @@ router.delete("/apps/:key", function(req, res, next) {
         }
 
         var removed = false;
+        var type;
         for(var idx = 0; idx < user.userKeys.length; idx ++) {
             var app = user.userKeys[idx];
             if(app.key === req.params.key) {
                 removed = true;
-
-                logger.debug("Try removing application with key " + app.key);
+                type = app.type;
+                logger.debug("Try removing application with key %s of type %s" ,app.key, type);
                 user.userKeys.splice(idx, 1);
 
                 break;
@@ -367,10 +369,25 @@ router.delete("/apps/:key", function(req, res, next) {
                 return next(err);
             }
 
-            return res.json({
-                status: 200,
-                apps: user.userKeys
+            //try remove the key from redis
+            redis.srem(type, req.params.key, function (err, reply) {
+                if (err) {
+                    logger.error("Fail to remove the key %s from user %s of type %s - %s", req.params.key, user.id, type, err);
+                    return res.json(
+                      {
+                          status: 500,
+                          errMsg: err
+                      }
+                    );
+                }
+                else {
+                    return res.json({
+                        status: 200,
+                        apps: user.userKeys
+                    });
+                }
             });
+
         });
     });
 });
@@ -466,10 +483,26 @@ router.put("/apps", function(req, res, next) {
                 return next(err);
             }
 
-            return res.json({
-                status: 200,
-                apps: user.userKeys
+            //save the keys to redis
+            redis.sadd(req.body.type, req.body.key, function (err, reply) {
+
+                if (err) {
+                    logger.error("Fail to push the keys to redis - " + err);
+                    return res.json(
+                      {
+                          status: 500,
+                          errMsg: err
+                      }
+                    );
+                }
+                else {
+                    return res.json({
+                        status: 200,
+                        apps: user.userKeys
+                    });
+                }
             });
+
         });
     });
 });
