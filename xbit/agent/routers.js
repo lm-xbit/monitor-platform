@@ -84,7 +84,7 @@ router.post("/data/:app/:key", function(req, res) {
   }
 
   //check if valid request
-  redis.sismember(app, key, function (err, reply) {
+  redis.sismember(app, deviceKey, function (err, reply) {
     if (err) {
       logger.error("Fail to check if the app %s exist - %s", app, err);
       return res.json(
