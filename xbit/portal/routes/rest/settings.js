@@ -544,8 +544,8 @@ router.get('/connect/:key', function(req, res, next) {
                     gate: {
                         ssl: config.agent.ssl || false,
                         host: config.agent.dns || config.agent.address,
-                        port: config.agent.port,
-                        uri: config.agent.uri
+                        port: config.agent.port || 8000,
+                        uri: config.agent.uri || "data"
                     },
 
                     /**

@@ -124,6 +124,7 @@ app.use(function(req, res, next) {
   // err.status = 404;
   // next(err);
   logger.error("Got unexpected request: " + req.method + " " + req.url, new Error().stack);
+
   res.status(401).send("Forbidden");
 });
 
