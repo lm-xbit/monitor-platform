@@ -11,7 +11,7 @@ var logger = xBitLogger.createLogger({module: 'data'});
 var kafka = require('kafka-node') ;
 var Producer = kafka.Producer;
 var Client = kafka.Client;
-var client = new Client(config.zookeeper);
+var client = new Client(config.zookeeper.host + ":" + config.zookeeper.port);
 
 var producer = new Producer(client, { requireAcks: 1 });
 
