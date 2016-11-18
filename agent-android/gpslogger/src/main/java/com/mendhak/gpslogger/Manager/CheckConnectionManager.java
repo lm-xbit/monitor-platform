@@ -55,7 +55,7 @@ public class CheckConnectionManager {
         }
     }
 
-    public void checkConnetion(Config config) {
+    public void checkConnetion(final Config config) {
         mConfig = config;
         final Config.Gate gate = mConfig.gate;
         final Config.App app = mConfig.app;
@@ -64,10 +64,10 @@ public class CheckConnectionManager {
             @Override
             protected Object doInBackground(Object[] params) {
                 String path;
-                if (gate.ssl) {
-                    path = String.format("https://%s/rest/connect/%s", gate.host + ":" + gate.port, app.key);
+                if (config.ssl) {
+                    path = String.format("https://%s/rest/connect/%s", config.host + ":" + config.port, app.key);
                 } else {
-                    path = String.format("http://%s/rest/connect/%s", gate.host + ":" + gate.port, app.key);
+                    path = String.format("http://%s/rest/connect/%s", config.host + ":" + config.port, app.key);
                 }
 
                 ConnectionInfo info = new ConnectionInfo();

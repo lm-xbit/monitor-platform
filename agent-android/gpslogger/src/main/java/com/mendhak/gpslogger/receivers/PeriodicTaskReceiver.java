@@ -50,6 +50,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private boolean _ssl = false;
     private String _endpoint;
     private String _appKey;
+    private String _uri;
     private long _reportInterval;
     private long _lastReportEpoch = System.currentTimeMillis();
     private GpsLoggingService _logginService;
@@ -104,8 +105,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         this._ssl = preferenceHelper.getMobileTrackingUseSSL();
         this._endpoint = preferenceHelper.getMobileTrackingEndpoint();
         this._appKey = preferenceHelper.getMobileTrackingAppKey();
+        this._uri = preferenceHelper.getMobileTrackingURI();
 
-        LOG.info("_endpoint:" + _endpoint + ",_appKey:" + _appKey + ",_ssl:" + _ssl + ",_reportInterval:" + _reportInterval);
+        LOG.info("Endpoint: " + _endpoint + ", URI: " + this._uri + ", App Key: " + _appKey + ", Use SSL: " + _ssl + ", Report Interval:" + _reportInterval);
     }
 
     /**
@@ -200,9 +202,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         String path;
 
         if (_ssl) {
-            path = String.format("https://%s/rest/data/%s", _endpoint, _appKey);
+            path = String.format("https://%s/%s/mobile-tracking/%s", _endpoint, _uri, _appKey);
         } else {
-            path = String.format("http://%s/rest/data/%s", _endpoint, _appKey);
+            path = String.format("http://%s/%s/mobile-tracking/%s", _endpoint, _uri, _appKey);
         }
 
         LOG.debug("Try reporting with path - " + path);
@@ -224,11 +226,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             throw new Exception(String.format("Reporting is successful, and payload:\n" + retString));
         } else {
             ReportInfoManager.stance.setMessage(String.format("Reporting is successful, and payload:\n" + retString));
-
-            // LOG.debug("Reporting get HTTP code - " + res.code() + " and payload:\n" + retString);
         }
 
-        // LOG.info("Receive response - " + retString);
         try {
             if (new JSONObject(retString).getBoolean("u")) {
                 loadConf();

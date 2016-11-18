@@ -7,8 +7,10 @@ public  class PreferenceNames {
      */
     public static final String MTRACKING_USE_SSL = "mobile_tracking_use_ssl";
     public static final String MTRACKING_ENDPOINT = "mobile_tracking_endpoint";
+    public static final String MTRACKING_URI = "mobile_tracking_uri";
     public static final String MTRACKING_REPORT_INTERVAL = "mobile_tracking_report_interval";
     public static final String MTRACKING_APP_KEY = "mobile_tracking_app_key";
+
     /**
      *
      */

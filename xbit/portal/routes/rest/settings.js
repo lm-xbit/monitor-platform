@@ -530,12 +530,27 @@ router.get('/connect/:key', function(req, res, next) {
             return res.json({
                 status: 200,
                 data: {
+                    /**
+                     * Information used to confirm the connection
+                     */
                     code: app.connectCode,
+                    ssl: config.ssl || false,
+                    host: config.dns || config.address,
+                    port: config.port,
+
+                    /**
+                     * Gate to report data back
+                     */
                     gate: {
-                        ssl: config.ssl,
-                        host: config.dns || config.address,
-                        port: config.port
+                        ssl: config.agent.ssl || false,
+                        host: config.agent.dns || config.agent.address,
+                        port: config.agent.port,
+                        uri: config.agent.uri
                     },
+
+                    /**
+                     * Application settings. TODO
+                     */
                     app: {
                         key: app.key,
                         type: app.type,

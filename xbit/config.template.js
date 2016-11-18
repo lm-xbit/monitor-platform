@@ -17,11 +17,23 @@ exports = module.exports = {
         port: "2181"
     },
     backend: {
+        /**
+         * Backend usu. provide a monitor portal for internal use
+         */
         address: "127.0.0.1",
         port: 8081
     },
     agent: {
+        /**
+         * Agent will provide service to outside word
+         *
+         * Note: uri is the prefix for the actual data reporting uri, the actual reporting uri would be
+         * /<configured uri>/<app type>/<device>
+         */
+        ssl: false,
+        dns: "www.xbit.ga",
         address: "127.0.0.1",
-        port: 8000
+        port: 8000,
+        uri: "data"
     }
 };

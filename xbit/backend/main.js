@@ -12,6 +12,10 @@ var redis = require("lib/redis");
 
 var logger = xBitLogger.createLogger({module: 'main'});
 
+/**
+ * TODO: we are hard-coding mobile-tracking app, we shall have application management logic to load the topics correctly
+ * @type {string}
+ */
 topic = "data-mobile-tracking";  // Let's make topic as "data-" + <appName>
 
 class Server {
@@ -21,7 +25,6 @@ class Server {
         this.kafkaOffset = null;
         this.topics = [];
     }
-
 
     /**
      * Start the server

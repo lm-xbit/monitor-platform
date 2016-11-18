@@ -63,6 +63,15 @@ public class PreferenceHelper {
         prefs.edit().putString(PreferenceNames.MTRACKING_ENDPOINT, endpoint).apply();
     }
 
+    @ProfilePreference(name = PreferenceNames.MTRACKING_URI)
+    public String getMobileTrackingURI() {
+        return prefs.getString(PreferenceNames.MTRACKING_URI, "data");
+    }
+
+    public void setMobileTrackingUri(String uri) {
+        prefs.edit().putString(PreferenceNames.MTRACKING_URI, uri).apply();
+    }
+
     @ProfilePreference(name = PreferenceNames.MTRACKING_REPORT_INTERVAL)
     public Long getMobileTrackingReportInterval() {
         return prefs.getLong(PreferenceNames.MTRACKING_REPORT_INTERVAL, 60);
