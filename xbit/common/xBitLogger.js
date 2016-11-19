@@ -1,4 +1,4 @@
-var config = require('config');
+var config = require('xbitConfig');
 var bunyan = require('bunyan');
 
 var streams = [{stream: process.stdout}];

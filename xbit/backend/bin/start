@@ -1,0 +1,133 @@
+#!/usr/bin/env node
+require('app-module-path').addPath(__dirname + "/../");
+require('app-module-path').addPath(__dirname + "/../../common");
+
+const path = require("path");
+const parseArgs = require('minimist');
+
+/**
+ * the first arg is node
+ * the second arg is start.js
+ *
+ * So the real arguments starts on the third and on
+ *
+ * We expect following arguments and options
+ *
+ * start --config=<configFile>
+ * start -c <configFile>
+ */
+args = process.argv.slice(2);
+var argv = parseArgs(args);
+
+if(argv._.length > 0) {
+  console.log("No argument expect. Try following:");
+  console.log("\tstart --config=<configFile>");
+  console.log("\tstart -c <configFile>");
+
+  process.exit(-1);
+}
+
+if(!argv.c && !argv.config) {
+  console.log("Missing configuration file, please pass in config file as following:");
+  console.log("\tstart -c <configFile>");
+  console.log("\tstart --config=<configFile>");
+
+  process.exit(-2);
+}
+
+console.log("Processing config", process.cwd(), argv.c, argv.config);
+
+let configFile = path.join(process.cwd(), argv.c || argv.config);
+
+console.log("Using config file - " + configFile);
+
+var config = require("xbitConfig");
+config.$initialize(require(configFile));
+
+console.log("Loaded configuration file - " + config);
+
+/**
+ * HTTP server for monitoring
+ */
+var port = normalizePort(config.backend.port || process.env.PORT || '8081');
+
+var app = require('../app');
+var debug = require('debug')('xbit:server');
+var http = require('http');
+
+app.set('port', port);
+
+console.log("Starting mnitoring HTTP server on port " + port + " ...");
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+server.listen(port, config.address);
+server.on('error', onError);
+server.on('listening', onListening);
+
+// let's start the main service here
+console.log("Starting KAFKA consumer ...");
+var main = require('../main');
+main.start(config.kafka || {});
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

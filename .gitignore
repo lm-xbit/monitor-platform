@@ -39,6 +39,7 @@ jasperreports_temp
 */.gradle
 node_modules
 *.jasper
+config.js
 gradle.properties
 
 # for sbproxy
