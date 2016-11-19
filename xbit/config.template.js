@@ -11,7 +11,10 @@ exports = module.exports = {
     sesAWSKey: "xxxxxxx",
     sesRegion: "us-west-2",
     logFilePath: "xbitLog",
-    connectString: "zookeeper:2181",
+    zookeeper: {
+      host: "127.0.0.1",
+      port: "2181"
+    },
     kafka: {
         address: "127.0.0.1",
         port: "2181"
