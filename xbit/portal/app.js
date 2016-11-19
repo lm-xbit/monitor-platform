@@ -19,8 +19,6 @@ var LocalStrategy = require('passport-local').Strategy;
 var xBitLogger = require('xBitLogger');
 var logger = xBitLogger.createLogger();
 
-var crawler = require('tool/stockcrawler');
-
 // passport config
 var User = require("models/user");
 var redis = require("lib/redis");
