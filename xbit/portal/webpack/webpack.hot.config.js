@@ -82,7 +82,7 @@ config.resolve = {
         path.resolve(__dirname + '/../front-end')
     ],
     modulesDirectories: ['node_modules'],
-    extensions: ['', '.js', '.json']
+    extensions: ['', '.js', '.Gjson']
 };
 
 
