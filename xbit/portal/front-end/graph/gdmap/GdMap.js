@@ -86,8 +86,8 @@ export class GdMap extends React.Component {
         if (self.state.hot.pause === 0) {
           updateLocation(map, self.state.hot, self.state.app);
         }
-      }, 3000); }
-    );
+      }, 3000);
+    });
   };
 
   componentWillUnmount () {
